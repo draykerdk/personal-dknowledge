@@ -1,0 +1,82 @@
+{
+  "dominio": "objetivo",
+  "descricao": "O objetivo de longo prazo (`type: objetivo`): o resultado do ciclo longo, sob a visão, carregado por um projeto central.",
+  "candidatos": {
+    "pasta": "400 - MEMORY/500 - LONG-TERM/Objetivos",
+    "type": "objetivo"
+  },
+  "campos": [
+    {
+      "nome": "resultado",
+      "rotulo": "Resultado",
+      "tipo": "texto",
+      "formato": "longo",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "valor_contribuicao",
+      "rotulo": "Por que importa",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "versao_da_visao",
+      "rotulo": "Versão da visão",
+      "tipo": "link",
+      "alvo": [
+        "visao"
+      ],
+      "ramo": "acima",
+      "dono": "nota",
+      "vazio": "sem visão escrita ainda"
+    },
+    {
+      "nome": "longo_prazo",
+      "rotulo": "Ciclo longo",
+      "tipo": "link",
+      "alvo": [
+        "longo_prazo"
+      ],
+      "ramo": "acima",
+      "dono": "nota"
+    },
+    {
+      "nome": "projeto_central",
+      "rotulo": "Projeto central",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "ramo": "abaixo",
+      "dono": "nota",
+      "vazio": "sem projeto"
+    },
+    {
+      "nome": "deadline",
+      "rotulo": "Prazo",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "nota",
+      "vazio": "até o fim do ciclo longo"
+    },
+    {
+      "nome": "status",
+      "rotulo": "Estado",
+      "tipo": "escolha",
+      "valores": "status",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "date",
+      "rotulo": "Definido em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ]
+}

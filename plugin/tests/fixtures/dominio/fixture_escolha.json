@@ -1,0 +1,86 @@
+{
+  "dominio": "fixture_escolha",
+  "descricao": "Domínio de teste: opções fictícias para provar a função de escolher (não é um domínio real).",
+  "candidatos": {
+    "pasta": "Teste/Opcoes",
+    "type": "opcao_teste"
+  },
+  "escolher": {
+    "categorias": [
+      {
+        "chave": "custo",
+        "regra": "faixa_relativa",
+        "campo": "custo_mes",
+        "referencia": "orcamento"
+      },
+      {
+        "chave": "nivel",
+        "regra": "valor",
+        "campo": "nivel",
+        "valores": [
+          "alto",
+          "medio",
+          "baixo"
+        ]
+      },
+      {
+        "chave": "extras",
+        "regra": "contagem",
+        "campo": "extras"
+      },
+      {
+        "chave": "ativo",
+        "regra": "booleano",
+        "campo": "ativo"
+      }
+    ],
+    "filtros": [
+      {
+        "regra": "igual",
+        "campo": "nivel",
+        "valores": [
+          "bloqueado"
+        ],
+        "motivo": "nível bloqueado"
+      },
+      {
+        "regra": "relativo_maior_que",
+        "campo": "custo_mes",
+        "referencia": "orcamento",
+        "limite": 1.5,
+        "motivo": "custo acima de 1,5 vez o orçamento"
+      }
+    ],
+    "referencias": {
+      "orcamento": {
+        "nota": "Teste/Orcamento.md",
+        "campo": "valor_mensal"
+      }
+    },
+    "rotulos": {
+      "custo": "💰 custo",
+      "nivel": "⭐ nível",
+      "extras": "➕ extras",
+      "ativo": "✅ ativo",
+      "orcamento": "orçamento"
+    }
+  },
+  "registros": [
+    {
+      "tipo": "uso_teste",
+      "descricao": "um uso de uma opção de teste",
+      "campos": [
+        "opcao"
+      ]
+    }
+  ],
+  "contagens": [
+    {
+      "tipo": "uso_teste",
+      "onde": {
+        "dominio": "fixture_escolha"
+      },
+      "rotulo": "usos"
+    }
+  ]
+}

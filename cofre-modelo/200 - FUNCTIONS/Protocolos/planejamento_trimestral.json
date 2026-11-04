@@ -1,0 +1,125 @@
+{
+  "id": "planejamento_trimestral",
+  "name": "🧭 Planejar o trimestre",
+  "icon": "compass",
+  "description": "Abre o trimestre em poucos passos: o trimestre que passou numa linha, o foco (de 1 a 3), os objetivos, a ordem dos valores e o que cada bloco de quatro semanas precisa ter. Grava nas propriedades da nota do trimestre; rodar de novo abre cada passo com o que a nota já tem e deixa o texto como está.",
+  "objetivo": "escolher o foco e os objetivos das próximas doze semanas",
+  "fase": "planejamento",
+  "fase_uso": "nova",
+  "targetFolder": "300 - RUNTIME/302 - Daymiss/Quarterly",
+  "filename": "{{targetquarter:YYYY}}-Q{{targetquarter:Q}}",
+  "defaultFromNote": "300 - RUNTIME/302 - Daymiss/Quarterly/{{targetquarter:YYYY-[Q]Q}}.md",
+  "templateFile": "200 - FUNCTIONS/Models/Modelo Trimestral 1 ano em 12 semanas.md",
+  "onExisting": "merge_frontmatter",
+  "onlyIfEmpty": ["status"],
+  "logMode": "link",
+  "steps": [
+    {
+      "id": "snapshot",
+      "type": "text",
+      "prompt": "📸 O trimestre que passou, numa linha",
+      "placeholder": "Ex.: muito começado, pouco terminado",
+      "info": "Fica no começo da nota do trimestre. A revisão do trimestre anterior, se houver, aparece na seção da herança.",
+      "defaultFrom": { "field": "snapshot" },
+      "optional": true
+    },
+    {
+      "id": "temporada",
+      "type": "multiselect_note",
+      "prompt": "🌟 O foco do trimestre: de 1 a 3 projetos ou áreas",
+      "info": "O que vem primeiro nas próximas doze semanas. A semana puxa as SMART daqui.",
+      "criteria": {
+        "folder": "100 - AREAS",
+        "propertyAny": [
+          [
+            { "key": "type", "value": ["iniciativa", "projeto", "departamento"] },
+            { "key": "status", "value": "active" }
+          ],
+          [{ "key": "type", "value": "area" }]
+        ]
+      },
+      "defaultFrom": { "field": "temporada" },
+      "maxSelect": 3,
+      "emptyMessage": "Nenhum projeto ativo nem área no cofre. O foco fica para depois.",
+      "comoLista": true,
+      "required": true
+    },
+    {
+      "id": "objetivos",
+      "type": "textarea",
+      "prompt": "🎯 Os objetivos do trimestre: de 1 a 3, um por linha",
+      "placeholder": "O que terá acontecido no fim das doze semanas, de um jeito que outra pessoa consiga confirmar",
+      "defaultFrom": { "field": "objetivos" },
+      "comoLista": true,
+      "required": true
+    },
+    {
+      "id": "valores",
+      "type": "multiselect_note",
+      "prompt": "🧭 Os seus valores, na ordem de importância para este trimestre",
+      "info": "Marque na ordem: o primeiro pesa mais na sugestão do valor de cada semana.",
+      "criteria": {
+        "folder": "400 - MEMORY/Valores",
+        "property": [
+          { "key": "type", "value": "valor" },
+          { "key": "grupo", "value": "individual" }
+        ]
+      },
+      "defaultFrom": { "field": "valores" },
+      "comoLista": true,
+      "optional": true
+    },
+    {
+      "id": "valores_relacoes",
+      "type": "multiselect_note",
+      "prompt": "🤝 Os valores das suas relações, na mesma ordem",
+      "criteria": {
+        "folder": "400 - MEMORY/Valores",
+        "property": [
+          { "key": "type", "value": "valor" },
+          { "key": "grupo", "value": "relacional" }
+        ]
+      },
+      "defaultFrom": { "field": "valores_relacoes" },
+      "comoLista": true,
+      "optional": true
+    },
+    {
+      "id": "marco_1_4",
+      "type": "text",
+      "prompt": "🗺️ Semanas 1 a 4: o que precisa ter acontecido?",
+      "info": "As semanas que importam: um marco por bloco de quatro semanas. A nota da semana mostra o marco do bloco dela.",
+      "defaultFrom": { "field": "marco_1_4" },
+      "optional": true
+    },
+    {
+      "id": "marco_5_8",
+      "type": "text",
+      "prompt": "🗺️ Semanas 5 a 8: o que precisa ter acontecido?",
+      "defaultFrom": { "field": "marco_5_8" },
+      "optional": true
+    },
+    {
+      "id": "marco_9_12",
+      "type": "text",
+      "prompt": "🗺️ Semanas 9 a 12: o que precisa ter acontecido?",
+      "defaultFrom": { "field": "marco_9_12" },
+      "optional": true
+    }
+  ],
+  "properties": {
+    "type": "quarterly_note",
+    "quarter": "{{targetquarter:YYYY-[Q]Q}}",
+    "year": "{{targetquarter:YYYY}}",
+    "snapshot": "{{snapshot}}",
+    "temporada": "{{temporada}}",
+    "projetos_foco": "{{temporada}}",
+    "objetivos": "{{objetivos}}",
+    "valores": "{{valores}}",
+    "valores_relacoes": "{{valores_relacoes}}",
+    "marco_1_4": "{{marco_1_4}}",
+    "marco_5_8": "{{marco_5_8}}",
+    "marco_9_12": "{{marco_9_12}}",
+    "status": "open"
+  }
+}

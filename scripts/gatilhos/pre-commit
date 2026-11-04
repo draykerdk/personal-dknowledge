@@ -1,0 +1,8 @@
+#!/bin/sh
+# O gatilho antes do commit: a guarda de vazamento sobre o que foi preparado (o índice do git),
+# e não sobre o disco. Barra o commit se acha um termo, uma fala datada, ou se falta a lista
+# (falha fechada). Instalado por `scripts/instalar_gatilhos.py`, que grava o Python e a lista
+# na configuração local do repositório (`dk.python`, `dk.termos`); a lista nunca entra aqui.
+raiz=$(git rev-parse --show-toplevel) || exit 1
+py=$(git config --get dk.python || echo python3)
+exec "$py" -B "$raiz/scripts/guarda_vazamento.py" "$raiz" --indice

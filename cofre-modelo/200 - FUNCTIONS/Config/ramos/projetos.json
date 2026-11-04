@@ -1,0 +1,324 @@
+{
+  "id": "projetos",
+  "titulo": "Projetos",
+  "descricao": "Áreas, projetos centrais e auxiliares, metas SMART, tarefas e dependências por semana e trimestre.",
+  "escalas": [
+    "semana",
+    "trimestre"
+  ],
+  "centro": {
+    "fonte": "projetos",
+    "rotulo": {
+      "dia": "Projeto",
+      "semana": "Projeto",
+      "trimestre": "Projeto",
+      "ano": "Projeto"
+    },
+    "largura": "170px",
+    "painel": "centro",
+    "habitos": false,
+    "vazio": "sem projeto neste período"
+  },
+  "trabalho": [
+    {
+      "id": "areas",
+      "ligacoes": "padrao",
+      "rotulo": "Área",
+      "fonte": "areas",
+      "largura": "minmax(96px,.62fr)",
+      "celular": 0.42,
+      "painel": "estrutura"
+    }
+  ],
+  "tempo": [
+    {
+      "id": "projetos",
+      "ligacoes": "padrao",
+      "rotulo": "Centrais e auxiliares",
+      "fonte": "projetos",
+      "largura": "minmax(134px,1fr)",
+      "celular": 0.58,
+      "painel": "estrutura"
+    },
+    {
+      "id": "smart",
+      "ligacoes": "padrao",
+      "rotulo": "SMART",
+      "fonte": "smarts",
+      "largura": "minmax(142px,1.05fr)",
+      "celular": 1,
+      "painel": "smart"
+    },
+    {
+      "id": "tarefas",
+      "ligacoes": "padrao",
+      "rotulo": "Tarefas e subtarefas",
+      "fonte": "faixas",
+      "pendentes": "pendentes",
+      "horarios": "horarios",
+      "faixas": true,
+      "largura": "minmax(214px,1.6fr)",
+      "celular": 1,
+      "painel": "tarefas",
+      "marcas": true
+    },
+    {
+      "id": "dia",
+      "rotulo": "Dia",
+      "fonte": "centro",
+      "escalas": [
+        "dia"
+      ],
+      "largura": "minmax(110px,.8fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    },
+    {
+      "id": "semana",
+      "rotulo": "Semana",
+      "fonte": "asa",
+      "tipo": [
+        "semana"
+      ],
+      "escalas": [
+        "dia"
+      ],
+      "largura": "minmax(118px,.82fr)",
+      "celular": 0.5,
+      "painel": "tempo"
+    },
+    {
+      "id": "semana_da_linha",
+      "rotulo": "Semana",
+      "fonte": "centro",
+      "escalas": [
+        "semana"
+      ],
+      "largura": "minmax(118px,.85fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    },
+    {
+      "id": "trimestre",
+      "rotulo": "Trimestre",
+      "fonte": "asa",
+      "tipo": [
+        "trimestre"
+      ],
+      "escalas": [
+        "dia",
+        "semana"
+      ],
+      "largura": "minmax(118px,.86fr)",
+      "celular": 0.5,
+      "painel": "tempo"
+    },
+    {
+      "id": "trimestre_da_linha",
+      "rotulo": "Trimestre",
+      "fonte": "centro",
+      "escalas": [
+        "trimestre"
+      ],
+      "largura": "minmax(118px,.86fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    },
+    {
+      "id": "trimestres",
+      "rotulo": "Trimestres",
+      "fonte": "trimestres",
+      "escalas": [
+        "ano"
+      ],
+      "largura": "minmax(124px,.9fr)",
+      "celular": 0.5,
+      "painel": "tempo"
+    },
+    {
+      "id": "ano",
+      "rotulo": "Ano",
+      "fonte": "centro",
+      "escalas": [
+        "ano"
+      ],
+      "largura": "minmax(118px,.85fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    }
+  ],
+  "paineis": [
+    {
+      "id": "estrutura",
+      "rotulo": "Estrutura",
+      "dica": "a área, as centrais e os auxiliares",
+      "alinhar": "start"
+    },
+    {
+      "id": "centro",
+      "rotulo": "Projeto",
+      "dica": "o projeto da linha",
+      "alinhar": "center"
+    },
+    {
+      "id": "smart",
+      "rotulo": "SMART",
+      "dica": "as SMART do projeto",
+      "alinhar": "start"
+    },
+    {
+      "id": "tarefas",
+      "rotulo": "Tarefas",
+      "dica": "as tarefas e as subtarefas",
+      "alinhar": "start"
+    },
+    {
+      "id": "tempo",
+      "rotulo": "Tempo",
+      "dica": "o período, a semana e o trimestre",
+      "alinhar": "end"
+    }
+  ],
+  "ligacoes": {
+    "estrutura": {
+      "traco": "continuo",
+      "rotulo": "o ramo: área → central → auxiliar → SMART → ação → subtarefa"
+    },
+    "bloqueio": {
+      "traco": "tracejado",
+      "rotulo": "a dependência: o que bloqueia → a bloqueada"
+    },
+    "tempo": {
+      "traco": "pontilhado",
+      "rotulo": "tempo: ação → período → semana → trimestre"
+    },
+    "pendente": {
+      "traco": "tracejado",
+      "rotulo": "pendente de antes"
+    }
+  },
+  "minimo": {
+    "dia": 1288,
+    "semana": 1288,
+    "trimestre": 1206,
+    "ano": 1206
+  },
+  "novo": {
+    "tipos": [
+      {
+        "tipo": "projeto",
+        "rotulo": "Projeto",
+        "titulo": "Novo projeto"
+      },
+      {
+        "tipo": "smart",
+        "rotulo": "SMART",
+        "titulo": "Nova SMART"
+      },
+      {
+        "tipo": "tarefa",
+        "rotulo": "Tarefa",
+        "titulo": "Nova tarefa"
+      },
+      {
+        "tipo": "funcao",
+        "rotulo": "Função",
+        "titulo": "Nova função"
+      }
+    ],
+    "no": {
+      "area": [
+        {
+          "tipo": "projeto",
+          "rotulo": "Novo projeto"
+        }
+      ],
+      "projeto": [
+        {
+          "tipo": "smart",
+          "rotulo": "Nova SMART",
+          "escolher": "soltar"
+        },
+        {
+          "tipo": "tarefa",
+          "rotulo": "Nova tarefa",
+          "escolher": "soltar"
+        },
+        {
+          "tipo": "projeto",
+          "rotulo": "Novo projeto auxiliar",
+          "escolher": {
+            "campo": "projects",
+            "grava": "escolhida"
+          }
+        }
+      ],
+      "smart": [
+        {
+          "tipo": "tarefa",
+          "rotulo": "Nova ação",
+          "escolher": "soltar"
+        }
+      ],
+      "dia": [
+        {
+          "tipo": "tarefa",
+          "rotulo": "Nova tarefa",
+          "escolher": "soltar"
+        }
+      ],
+      "semana": [
+        {
+          "tipo": "smart",
+          "rotulo": "Nova SMART",
+          "escolher": "soltar"
+        },
+        {
+          "tipo": "tarefa",
+          "rotulo": "Nova tarefa",
+          "escolher": "soltar"
+        }
+      ]
+    }
+  },
+  "ciclos": {
+    "semana": [
+      {
+        "emoji": "🌳",
+        "rotulo": "planejar",
+        "dica": "Planejar a semana",
+        "protocolo": "planejamento_semanal",
+        "ponta": "inicio",
+        "variaveis": {
+          "_target_week_pin": "{chave}"
+        }
+      },
+      {
+        "emoji": "📅",
+        "rotulo": "revisar",
+        "dica": "Revisar a semana",
+        "protocolo": "review_semanal",
+        "ponta": "fim",
+        "variaveis": {
+          "_context_date": "{data}"
+        }
+      }
+    ],
+    "trimestre": [
+      {
+        "emoji": "🧭",
+        "rotulo": "planejar",
+        "dica": "Planejar o trimestre",
+        "protocolo": "planejamento_trimestral",
+        "ponta": "inicio",
+        "variaveis": {
+          "_target_quarter_pin": "{chave}"
+        }
+      }
+    ]
+  }
+}

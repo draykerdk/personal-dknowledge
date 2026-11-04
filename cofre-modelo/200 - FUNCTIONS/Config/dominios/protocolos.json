@@ -1,0 +1,46 @@
+{
+  "dominio": "protocolos",
+  "descricao": "Os protocolos como candidatos de cada parada do 🧭 Router Central (arquitetura do núcleo de 21/10, seção 4.3; plano de 22/10, seção 4). Num passo `suggest` de router com `\"rankOptions\": \"protocolos\"`, as opções que levam a protocolos são ordenadas pelos pontos do protocolo de destino: a `fase_uso` do JSON e o uso recente, as vezes em que ele rodou nos últimos 14 dias, contadas nas linhas que o motor grava nas Days. O que não leva a protocolo (outro passo, ❔, 🔙) fica onde está. A ferramenta `aposentada` continua na parada, por último entre os protocolos (o filtro a põe à parte, com o motivo; nada some nem é apagado). O peso propõe a ordem, com o porquê, e a escolha é dele. Na seção Protocolos do painel do nó (o P13, aprovado em 02/11), a situação do nó (um sinal dele, ou o estado pela tabela do tipo, o bloco `situacoes` do modelo) sobe os protocolos da parada do 🧭 que ela aponta: a categoria `contexto_do_no` conta os fatos da situação (\"porque prazo em 24/10\"); nos routers o campo não existe e vale 0, sem aparecer, então a ordem deles não muda.",
+  "candidatos": {
+    "pasta": "200 - FUNCTIONS/Protocolos"
+  },
+  "escolher": {
+    "categorias": [
+      {
+        "chave": "contexto_do_no",
+        "regra": "contagem",
+        "campo": "contexto_do_no"
+      },
+      {
+        "chave": "fase_uso",
+        "regra": "valor",
+        "campo": "fase_uso",
+        "valores": [
+          "em_uso",
+          "nova",
+          "dominada"
+        ]
+      },
+      {
+        "chave": "uso_recente",
+        "regra": "contagem",
+        "campo": "uso_recente"
+      }
+    ],
+    "filtros": [
+      {
+        "regra": "igual",
+        "campo": "fase_uso",
+        "valores": [
+          "aposentada"
+        ],
+        "motivo": "aposentada (vem por último)"
+      }
+    ],
+    "rotulos": {
+      "contexto_do_no": "porque",
+      "fase_uso": "⭐ fase",
+      "uso_recente": "rodou em 14 dias"
+    }
+  }
+}

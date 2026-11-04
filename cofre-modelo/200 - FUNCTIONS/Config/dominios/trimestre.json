@@ -1,0 +1,161 @@
+{
+  "dominio": "trimestre",
+  "descricao": "O trimestre (`type: quarterly_note`). Os campos que a Missão mostra, na ordem do painel do nó; o 🧭 grava o foco, os objetivos, os valores e os marcos.",
+  "candidatos": {
+    "pasta": "300 - RUNTIME/302 - Daymiss/Quarterly",
+    "type": "quarterly_note"
+  },
+  "campos": [
+    {
+      "nome": "theme",
+      "rotulo": "Tema",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "visao",
+      "rotulo": "Visão",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "objetivos",
+      "rotulo": "Objetivos",
+      "tipo": "lista",
+      "dono": "protocolo:planejamento_trimestral"
+    },
+    {
+      "nome": "valores",
+      "rotulo": "Valores",
+      "tipo": "lista",
+      "dono": "protocolo:planejamento_trimestral#valores"
+    },
+    {
+      "nome": "valores_relacoes",
+      "rotulo": "Valores das relações",
+      "tipo": "lista",
+      "dono": "protocolo:planejamento_trimestral#valores_relacoes"
+    },
+    {
+      "nome": "temporada",
+      "rotulo": "Temporada (as centrais)",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "abaixo",
+      "dono": "protocolo:planejamento_trimestral#temporada"
+    },
+    {
+      "nome": "projetos_foco",
+      "rotulo": "Foco do trimestre",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "abaixo",
+      "dono": "protocolo:planejamento_trimestral"
+    },
+    {
+      "nome": "metricas_chave",
+      "rotulo": "Os 2 números",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "marco_1_4",
+      "rotulo": "Marco das semanas 1 a 4",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "protocolo:planejamento_trimestral#marco_1_4"
+    },
+    {
+      "nome": "marco_5_8",
+      "rotulo": "Marco das semanas 5 a 8",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "protocolo:planejamento_trimestral#marco_5_8"
+    },
+    {
+      "nome": "marco_9_12",
+      "rotulo": "Marco das semanas 9 a 12",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "protocolo:planejamento_trimestral#marco_9_12"
+    },
+    {
+      "nome": "bloco_sagrado",
+      "rotulo": "Bloco Sagrado",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "estrategia",
+      "rotulo": "Estratégia",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "habilidades",
+      "rotulo": "Habilidades",
+      "tipo": "lista",
+      "dono": "nota"
+    },
+    {
+      "nome": "status",
+      "rotulo": "Status",
+      "tipo": "escolha",
+      "valores": [
+        "open",
+        "closed"
+      ],
+      "dono": "protocolo:planejamento_trimestral"
+    },
+    {
+      "nome": "quarter",
+      "rotulo": "Trimestre",
+      "tipo": "data",
+      "formato": "trimestre",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "year",
+      "rotulo": "Ano",
+      "tipo": "texto",
+      "formato": "numero",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "criar": {
+    "via": "protocolo",
+    "protocolo": "planejamento_trimestral",
+    "passos": {
+      "temporada": "temporada"
+    }
+  },
+  "formacao": {
+    "colunas": [
+      "projeto",
+      "smart",
+      "acao",
+      "semana",
+      "centro",
+      "ano",
+      "visao",
+      "lado"
+    ],
+    "mais": "acao",
+    "aVista": 40
+  }
+}

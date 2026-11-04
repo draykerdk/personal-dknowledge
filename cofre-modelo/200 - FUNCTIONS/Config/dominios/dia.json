@@ -1,0 +1,78 @@
+{
+  "dominio": "dia",
+  "descricao": "O dia (a Day, `type: daily_note`, `302 - Daymiss/Day/AAAA-MM-DD.md`; nasce pelo `createDailyNote`, só com o gesto dele). Os campos que a Missão lê, na ordem do painel do nó (página Missão, §4.3, §8.9 e §8.10): a `cidade` é do ✈️; as pessoas e o dinheiro do dia se editam no painel do dia (P9: as pessoas escolhidas entre as notas de pessoa, ou a pessoa nova pelo Novo do tipo, o modelo `pessoa`, no \"Criar nova\" do \"＋ Adicionar\" do campo, desde 29/10), e o dinheiro também vem da pergunta opcional do 🌙. Os campos do ▶️ e do 🌙 são deles (a 006, §2) e não entram aqui. A Day sem `type` (as antigas) é modelo antigo e não se regrava.",
+  "candidatos": {
+    "pasta": "300 - RUNTIME/302 - Daymiss/Day",
+    "type": "daily_note"
+  },
+  "campos": [
+    {
+      "nome": "cidade",
+      "rotulo": "Cidade",
+      "tipo": "texto",
+      "formato": "curto",
+      "sugestao": [
+        {
+          "de": "ultimo_lugar"
+        }
+      ],
+      "dono": "protocolo:novo_hub_cidade#cidade"
+    },
+    {
+      "nome": "pessoas",
+      "rotulo": "Pessoas",
+      "tipo": "link",
+      "alvo": [
+        "pessoa"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota"
+    },
+    {
+      "nome": "entrou",
+      "rotulo": "Entrou",
+      "tipo": "texto",
+      "formato": "reais",
+      "dono": "nota"
+    },
+    {
+      "nome": "saiu",
+      "rotulo": "Saiu",
+      "tipo": "texto",
+      "formato": "reais",
+      "dono": "nota"
+    },
+    {
+      "nome": "week",
+      "rotulo": "Semana",
+      "tipo": "data",
+      "formato": "semana",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "quarter",
+      "rotulo": "Trimestre",
+      "tipo": "data",
+      "formato": "trimestre",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "formacao": {
+    "colunas": [
+      "projeto",
+      "smart",
+      "acao",
+      "centro",
+      "semana",
+      "trimestre",
+      "ano",
+      "visao",
+      "lado"
+    ],
+    "mais": "acao",
+    "aVista": 40
+  }
+}

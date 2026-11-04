@@ -1,0 +1,25 @@
+# dependências e o que o build gera
+node_modules/
+plugin/main.js
+dist/
+build/
+*.tsbuildinfo
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+
+# a lista privada da guarda nunca entra (ela mora fora do repositório; isto é a segunda trava)
+termos_privados*
+*.privado.*
+.env
+.env.*
+
+# sistema e editores
+.DS_Store
+*.log
+.obsidian/workspace*.json
+
+# o relatório local da exportação (o que ela copiou da última vez; ver scripts/exportar-do-cofre.py)
+scripts/exportados.txt

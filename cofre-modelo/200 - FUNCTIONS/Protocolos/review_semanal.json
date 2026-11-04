@@ -1,0 +1,89 @@
+{
+  "id": "review_semanal",
+  "name": "📅 Revisar a semana",
+  "icon": "calendar",
+  "description": "Fecha a semana em poucos passos: as SMART que ficaram prontas, o que foi feito numa linha, o que travou, uma lição, onde o valor da semana apareceu e o que muda na próxima. As respostas ficam numa nota de revisão; a nota da semana recebe o feito, a mudança e o fechamento. A semana é a da nota aberta (a da semana, ou um dia dela).",
+  "objetivo": "olhar a semana como ela foi e escolher uma mudança pequena",
+  "fase": "revisao",
+  "fase_uso": "nova",
+  "targetFolder": "400 - MEMORY/200 - WEEKLY",
+  "filename": "{{date:GGGG}}-W{{date:WW}} - Review",
+  "template": "# 📅 Revisão: {{date:GGGG}}-W{{date:WW}}\n\n## 📦 O que foi feito\n{{fato_semana}}\n\n## 🪨 O que travou\n{{travou}}\n\n## 💡 Uma lição\n{{licao}}\n\n## 🧭 O valor da semana\n{{valor_vivido}}\n\n## 👣 O que muda na próxima semana\n{{ajuste_minimo}}\n\n---\n*O que não foi feito não é falha: é informação para o próximo plano.*",
+  "logMode": "link",
+  "steps": [
+    {
+      "id": "smart_feitas",
+      "type": "multiselect_note",
+      "prompt": "✅ Quais SMART desta semana ficaram prontas?",
+      "info": "As SMART da semana ainda abertas. As marcadas passam a concluídas; as outras ficam como estão.",
+      "criteria": {
+        "folder": "TaskNotes/Tasks",
+        "property": [
+          { "key": "type", "value": "tarefa_smart" },
+          { "key": "week", "value": "{{date:GGGG-[W]WW}}" },
+          { "key": "status", "value": ["done", "cancelled"], "negate": true }
+        ]
+      },
+      "skipLabel": "⏭️ Nenhuma ficou pronta",
+      "emptyMessage": "Nenhuma SMART aberta nesta semana.",
+      "optional": true
+    },
+    {
+      "id": "fato_semana",
+      "type": "text",
+      "prompt": "📦 O que foi feito, numa linha",
+      "info": "Os fatos, sem nota. A resposta abre com as tarefas concluídas da semana.",
+      "defaultFrom": { "sugestao": "feitas_da_semana" },
+      "required": true
+    },
+    {
+      "id": "travou",
+      "type": "text",
+      "prompt": "🪨 O que travou?",
+      "placeholder": "Ex.: a espera por uma resposta; o dia que sumiu",
+      "optional": true
+    },
+    {
+      "id": "licao",
+      "type": "text",
+      "prompt": "💡 Uma lição da semana",
+      "optional": true
+    },
+    {
+      "id": "valor_vivido",
+      "type": "text",
+      "prompt": "🧭 Onde o valor da semana apareceu?",
+      "info": "Um momento concreto basta. Se ele não apareceu, isso também é uma resposta.",
+      "optional": true
+    },
+    {
+      "id": "ajuste_minimo",
+      "type": "text",
+      "prompt": "👣 O que muda na próxima semana? Uma mudança pequena.",
+      "info": "A próxima semana abre com esta resposta, no 🌳.",
+      "defaultFrom": {
+        "path": "300 - RUNTIME/302 - Daymiss/Week/{{date:GGGG-[W]WW}}.md",
+        "field": "ajuste_minimo",
+        "origem": "o que a nota da semana já tem"
+      },
+      "required": true
+    }
+  ],
+  "properties": {
+    "type": "review_weekly",
+    "date": "{{date:YYYY-MM-DD}}",
+    "week": "{{date:GGGG-[W]WW}}",
+    "status": "closed",
+    "fato_semana": "{{fato_semana}}",
+    "ajuste_minimo": "{{ajuste_minimo}}"
+  },
+  "frontmatterTarget": "weekly",
+  "frontmatterTargetFields": ["status", "fato_semana", "ajuste_minimo"],
+  "updateSelectedNotes": {
+    "variable": "smart_feitas",
+    "allowedFolder": "TaskNotes/Tasks",
+    "properties": {
+      "status": "done"
+    }
+  }
+}

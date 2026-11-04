@@ -1,0 +1,6 @@
+#!/bin/sh
+# O gatilho da mensagem: a guarda de vazamento sobre o texto da mensagem do commit (as linhas
+# com # não contam). Instalado por `scripts/instalar_gatilhos.py`.
+raiz=$(git rev-parse --show-toplevel) || exit 1
+py=$(git config --get dk.python || echo python3)
+exec "$py" -B "$raiz/scripts/guarda_vazamento.py" "$raiz" --mensagem "$1"

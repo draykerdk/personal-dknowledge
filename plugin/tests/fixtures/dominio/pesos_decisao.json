@@ -1,0 +1,25 @@
+{
+  "pesos": {
+    "agendada_hoje": 3,
+    "fixture_escolha": {
+      "custo": {
+        "ate_base": 2,
+        "ate_20_acima": 1,
+        "acima": 0
+      },
+      "nivel": {
+        "alto": 2,
+        "medio": 1,
+        "baixo": 0
+      },
+      "extras": {
+        "cada": 1,
+        "maximo": 3
+      },
+      "ativo": {
+        "sim": 1,
+        "nao": 0
+      }
+    }
+  }
+}

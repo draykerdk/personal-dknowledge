@@ -1,0 +1,102 @@
+{
+  "dominio": "pessoa",
+  "descricao": "A pessoa (`type: person_profile`, em `500 - RESOURCES/Pessoas`): os campos que o painel do nó mostra.",
+  "candidatos": {
+    "pasta": "500 - RESOURCES/Pessoas",
+    "type": "person_profile"
+  },
+  "campos": [
+    {
+      "nome": "aliases",
+      "rotulo": "Apelido",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "Conheceu",
+      "rotulo": "Como nos conhecemos",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "Contexto do encontro",
+      "rotulo": "Onde nos encontramos",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "Ultimo encontro",
+      "rotulo": "Último encontro",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "nota"
+    },
+    {
+      "nome": "Nascimento",
+      "rotulo": "Nascimento",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "Idade",
+      "rotulo": "Idade",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "Telefone",
+      "rotulo": "Telefone",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "Pendências",
+      "rotulo": "Pendências",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "Relacionado",
+      "rotulo": "Relacionado",
+      "tipo": "lista",
+      "dono": "nota"
+    },
+    {
+      "nome": "Importancia e prioridade",
+      "rotulo": "Importância e prioridade",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "Pessoas",
+      "rotulo": "Pessoas",
+      "tipo": "link",
+      "alvo": [
+        "pessoa"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota"
+    },
+    {
+      "nome": "Livros",
+      "rotulo": "Livros",
+      "tipo": "lista",
+      "dono": "nota"
+    },
+    {
+      "nome": "Hábitos e Habilidades",
+      "rotulo": "Hábitos e habilidades",
+      "tipo": "lista",
+      "dono": "nota"
+    }
+  ]
+}

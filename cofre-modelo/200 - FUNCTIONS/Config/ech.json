@@ -1,0 +1,113 @@
+{
+  "contrato": "O que conta em cada fator do ECH, com o porquê, num lugar só: a expansão (o que entrou), a complexidade (quanto disso foi organizado e ligado, e o que está solto) e a harmonia (a integridade e a fluidez). São contagens de fatos do período, nunca nota da pessoa, e um fator não se multiplica pelo outro. Quem lê: `lerEch` e `contarEch` (src/engine/ech.ts do plugin), que contam só o que está declarado aqui. Mudar o que conta é mudar este arquivo, sem código. As datas dizem onde a coisa cai no tempo: um campo do frontmatter, 'nome' (a primeira data AAAA-MM-DD no nome do arquivo) ou 'criada' (a data de criação do arquivo), na ordem dada; sem nenhuma, a coisa não entra na conta do período.",
+  "expansao": [
+    {
+      "id": "diario",
+      "rotulo": "dias com diário",
+      "tipo": "secoes",
+      "pasta": "300 - RUNTIME/302 - Daymiss/Day",
+      "secoes": [
+        { "de": "## ✍️ Diário", "ate": ["### 🌙 Noite"] },
+        { "de": "### 🌙 Noite" }
+      ],
+      "porque": "As reflexões entram no diário da Day: o texto livre entre '## ✍️ Diário' e '### 🌙 Noite', e o que se escreve em '### 🌙 Noite'. Conta a Day com texto escrito numa das duas, sem os títulos, as dicas em itálico e os comentários. A data é o nome da Day."
+    },
+    {
+      "id": "ideias_capturadas",
+      "rotulo": "ideias novas",
+      "tipo": "notas",
+      "pasta": "500 - RESOURCES/Ideias",
+      "type": ["idea"],
+      "data": ["date"],
+      "porque": "A ideia mora em 500 - RESOURCES/Ideias, com `type: idea` e `date`."
+    },
+    {
+      "id": "inbox",
+      "rotulo": "capturas na Inbox",
+      "tipo": "notas",
+      "pasta": "300 - RUNTIME/001 - INBOX",
+      "so_capturas": true,
+      "data": ["nome", "criada"],
+      "porque": "A captura à mão cai na Inbox, sem frontmatter. Conta só o que a triagem trata como captura (sem índice, sem as notas do sistema e sem rascunho de protocolo). Sem campo de data, vale a data do nome e, sem ela, a de criação do arquivo. A que já saiu da Inbox é contada pela casa nova (a ideia, a tarefa)."
+    },
+    {
+      "id": "tarefas",
+      "rotulo": "tarefas",
+      "tipo": "notas",
+      "pasta": ["TaskNotes/Tasks", "TaskNotes/Archive"],
+      "type": ["task", "tarefa_smart"],
+      "data": ["dateCreated"],
+      "ignorar": { "campo": "status", "em": ["cancelled"] },
+      "porque": "A TaskNote nasce com `dateCreated`, em TaskNotes/Tasks ou já arquivada. A cancelada é neutra e não conta."
+    },
+    {
+      "id": "notas",
+      "rotulo": "notas criadas",
+      "tipo": "notas",
+      "pasta": "",
+      "data": ["created"],
+      "fora_das_pastas": ["200 - FUNCTIONS/Models", "200 - FUNCTIONS/Templates", "TaskNotes", "300 - RUNTIME/302 - Daymiss", "500 - RESOURCES/Ideias", "300 - RUNTIME/001 - INBOX"],
+      "porque": "As outras notas que nascem com `created` (o projeto, o departamento, a nota de função). Ficam de fora os modelos, as tarefas, as notas de período e as ideias e capturas, que já têm a fonte própria."
+    }
+  ],
+  "complexidade": [
+    {
+      "fonte": "ideias_capturadas",
+      "organizado": { "campo": "destino", "preenchido": true },
+      "porque": "A ideia chegou ao lugar quando tem `destino`."
+    },
+    {
+      "fonte": "inbox",
+      "organizado": null,
+      "porque": "A captura que ainda está na Inbox está solta. A que foi triada saiu da pasta e conta na casa nova."
+    },
+    {
+      "fonte": "tarefas",
+      "organizado": {
+        "todas": [
+          { "campo": "projects", "preenchido": true },
+          { "alguma": [
+            { "campo": "week", "preenchido": true },
+            { "campo": "scheduled", "preenchido": true },
+            { "campo": "status", "em": ["someday"] }
+          ] }
+        ]
+      },
+      "porque": "A tarefa está organizada e ligada quando tem o pai (`projects`: a SMART, o projeto ou o departamento) e um quando (`week`, `scheduled` ou 'algum dia'). Sem os dois, está solta."
+    },
+    {
+      "fonte": "notas",
+      "organizado": { "ligada": true },
+      "porque": "A nota está ligada quando aponta para alguma outra nota do cofre (um link no texto ou no frontmatter). Sem link, está solta."
+    }
+  ],
+  "harmonia": {
+    "contradicoes": [],
+    "atritos": [],
+    "dias": {
+      "rotulo": "dias com registro e tarefa feita",
+      "diario": "diario",
+      "tarefas": {
+        "pasta": ["TaskNotes/Tasks", "TaskNotes/Archive"],
+        "data": "completedDate",
+        "campo_estado": "status",
+        "feitos": ["done"]
+      },
+      "porque": "O dia que captou e executou: a Day com texto no diário (a fonte `diario`) e pelo menos uma tarefa concluída nele (`completedDate`)."
+    }
+  },
+  "fora": [
+    {
+      "o_que": "as contradições e os atritos do sistema",
+      "porque": "O pacote não traz uma pasta para registrá-los; quem quiser contá-los declara aqui, em `harmonia.contradicoes` e `harmonia.atritos`, a pasta e o estado das notas que os registram."
+    },
+    {
+      "o_que": "a captura triada para fora da Inbox",
+      "porque": "Ao sair da Inbox a nota não guarda que veio dela: a triagem move o arquivo e não grava a origem. Ela conta na casa nova (a ideia, a tarefa), e a Inbox conta só o que ainda está lá."
+    },
+    {
+      "o_que": "a data de criação do arquivo nas outras notas",
+      "porque": "A cópia do cofre e a sincronização podem mudar a data do arquivo; ela vale só na Inbox, onde a captura não tem outra data, e depois da data do nome."
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "dominio": "tarefa",
+  "descricao": "A ação (a TaskNote, `type: task`). Os campos padrão na ordem do painel do nó e do Novo, e a tabela de estados, um por status do TaskNotes, que vale para toda TaskNote, a SMART inclusive.",
+  "candidatos": {
+    "pasta": "TaskNotes/Tasks",
+    "type": "task"
+  },
+  "campos": [
+    {
+      "nome": "title",
+      "rotulo": "Título",
+      "tipo": "texto",
+      "formato": "curto",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "status",
+      "rotulo": "Status",
+      "tipo": "escolha",
+      "valores": "status",
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "fixo",
+          "valor": "next-action"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "scheduled",
+      "rotulo": "Dia e hora",
+      "tipo": "data",
+      "formato": "dia_hora",
+      "sugestao": [
+        {
+          "de": "linha.dia"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "sem data"
+    },
+    {
+      "nome": "due",
+      "rotulo": "Prazo",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "nota"
+    },
+    {
+      "nome": "week",
+      "rotulo": "Semana",
+      "tipo": "data",
+      "formato": "semana",
+      "sugestao": [
+        {
+          "de": "linha.semana"
+        },
+        {
+          "de": "heranca.smart"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "projects",
+      "rotulo": "SMART ou projeto",
+      "tipo": "link",
+      "alvo": [
+        "smart",
+        "projeto",
+        "departamento",
+        "tarefa",
+        "roteiro_video"
+      ],
+      "multiplo": true,
+      "ramo": "acima",
+      "sugestao": [
+        {
+          "de": "no.smart"
+        },
+        {
+          "de": "fio.projeto"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "sem projeto"
+    },
+    {
+      "nome": "contexts",
+      "rotulo": "Onde",
+      "tipo": "lista",
+      "valores": "contextos",
+      "sugestao": [
+        {
+          "de": "onde_estou"
+        },
+        {
+          "de": "lugar.do_dia"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "sem lugar marcado"
+    },
+    {
+      "nome": "timeEstimate",
+      "rotulo": "Estimativa",
+      "tipo": "texto",
+      "formato": "minutos",
+      "dono": "nota",
+      "vazio": "sem estimativa"
+    },
+    {
+      "nome": "impacto",
+      "rotulo": "Impacto",
+      "tipo": "texto",
+      "formato": "numero",
+      "sugestao": [
+        {
+          "de": "heranca.smart"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "priority",
+      "rotulo": "Prioridade",
+      "tipo": "escolha",
+      "valores": "prioridade",
+      "dono": "nota"
+    },
+    {
+      "nome": "blockedBy",
+      "rotulo": "Bloqueada por",
+      "tipo": "link",
+      "alvo": [
+        "tarefa",
+        "smart"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota"
+    },
+    {
+      "nome": "relacoes",
+      "rotulo": "Relações (fora de projeto)",
+      "tipo": "lista",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "origem",
+      "rotulo": "Origem",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "derivado",
+      "criar": false,
+      "conhecidos": [
+        "agente"
+      ]
+    },
+    {
+      "nome": "dateCreated",
+      "rotulo": "Criada em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "completedDate",
+      "rotulo": "Concluída em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "criar": {
+    "via": "tasknotes"
+  },
+  "estados": [
+    {
+      "valor": "inbox",
+      "estado": "entrada",
+      "rotulo": "entrada",
+      "mostrar": "contorno",
+      "marca": "triagem",
+      "lugar": "tempo"
+    },
+    {
+      "valor": "next-action",
+      "estado": "aberta",
+      "rotulo": "próxima",
+      "mostrar": "contorno",
+      "lugar": "tempo"
+    },
+    {
+      "valor": "in-progress",
+      "estado": "em_curso",
+      "rotulo": "em curso",
+      "mostrar": "contorno",
+      "marca": "•",
+      "lugar": "tempo"
+    },
+    {
+      "valor": "waiting-on",
+      "estado": "esperando",
+      "rotulo": "esperando",
+      "mostrar": "contorno",
+      "marca": "⏳",
+      "lugar": "tempo"
+    },
+    {
+      "valor": "someday",
+      "estado": "algum_dia",
+      "rotulo": "algum dia",
+      "mostrar": "claro",
+      "lugar": "algum_dia"
+    },
+    {
+      "valor": "done",
+      "estado": "feita",
+      "rotulo": "feita",
+      "mostrar": "cheio",
+      "lugar": "conclusao"
+    },
+    {
+      "valor": "cancelled",
+      "estado": "cancelada",
+      "rotulo": "cancelada",
+      "mostrar": "oculto",
+      "lugar": "fora"
+    }
+  ]
+}

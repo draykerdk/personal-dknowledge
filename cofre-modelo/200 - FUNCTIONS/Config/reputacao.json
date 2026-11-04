@@ -1,0 +1,231 @@
+{
+  "contrato": "A base da reputação contextual, num lugar só: os tipos de função com o peso inicial (P₀) e como se reconhecem, as nove células da grade ciclo × ECH com o multiplicador, a tradução da `fase` para o momento do ciclo e para o fator da rodada, as espécies do ECH que passam e as que ficam abertas, de onde vem cada fato, as meias-vidas, os níveis, os módulos e os objetivos do sinal de aprendizado. A reputação é da função no uso, nunca da pessoa, e nada se grava nas notas: a conta se faz na leitura, a partir dos fatos com data do cofre. Regra: R = P₀ + Σ células multiplicador × Σ passagens 0,5^(idade em dias / meia-vida); a passagem conta uma vez por célula por rodada. O esquecimento desconta só as passagens, então R nunca fica abaixo do P₀. O aberto (o solto) aparece e nunca desconta. O sinal de aprendizado é calculado e mostrado, e não muda nenhum número: o aprendizado começa desligado. Quem lê: `lerReputacao` e as contas de src/engine/reputacao.ts do plugin. Mudar um valor é mudar este arquivo, sem código.",
+  "momentos": [
+    { "id": "planejar", "rotulo": "Planejar", "porque": "O primeiro dos três momentos do ciclo: o que se decide antes de fazer." },
+    { "id": "executar", "rotulo": "Executar", "porque": "O que se faz, se capta e se escreve no dia." },
+    { "id": "revisar", "rotulo": "Revisar", "porque": "O que se tira do que já aconteceu e volta para o plano." }
+  ],
+  "sem_momento": {
+    "rotulo": "sem momento",
+    "porque": "O protocolo sem `fase` não diz em que momento do ciclo roda: a passagem dele aparece à parte e nunca é adivinhada."
+  },
+  "fatores": [
+    { "id": "expansao", "rotulo": "Expansão", "porque": "O que entra: notas, reflexões e ideias." },
+    { "id": "complexidade", "rotulo": "Complexidade", "porque": "A organização do que entra nos lugares certos, o planejamento e a conexão entre as partes." },
+    { "id": "harmonia", "rotulo": "Harmonia", "porque": "A integridade do sistema: a limpeza, nada se contradizendo de verdade, a fluidez." }
+  ],
+  "celulas": [
+    { "momento": "planejar", "fator": "expansao", "multiplicador": 1, "porque": "Expansão vale ×1 em todo momento: é o que mais sobra." },
+    { "momento": "planejar", "fator": "complexidade", "multiplicador": 2, "porque": "Complexidade vale ×2 em todo momento: organizar e ligar é mais raro que entrar." },
+    { "momento": "planejar", "fator": "harmonia", "multiplicador": 3, "porque": "Harmonia vale ×3 em todo momento: o mais raro vale mais." },
+    { "momento": "executar", "fator": "expansao", "multiplicador": 1, "porque": "Iguais nos três momentos, porque cada fator vale em todo momento." },
+    { "momento": "executar", "fator": "complexidade", "multiplicador": 2, "porque": "Iguais nos três momentos." },
+    { "momento": "executar", "fator": "harmonia", "multiplicador": 3, "porque": "Iguais nos três momentos." },
+    { "momento": "revisar", "fator": "expansao", "multiplicador": 1, "porque": "Iguais nos três momentos." },
+    { "momento": "revisar", "fator": "complexidade", "multiplicador": 2, "porque": "Iguais nos três momentos." },
+    { "momento": "revisar", "fator": "harmonia", "multiplicador": 3, "porque": "Iguais nos três momentos." }
+  ],
+  "fase_momento": [
+    { "fase": "planejamento", "momento": "planejar", "porque": "A `fase` do protocolo que planeja é o Planejar." },
+    { "fase": "decisao", "momento": "planejar", "porque": "Decidir antes de gastar é planejar." },
+    { "fase": "execucao", "momento": "executar", "porque": "A `fase` de execução é o Executar." },
+    { "fase": "captura", "momento": "executar", "porque": "A captura acontece durante o trabalho; organizá-la é outro momento." },
+    { "fase": "revisao", "momento": "revisar", "porque": "A `fase` de revisão é o Revisar." },
+    { "fase": "aprendizado", "momento": "revisar", "porque": "Aprender é tirar algo do que já aconteceu." }
+  ],
+  "fase_fator": [
+    { "fase": "planejamento", "fator": "complexidade", "porque": "O planejamento prioriza, põe no lugar e liga à SMART e ao projeto: Planejar × Complexidade." },
+    { "fase": "decisao", "fator": "complexidade", "porque": "Escolher entre opções é priorizar, Complexidade." },
+    { "fase": "execucao", "fator": "complexidade", "porque": "A `fase` sozinha não diz qual fator a execução tocou; a célula do meio erra no máximo um passo para cada lado." },
+    { "fase": "captura", "fator": "expansao", "porque": "Captar é o que entra, Executar × Expansão." },
+    { "fase": "revisao", "fator": "complexidade", "porque": "A revisão leva a lição ao plano seguinte: Revisar × Complexidade." },
+    { "fase": "aprendizado", "fator": "expansao", "porque": "Aprender é tirar a lição do que aconteceu, Revisar × Expansão." }
+  ],
+  "passagem": {
+    "porque": "A passagem é a rodada que deixa fato numa célula, contada uma vez por célula por rodada, e não uma vez por fato: o volume é expansão e não vira reputação. A rodada do protocolo é cada linha 'executado' da Day; a das outras funções é o dia em que o fato cai."
+  },
+  "especies": {
+    "passam": ["entrou", "organizado", "resolvida", "dia_fluido"],
+    "abertas": ["solto", "aberta", "atrito"],
+    "porque": "Do que o ECH conta, passa pela grade o que entrou, o que se organizou, a contradição resolvida e o dia com registro e tarefa feita. O aberto aparece na célula e nunca desconta."
+  },
+  "tipos": [
+    {
+      "id": "planejamento_ciclo",
+      "rotulo": "planejamento de ciclo",
+      "p0": 3,
+      "fator_da_rodada": "complexidade",
+      "protocolos": [
+        { "fase": ["planejamento"], "pasta": ["300 - RUNTIME/302 - Daymiss/Day", "300 - RUNTIME/302 - Daymiss/Week", "300 - RUNTIME/302 - Daymiss/Quarterly"] }
+      ],
+      "referencia": "`fase: planejamento` e a saída numa nota de período (🌳, 🧭).",
+      "porque": "Peso inicial 3: é a função que põe o resto no lugar, e a rodada dela cai em Planejar × Complexidade."
+    },
+    {
+      "id": "revisao_ciclo",
+      "rotulo": "revisão de ciclo",
+      "p0": 3,
+      "fator_da_rodada": "complexidade",
+      "protocolos": [
+        { "fase": ["revisao"], "pasta": ["400 - MEMORY/100 - DAILY", "400 - MEMORY/200 - WEEKLY", "400 - MEMORY/400 - QUARTERLY", "400 - MEMORY/500 - LONG-TERM"] },
+        { "fase": ["revisao"], "saida_no_frontmatter": true }
+      ],
+      "referencia": "`fase: revisao` com saída de ciclo (a pasta da revisão do dia, da semana, do trimestre ou do longo prazo, ou o `frontmatterTarget`).",
+      "porque": "Peso inicial 3: gera a harmonia e leva a lição ao plano seguinte."
+    },
+    {
+      "id": "captura",
+      "rotulo": "captura",
+      "p0": 1,
+      "fator_da_rodada": "expansao",
+      "protocolos": [
+        { "fase": ["captura"] },
+        { "pasta": ["500 - RESOURCES/Ideias", "300 - RUNTIME/001 - INBOX"] }
+      ],
+      "referencia": "`fase: captura`, ou a saída na pasta das ideias ou da Inbox.",
+      "porque": "Peso inicial 1: a expansão já sobra; a captura ganha pelo que passa adiante."
+    },
+    {
+      "id": "estrutura_criada",
+      "rotulo": "estrutura criada",
+      "p0": 1,
+      "fator_da_rodada": "expansao",
+      "protocolos": [
+        { "pasta": ["TaskNotes/Tasks"] },
+        { "tipo_de_nota": ["departamento", "objetivo", "visao"] }
+      ],
+      "referencia": "a tarefa, a SMART, o departamento, o objetivo e a visão criados.",
+      "porque": "Peso inicial 1: muito se cria e não passa adiante; o que nasce ligado ganha pela Complexidade."
+    },
+    {
+      "id": "registro_do_dia",
+      "rotulo": "registro do dia",
+      "p0": 1,
+      "fator_da_rodada": "expansao",
+      "protocolos": [],
+      "referencia": "o diário do dia.",
+      "porque": "Peso inicial 1: é expansão, e a expansão já sobra."
+    },
+    {
+      "id": "habito_cumprido",
+      "rotulo": "hábito cumprido",
+      "p0": 2,
+      "protocolos": [],
+      "referencia": "um dia em `entries` de uma nota `type: habit` dos trackers.",
+      "porque": "Peso inicial 2: caminho feito para repetir."
+    },
+    {
+      "id": "tarefa_feita",
+      "rotulo": "tarefa feita",
+      "p0": 1,
+      "protocolos": [],
+      "referencia": "a TaskNote com `status: done` e `completedDate`; do plano quando tem `projects` e um quando.",
+      "porque": "Peso inicial 1: muita entra e não passa adiante."
+    },
+    {
+      "id": "bloco_execucao",
+      "rotulo": "bloco de execução",
+      "p0": 2,
+      "fator_da_rodada": "complexidade",
+      "protocolos": [],
+      "referencia": "a linha do bloco fechada (`fim` e `saiu`) no registro dos blocos.",
+      "porque": "Peso inicial 2: caminho feito para repetir."
+    },
+    {
+      "id": "protocolo_ferramenta",
+      "rotulo": "protocolo de ferramenta",
+      "p0": 2,
+      "fator_da_rodada": "expansao",
+      "fator_pela_fase": true,
+      "protocolos": [
+        {}
+      ],
+      "referencia": "todo protocolo de verdade (sem `redirect`, fora de `router_`) que não cai num tipo acima; o momento vem da `fase`.",
+      "porque": "Peso inicial 2: caminho feito para repetir. O fator da rodada vem da `fase` do protocolo, pela tabela `fase_fator`; o `fator_da_rodada` fica para o protocolo sem `fase` ou com uma `fase` fora da tabela."
+    }
+  ],
+  "origens": {
+    "ech": [
+      { "fonte": "expansao.diario", "funcao": "diario", "rotulo": "o diário do dia", "tipo": "registro_do_dia", "momento": "executar", "pela_rodada": false, "porque": "A Day com texto no diário: escrita livre no dia (Executar × Expansão). O texto é seu, então o fato não vai para quem criou a Day." },
+      { "fonte": "expansao.ideias_capturadas", "funcao": "ideia_sem_protocolo", "rotulo": "a ideia escrita à mão", "tipo": "captura", "momento": "executar", "pela_rodada": true, "porque": "A ideia que entrou; com a rodada do protocolo que a criou, vai para ele (Executar × Expansão)." },
+      { "fonte": "expansao.inbox", "funcao": "captura_inbox", "rotulo": "a captura na Inbox", "tipo": "captura", "momento": "executar", "pela_rodada": true, "porque": "A captura à mão (Executar × Expansão)." },
+      { "fonte": "expansao.tarefas", "funcao": "tarefa_criada", "rotulo": "a tarefa criada à mão", "tipo": "estrutura_criada", "momento": "planejar", "pela_rodada": true, "porque": "A tarefa criada entra no plano (Planejar × Expansão); com a rodada que a criou, vai para ela." },
+      { "fonte": "expansao.notas", "funcao": "nota_criada", "rotulo": "a nota criada à mão", "tipo": "estrutura_criada", "momento": "executar", "pela_rodada": true, "porque": "A nota que nasce com `created` (Executar × Expansão); com a rodada que a criou, vai para ela." },
+      { "fonte": "complexidade.ideias_capturadas", "funcao": "ideia_com_destino", "rotulo": "a ideia com destino", "tipo": "captura", "momento": "revisar", "pela_rodada": false, "porque": "O destino da ideia é Revisar × Complexidade; o destino não tem data nem rodada, então vale a função da fonte." },
+      { "fonte": "complexidade.inbox", "funcao": "captura_inbox", "rotulo": "a captura na Inbox", "tipo": "captura", "momento": "revisar", "pela_rodada": false, "porque": "A captura ainda na Inbox está solta: aparece aberta em Revisar × Complexidade, onde a triagem a organiza." },
+      { "fonte": "complexidade.tarefas", "funcao": "tarefa_criada", "rotulo": "a tarefa criada à mão", "tipo": "estrutura_criada", "momento": "planejar", "pela_rodada": true, "porque": "A tarefa com pai e quando é Planejar × Complexidade; quem a criou ligada recebe a passagem." },
+      { "fonte": "complexidade.notas", "funcao": "nota_criada", "rotulo": "a nota criada à mão", "tipo": "estrutura_criada", "momento": "executar", "pela_rodada": true, "porque": "A nota ligada é Executar × Complexidade." },
+      { "fonte": "dias", "funcao": "tarefa_feita", "rotulo": "tarefa feita", "tipo": "tarefa_feita", "momento": "executar", "pela_rodada": false, "porque": "O dia com registro e tarefa feita é Executar × Harmonia: fecha com a tarefa feita." }
+    ],
+    "tarefas_feitas": {
+      "funcao": "tarefa_feita",
+      "rotulo": "tarefa feita",
+      "tipo": "tarefa_feita",
+      "momento": "executar",
+      "pasta": ["TaskNotes/Tasks", "TaskNotes/Archive"],
+      "data": "completedDate",
+      "campo_estado": "status",
+      "feitos": ["done"],
+      "do_plano": {
+        "todas": [
+          { "campo": "projects", "preenchido": true },
+          { "alguma": [ { "campo": "week", "preenchido": true }, { "campo": "scheduled", "preenchido": true } ] }
+        ]
+      },
+      "fator_do_plano": "complexidade",
+      "fator_fora_do_plano": "expansao",
+      "porque": "A tarefa feita do plano (com `projects` e `week` ou `scheduled`) é Executar × Complexidade; a de fora do plano, Executar × Expansão. A cancelada é neutra e não entra."
+    },
+    "habitos": {
+      "tipo": "habito_cumprido",
+      "momento": "executar",
+      "fator": "harmonia",
+      "pasta": "200 - FUNCTIONS/Habits/Tracker",
+      "type": "habit",
+      "porque": "Cada dia em `entries` é um hábito cumprido, Executar × Harmonia: a constância. Cada tracker é uma função."
+    },
+    "blocos": {
+      "funcao": "bloco",
+      "rotulo": "bloco de execução",
+      "tipo": "bloco_execucao",
+      "momento": "executar",
+      "fator": "complexidade",
+      "pasta": "400 - MEMORY/100 - DAILY/Reputação contextual",
+      "porque": "A linha do bloco com `fim` e `saiu` é uma execução fechada, Executar × Complexidade. O bloco aberto ainda não passou."
+    }
+  },
+  "meias_vidas": [
+    { "escala": "dia", "dias": 60, "porque": "60 dias na função do dia: um uso semanal junta cerca de 13 rodadas efetivas. Vale para toda função fora das escalas abaixo." },
+    { "escala": "semana", "dias": 60, "pasta": ["300 - RUNTIME/302 - Daymiss/Week", "400 - MEMORY/200 - WEEKLY"], "porque": "60 dias na função da semana: o protocolo que grava na Week ou na revisão da semana." },
+    { "escala": "trimestre", "dias": 365, "pasta": ["300 - RUNTIME/302 - Daymiss/Quarterly", "400 - MEMORY/400 - QUARTERLY", "400 - MEMORY/500 - LONG-TERM"], "porque": "365 dias na função do trimestre: roda quatro vezes no ano, e 60 dias a esqueceria entre uma rodada e outra." }
+  ],
+  "niveis": [
+    { "id": "em_repouso", "rotulo": "em repouso", "grau": 1, "quando": { "sem_passagem_na_meia_vida": true }, "porque": "Já passou pela grade, mas não na última meia-vida. O esquecimento volta ao peso inicial, sem castigo." },
+    { "id": "nova", "rotulo": "nova neste uso", "grau": 0, "quando": { "sem_passagem": true }, "porque": "Ainda não passou pela grade aqui: nenhuma rodada com passagem, contadas as rodadas sem o esquecimento." },
+    { "id": "em_formacao", "rotulo": "em formação", "grau": 2, "quando": { "n_abaixo_de": 6 }, "porque": "Passou pelo menos uma vez, e poucas; pouco para dizer (n < 6: a incerteza 2/(n+2) ainda passa de um quarto). Vale o primeiro nível da lista cuja condição vale." },
+    { "id": "com_base", "rotulo": "com base", "grau": 3, "quando": { "n_de_pelo_menos": 6 }, "porque": "Passou pelo menos 6 vezes, descontado o tempo: a incerteza cai a um quarto." }
+  ],
+  "modulos": [
+    { "id": "ciclo_semana", "rotulo": "o ciclo da semana", "funcoes": ["review_semanal", "planejamento_semanal"], "porque": "📅 → 🌳: a semana passa inteira quando revisa e planeja. O nível do módulo é o da função mais fraca, sem rebaixar a delas." }
+  ],
+  "objetivos": {
+    "janela_dias": 28,
+    "lista": [
+      { "id": "execucao", "rotulo": "a execução geral", "peso": 1, "porque": "O que a passagem produziu foi feito em 4 semanas (a tarefa saiu, a ideia ganhou destino). Os três objetivos pesam igual no começo." },
+      { "id": "valores", "rotulo": "os valores", "peso": 1, "campos": ["valor", "valores", "valor_semana", "valor_relacao"], "porque": "O que a passagem produziu está ligado a um valor (um desses campos preenchido)." },
+      { "id": "projetos", "rotulo": "os projetos pela prioridade", "peso": 1, "campo_impacto": "impacto", "impacto_maximo": 10, "impacto_padrao": 5, "foco": { "pasta": "300 - RUNTIME/302 - Daymiss/Quarterly", "campos": ["projetos_foco", "temporada"], "multiplicador": 2 }, "porque": "O que andou e tem `projects` conta pelo `impacto` dele (de 1 a 10; sem ele, o meio da escala) e vale o dobro quando o projeto, ou o pai dele, está no foco do trimestre." }
+    ],
+    "andou": [
+      { "id": "tarefa", "type": ["task", "tarefa_smart"], "campo": "status", "feitos": ["done"], "neutros": ["cancelled"], "data": "completedDate", "porque": "A tarefa andou quando saiu (`done` com `completedDate`) até 4 semanas depois da passagem; a cancelada é neutra." },
+      { "id": "ideia", "type": ["idea"], "campo": "destino", "porque": "A ideia andou quando ganhou `destino`. O destino não tem data: conta o que já tem." }
+    ],
+    "porque": "O sinal do aprendizado é o quanto uma função contribui para os objetivos: a execução, os valores e os projetos pela prioridade. É calculado e mostrado; não muda nenhum peso."
+  },
+  "aprendizado": {
+    "ativo": false,
+    "minimo": 0.5,
+    "maximo": 2,
+    "sinais_minimos": 10,
+    "porque": "Desligado no começo. Quando ligar, o aprendido fica entre a metade e o dobro do declarado, só com pelo menos 10 sinais no contexto, e cada mudança guarda o porquê e o histórico."
+  }
+}

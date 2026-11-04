@@ -1,0 +1,50 @@
+[
+  {
+    "nome": "a constante com o nome antigo",
+    "lugar": "codigo",
+    "texto": "export const PASTA_DAS_LENTES = '200 - FUNCTIONS/Config/x';",
+    "achados": ["nome_antigo_do_ramo"]
+  },
+  {
+    "nome": "o nome antigo dentro de um identificador",
+    "lugar": "codigo",
+    "texto": "const r = lerLente(raw);",
+    "achados": ["nome_antigo_do_ramo"]
+  },
+  {
+    "nome": "o nome antigo num comentário (a leitura é inteira)",
+    "lugar": "codigo",
+    "texto": "// a lente escolhida",
+    "achados": ["nome_antigo_do_ramo"]
+  },
+  {
+    "nome": "a chave antiga na configuração",
+    "lugar": "configuracao",
+    "texto": "\"amplia\": { \"lente\": \"viagem\" }",
+    "achados": ["nome_antigo_do_ramo"]
+  },
+  {
+    "nome": "o nome antigo negado ainda é o nome antigo",
+    "lugar": "documentos",
+    "texto": "Sem a lente de antes, o ramo Viagem mostra o lugar.",
+    "achados": ["nome_antigo_do_ramo"]
+  },
+  {
+    "nome": "a palavra que contém o nome não conta",
+    "lugar": "documentos",
+    "texto": "O valor equivalente é excelente; a Lentilha não entra.",
+    "achados": []
+  },
+  {
+    "nome": "o link da nota de 29/10 fica como está",
+    "lugar": "documentos",
+    "texto": "Ver [[PROPOSTA_Pinca_Rolagem_e_Lentes_2026-10-29]].",
+    "achados": []
+  },
+  {
+    "nome": "o nome novo passa",
+    "lugar": "codigo",
+    "texto": "const { ramoPrincipal } = lerRamoPrincipal(raw); // Ramo: Viagem, em Config/ramos",
+    "achados": []
+  }
+]

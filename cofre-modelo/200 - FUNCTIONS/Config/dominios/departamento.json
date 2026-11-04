@@ -1,0 +1,101 @@
+{
+  "dominio": "departamento",
+  "descricao": "O departamento (`type: departamento`): a frente contínua, sem fim marcado e sem tabela de estado. Os campos padrão na ordem do painel do nó; o lado é o `blockedBy`, como no projeto.",
+  "candidatos": {
+    "pasta": "100 - AREAS",
+    "type": "departamento"
+  },
+  "campos": [
+    {
+      "nome": "projects",
+      "rotulo": "A central a que serve",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "acima",
+      "sugestao": [
+        {
+          "de": "no.central"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "não serve a uma central"
+    },
+    {
+      "nome": "missao",
+      "rotulo": "Missão",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "responsavel",
+      "rotulo": "Responsável",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "area",
+      "rotulo": "Área",
+      "tipo": "link",
+      "alvo": [
+        "area"
+      ],
+      "ramo": "acima",
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "no.area"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "blockedBy",
+      "rotulo": "Bloqueado por",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota",
+      "criar": false
+    },
+    {
+      "nome": "scope",
+      "rotulo": "Escopo",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "status",
+      "rotulo": "Status",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "created",
+      "rotulo": "Criado em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "protocolos": [
+    {
+      "id": "review_semanal",
+      "papel": "revisa"
+    }
+  ]
+}

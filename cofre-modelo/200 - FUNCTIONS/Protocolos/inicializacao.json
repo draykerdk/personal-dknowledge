@@ -1,0 +1,42 @@
+{
+  "id": "inicializacao",
+  "name": "🌱 Inicializar o cofre",
+  "icon": "sprout",
+  "description": "Monta o cofre a partir de quatro respostas: o seu nome, as suas áreas, os seus valores e o foco do trimestre. Cria só o que falta (as pastas do sistema e uma pasta para cada área, com a nota dela) e grava as respostas nas definições do plugin. Nunca apaga nem sobrescreve; rodar de novo não muda o que já existe.",
+  "objetivo": "deixar o cofre pronto para o primeiro planejamento",
+  "fase": "planejamento",
+  "fase_uso": "nova",
+  "acao": "inicializar",
+  "steps": [
+    {
+      "id": "nome",
+      "type": "text",
+      "prompt": "👤 Como você quer ser chamado?",
+      "info": "O nome aparece nas suas notas e no painel. Dá para mudar depois, na aba de configurações.",
+      "required": true
+    },
+    {
+      "id": "areas",
+      "type": "textarea",
+      "prompt": "🗂️ As suas áreas, uma por linha",
+      "info": "As grandes partes da sua vida ou do seu trabalho (de 1 a 6). Cada uma vira uma pasta em 100 - AREAS, com a nota dela, os projetos e os departamentos.",
+      "placeholder": "Ex.:\nSaúde\nTrabalho\nCasa",
+      "required": true
+    },
+    {
+      "id": "valores",
+      "type": "textarea",
+      "prompt": "🧭 Os seus valores, um por linha",
+      "info": "De 3 a 6. Se quiser, o porquê depois de uma barra: Calma | para decidir sem pressa.",
+      "placeholder": "Ex.:\nCalma | para decidir sem pressa\nCuriosidade",
+      "optional": true
+    },
+    {
+      "id": "foco",
+      "type": "textarea",
+      "prompt": "🎯 O foco deste trimestre (opcional)",
+      "info": "De 1 a 3 áreas ou projetos, um por linha. Fica vazio se ainda não souber.",
+      "optional": true
+    }
+  ]
+}

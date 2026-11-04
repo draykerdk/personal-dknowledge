@@ -1,0 +1,14 @@
+{
+  "dominio": "area",
+  "descricao": "A área (`type: area`, a nota-índice `100 - AREAS/<área>/000 - INDEX/README.md`): só leitura no painel do nó, que mostra as frentes dela. Sem ciclo próprio: o 🧭 escolhe as frentes do trimestre.",
+  "candidatos": {
+    "pasta": "100 - AREAS",
+    "type": "area"
+  },
+  "protocolos": [
+    {
+      "id": "planejamento_trimestral",
+      "papel": "usa"
+    }
+  ]
+}

@@ -1,0 +1,1004 @@
+{
+  "dfm": 1,
+  "system": "missao",
+  "purpose": "A página Missão do dfm-system: o mapa do trabalho, do tempo e do lugar num componente só, montado em vários lugares do Obsidian. Este mapa declara os módulos dela em três espécies (as funções, os que compõem funções, os que ligam módulos) e as conexões permitidas; o guarda tests/missao/modeloDfm.test.ts confere a declaração contra os imports reais.",
+  "default_grade": "G1",
+  "effects": [
+    "app.vault.*",
+    "app.metadataCache.*",
+    "app.workspace.*",
+    "this.app.*",
+    "new Notice"
+  ],
+  "modules": [
+    {
+      "id": "base",
+      "paths": [
+        "tipos.ts",
+        "formatos.ts",
+        "tempo.ts",
+        "estados.ts",
+        "entrada.ts",
+        "frases.ts"
+      ],
+      "role": "functions",
+      "core": true,
+      "does": "Funções. O chão da Missão: os tipos do modelo e da gravação (tipos), o dia escrito, a leitura de um campo cru e os textos curtos (formatos), as contas de data, as escalas e a escada do panorama com a pilha dos zooms da pinça (tempo), os estados dos tipos, o modelo antigo e os sinais declarados nos modelos (estados), a entrada que o leitor entrega (entrada) e as frases do vazio (frases). A construir: ids.ts (os ids dos nós).",
+      "why": "Camada 0: tudo depende dela e ela de nada da Missão; sem DOM, sem cofre, sem relógio escondido.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/tempo.test.ts tests/missao/pinca.test.ts tests/missao/estados.test.ts tests/missao/formatos.test.ts"
+      ]
+    },
+    {
+      "id": "ramo-principal",
+      "paths": [
+        "ramoPrincipal.ts"
+      ],
+      "role": "functions",
+      "core": true,
+      "does": "Funções. Lê o arquivo de um ramo principal (o centro, as colunas das asas, como cada coluna se liga à vizinha, os ciclos, o Novo e as coleções que ele declara, com as fontes e os campos) e responde o que a vista pergunta dele.",
+      "why": "Camada 0: tudo o que muda de um ramo para outro vem do arquivo, nunca de um nome no código (§3.8).",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/ramoPrincipal.test.ts tests/missao/colecoes.test.ts"
+      ]
+    },
+    {
+      "id": "fn.trabalho",
+      "paths": [
+        "linhagem.ts",
+        "filtros.ts",
+        "busca.ts",
+        "camposDoNo.ts",
+        "conexoes.ts",
+        "checklist.ts",
+        "proximaAcao.ts"
+      ],
+      "role": "functions",
+      "does": "Funções do trabalho: a linhagem de cada tarefa (projeto, SMART, área, ramo), os filtros (e os lugares do \"Onde estou\", pelo vocabulário dos contextos), a busca, os campos de um nó pelo modelo do tipo e as conexões de uma nota, e a próxima ação real de cada projeto (proximaAcao, 02/11: a fixada na nota, ou a primeira pela ordem padrão que quem compõe passa).",
+      "why": "Cada pergunta sobre uma tarefa ou um projeto tem uma resposta só, testável sem a tela.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/linhagem.test.ts tests/missao/filtros.test.ts tests/missao/busca.test.ts tests/missao/camposDoNo.test.ts tests/missao/conexoes.test.ts tests/missao/onde.test.ts"
+      ]
+    },
+    {
+      "id": "fn.lugar",
+      "paths": [
+        "lugares.ts",
+        "pessoas.ts",
+        "dinheiro.ts",
+        "visao.ts",
+        "marcasDoDia.ts",
+        "colecoes.ts",
+        "lugarDoNo.ts",
+        "sistema.ts",
+        "comandoDoDia.ts"
+      ],
+      "role": "functions",
+      "does": "Funções do lugar e do dia: as passagens e o lugar de cada dia, as pessoas, o dinheiro e a reserva, a visão vigente, as marcas do dia, as coleções de um ramo postas no tempo e o lugar em camadas (lugarDoNo: o país, a cidade e a passagem de um nó, em qualquer ramo) e o sistema no tempo (sistema: a linha dos anos e dos trimestres desde a primeira nota de período, e o período da visão de longo prazo), e o Comando do Dia e o compromisso que o 🌙 deixou para hoje (comandoDoDia, 02/11).",
+      "why": "O que se vive em cada dia sai dos dados das notas, com a regra num lugar só.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/lugares.test.ts tests/missao/pessoas.test.ts tests/missao/dinheiro.test.ts tests/missao/visao.test.ts tests/missao/marcasDoDia.test.ts tests/missao/colecoes.test.ts tests/missao/estadias.test.ts tests/missao/comandoDoDia.test.ts"
+      ]
+    },
+    {
+      "id": "fn.sinais",
+      "paths": [
+        "sinais.ts",
+        "triagem.ts",
+        "telaDaTriagem.ts",
+        "sinaisDoPlano.ts",
+        "sinaisDaDirecao.ts"
+      ],
+      "role": "functions",
+      "does": "Funções dos sinais e da triagem: o que o plano e os dados mostram (com o fato, a data e o próximo passo), a prateleira do que não tem lugar, as teclas e a tela da triagem, e as conferências do plano da semana como sinais (sinaisDoPlano, 02/11: a agendada fora da semana, a data depois do prazo, os dias úteis vazios e o projeto fora do foco), e os sinais da direção do trabalho (sinaisDaDirecao, 02/11: a ação para fora que espera e a SMART sem condição de fim).",
+      "why": "O aviso e a triagem decidem pelos dados, um item por vez, sem a tela.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/sinais.test.ts tests/missao/triagem.test.ts tests/missao/telaDaTriagem.test.ts tests/missao/sinaisDaDirecao.test.ts"
+      ]
+    },
+    {
+      "id": "fn.gestos",
+      "paths": [
+        "intencoes.ts",
+        "gestos.ts",
+        "movimento.ts",
+        "pinca.ts",
+        "estadoTela.ts",
+        "formacao.ts",
+        "telaDoRamo.ts"
+      ],
+      "role": "functions",
+      "does": "Funções dos gestos: do gesto na tela à intenção, da intenção ao patch pela tabela das setas, a roda e a borda do arrasto em passos, a pinça (a roda com Ctrl ou ⌘ e os dois dedos do toque) em um nível por gesto, com a transição curta ancorada no gesto, o estado de tela (escala, foco, busca, o nível do panorama na tela), a formação de cada nó (formacao: o eixo vertical, o tempo ou a relação, e o horizontal, as conexões, pelo tipo, pelo ramo ou pelo padrão) e a tela do ramo do zoom (telaDoRamo: os lados, o passo horizontal, o vizinho pela formação e o caminho do zoom).",
+      "why": "Todo gesto vira dado que a gravação entende e o teste confere, antes de tocar o cofre.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/intencoes.test.ts tests/missao/gestos.test.ts tests/missao/gestosEquivalencia.test.ts tests/missao/movimento.test.ts tests/missao/pinca.test.ts tests/missao/estadoTela.test.ts tests/missao/formacao.test.ts tests/missao/telaDoRamo.test.ts"
+      ]
+    },
+    {
+      "id": "fn.formularios",
+      "paths": [
+        "novo.ts",
+        "sugestoes.ts",
+        "gaveta.ts",
+        "escolha.ts",
+        "registro.ts",
+        "protocolosDoNo.ts"
+      ],
+      "role": "functions",
+      "does": "Funções dos formulários: o Novo (os tipos, os campos, a validação, o frontmatter inicial), o que escolher uma que já existe faz sem compor (escolha: a escolha do ramo, os tipos e o título do campo), os destinos do registro do dia (registro), as sugestões com o porquê e a gaveta dos protocolos do ciclo e os protocolos de um nó (protocolosDoNo: os donos dos campos, os que criam ou revisam o tipo e os que rodaram na nota, na ordem dos pesos dos routers, com o porquê e as respostas do nó).",
+      "why": "O que um formulário mostra e grava sai do modelo do tipo e do ramo, testável sem a tela.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/novo.test.ts tests/missao/sugestoes.test.ts tests/missao/gaveta.test.ts tests/missao/escolher.test.ts tests/missao/novoPeloMotor.test.ts tests/missao/registrarFeito.test.ts tests/missao/protocolosDoNo.test.ts"
+      ]
+    },
+    {
+      "id": "compoe.modelo",
+      "paths": [
+        "borboleta.ts",
+        "escolher.ts",
+        "painel.ts",
+        "ramo.ts",
+        "ligar.ts"
+      ],
+      "role": "module",
+      "does": "Compõe funções (puro): o modelo inteiro de uma versão do cofre (modeloDaMissao), as linhas, as asas, os nós e as ligações; o \"Escolher uma que já existe\" e o \"＋ Adicionar\" de um campo (escolher), o que ligar dois nós grava, pelos campos de link dos modelos e pelo ramo deles, com as gravações que já existem (ligar), o contexto dos nós do painel (painel) e o ramo de um nó para o zoom da pinça, em todos os períodos e em níveis (ramo), que a vista recebe prontos pelo modelo.",
+      "why": "Um compositor só junta as funções num modelo que a vista desenha; nada aqui lê o cofre nem o DOM.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/borboleta.test.ts tests/missao/refinos.test.ts tests/missao/escolher.test.ts tests/missao/adicionar.test.ts tests/missao/painel.test.ts tests/missao/ramo.test.ts tests/missao/ligar.test.ts tests/missao/ligarGrava.test.ts tests/missao/ramoDoPeriodo.test.ts"
+      ]
+    },
+    {
+      "id": "vista.base",
+      "paths": [
+        "view/dom.ts",
+        "view/nos.ts",
+        "view/campos.ts",
+        "view/contrato.ts",
+        "view/ligacoes.ts",
+        "view/interacao.ts"
+      ],
+      "role": "module",
+      "does": "Vista, a base: o contrato que as partes recebem e as dicas que o lugar dá (contrato), os elementos do DOM sem estado (dom), os nós desenhados (nos: o dono único do cartão de cada espécie, o mesmo no mapa, no ramo, no Sistema, nas listas do painel e na legenda, 30/10) e a caixa de um campo com os rótulos do catálogo (campos), a interação do cartão, a mesma em toda vista (interacao: o que o cartão oferece ao passar o mouse, com o \"+ <Tipo>\" que o ramo e os modelos deixam e o Ligar, a alça de ligar, o \"+\" do lugar vazio de uma linha ou coluna, e o modo Ligar com a escolha), e as ligações, as curvas entre os nós, de toda vista (ligacoes: o mapa da Missão e o mapa do ramo da pinça, um desenho só, com a conta das pontas no espaço do conteúdo e um agendador só, que mede de novo quando o tamanho muda, quando uma animação acaba e quando o casco pede).",
+      "why": "As partes da vista compartilham o desenho de um nó num lugar só.",
+      "proof": [
+        "cd ../.. && node tests/navegador/prova.mjs",
+        "cd ../.. && npx vitest run tests/missao/componente tests/missao/contrato.test.ts",
+        "cd ../.. && npx vitest run tests/missao/interacao.test.ts",
+        "cd ../.. && npx vitest run tests/missao/ligacoes.test.ts"
+      ]
+    },
+    {
+      "id": "vista.linhas",
+      "paths": [
+        "view/linhas.ts"
+      ],
+      "role": "module",
+      "does": "Vista, uma parte: as linhas abertas e fechadas. Só emite intenções. A construir: view/grade.ts (a grade das colunas do ramo).",
+      "why": "A linha do tempo se desenha sem saber do cofre nem da gravação.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/componente"
+      ]
+    },
+    {
+      "id": "vista.painel",
+      "paths": [
+        "view/painelDoNo.ts",
+        "view/edicao.ts",
+        "view/conexoes.ts"
+      ],
+      "role": "module",
+      "does": "Vista, uma parte: o painel do nó, a edição dos campos e as conexões. Só emite intenções. A construir: view/painelControle.ts (o controle do painel, hoje no componente).",
+      "why": "O painel mostra o que o modelo diz e devolve a intenção; a gravação é do lugar.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/componente"
+      ]
+    },
+    {
+      "id": "vista.gaveta",
+      "paths": [
+        "view/gaveta.ts",
+        "view/novo.ts"
+      ],
+      "role": "module",
+      "does": "Vista, uma parte: a gaveta do ciclo e o formulário do Novo. Só emite intenções. A construir: os controles da gaveta e do Novo (hoje no componente).",
+      "why": "O formulário se desenha pelo tipo e pelo protocolo, sem nome no código.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/componente"
+      ]
+    },
+    {
+      "id": "vista.triagem",
+      "paths": [
+        "view/triagem.ts"
+      ],
+      "role": "module",
+      "does": "Vista, uma parte: a tela da triagem. Só emite intenções. A construir: o controle da triagem (hoje no componente).",
+      "why": "A triagem se desenha um item por vez, sem gravar.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/componenteTriagem.test.ts"
+      ]
+    },
+    {
+      "id": "vista.ramo",
+      "paths": [
+        "view/ramo.ts"
+      ],
+      "role": "module",
+      "does": "Vista, uma parte: a vista do ramo do zoom da pinça como ramos conectados (os cartões do mapa em colunas, o que contém à esquerda, o que tem dentro à direita, os pares na coluna de onde saem, e uma curva de cada cartão até o de onde sai, pelo desenho das ligações da vista.base) e o caminho do zoom. Só emite intenções: o clique abre o painel do nó, as partes do caminho voltam, o \"mais conexões\" abre mais.",
+      "why": "O ramo se desenha sem saber de tipo, de campo nem de ramo principal, e o clique e a pinça ficam separados.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/componentePinca.test.ts"
+      ]
+    },
+    {
+      "id": "vista.sistema",
+      "paths": [
+        "view/sistema.ts"
+      ],
+      "role": "module",
+      "does": "Vista, uma parte: o nível Sistema da expansão da pinça (30/10), o sistema do começo até hoje: os anos e os trimestres em cartões do mapa, com as contas e a linha do ECH que chega da borda. Só emite intenções (o clique abre o painel do trimestre).",
+      "why": "O sistema inteiro se desenha do que o modelo entrega, sem ler o cofre nem nomear tipo.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/componentePinca.test.ts tests/missao/sistema.test.ts"
+      ]
+    },
+    {
+      "id": "vista.entrada",
+      "paths": [
+        "view/teclado.ts",
+        "view/arrasto.ts",
+        "view/roda.ts"
+      ],
+      "role": "module",
+      "state": "experimental",
+      "does": "Vista, uma parte: a entrada do usuário. Feito: o arrasto (arrasto), com o limiar da casa (DRAG_THRESHOLD, de fn.gestos), em toda vista com cartões (o mapa, o ramo, o Sistema), e a alça de ligar, que liga quaisquer dois cartões pela interação do cartão. A construir: o teclado e a roda, hoje dentro do componente.",
+      "why": "A entrada do usuário vira intenção num lugar só, com a mesma regra no toque e no mouse.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/arrasto.test.ts tests/missao/componenteMovimento.test.ts tests/missao/componenteGrava.test.ts"
+      ]
+    },
+    {
+      "id": "vista.casco",
+      "paths": [
+        "view/componente.ts"
+      ],
+      "role": "module",
+      "does": "Liga as partes da vista: monta o componente uma vez num lugar, guarda o estado de tela e manda as intenções ao adaptador do lugar.",
+      "why": "O casco é o único ponto em que a vista encontra o adaptador; as partes não se conhecem entre si.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/componente"
+      ]
+    },
+    {
+      "id": "liga.leitor",
+      "paths": [
+        "missaoService.ts"
+      ],
+      "role": "module",
+      "does": "Liga o cofre ao modelo: lê a MissaoEntrada, escuta só o que importa e entrega o modelo puro de cada versão. Só lê.",
+      "why": "Um leitor só toca o cofre para ler; o modelo fica puro e testável.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/missaoService.test.ts"
+      ]
+    },
+    {
+      "id": "liga.gravar",
+      "paths": [
+        "missaoWrites.ts",
+        "novoWrites.ts",
+        "triagemWrites.ts",
+        "registrarFeito.ts",
+        "gavetaDoMotor.ts"
+      ],
+      "role": "module",
+      "does": "Liga as intenções ao MissionBoard: as gravações da Missão, do Novo, da triagem e do registro, e o Desfazer único; os efeitos chegam pelas dependências.",
+      "why": "Só um módulo grava no cofre, e por um caminho só (a tabela das setas e o Desfazer).",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/missaoWrites.test.ts tests/missao/novoWrites.test.ts tests/missao/triagemWrites.test.ts tests/missao/registrarFeito.test.ts tests/missao/adicionar.test.ts"
+      ]
+    },
+    {
+      "id": "liga.lugares",
+      "paths": [
+        "hosts/**"
+      ],
+      "role": "module",
+      "does": "Liga a Missão aos lugares do Obsidian: a página do Mission Control e a aba própria, com o adaptador de cada lugar (o cofre, o quadro, as gravações), as dicas da casa, o relógio local (relogio), que o leitor e o casco recebem pelas dependências, e o que a gaveta do ciclo lê do cofre e do motor (motor).",
+      "why": "O mesmo componente mora em vários lugares; os lugares diferem só no adaptador.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/lugar.test.ts tests/missao/relogio.test.ts"
+      ]
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "does": "Fora da Missão: o motor do plugin (src/engine): modelos de tipo, campos, protocolos, pesos, hábitos, temporada.",
+      "why": "A Missão lê as regras do motor, não as copia."
+    },
+    {
+      "id": "ext.project",
+      "role": "external",
+      "does": "Fora da Missão: o modelo dos canvas de projeto (src/project): fold, linkTarget, progresso.",
+      "why": "As mesmas contas de projeto do canvas."
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "does": "Fora da Missão: a tabela das setas e a zona gerida dos canvas (src/canvas).",
+      "why": "Um gesto da Missão grava o mesmo patch que a seta do canvas."
+    },
+    {
+      "id": "ext.tasks",
+      "role": "external",
+      "does": "Fora da Missão: o registro de uma TaskNote (src/tasks).",
+      "why": "A tarefa tem um formato só no plugin."
+    },
+    {
+      "id": "ext.ui",
+      "role": "external",
+      "does": "Fora da Missão: a interface antiga do plugin (src/ui): as dicas da casa, que o lugar dá.",
+      "why": "O que a Missão ainda usa do painel antigo, até ter o seu. A caixa de entrada e o limiar do arrasto mudaram de casa em 02/11/2026 (o motor e fn.gestos)."
+    },
+    {
+      "id": "ext.board",
+      "role": "external",
+      "does": "Fora da Missão: o MissionBoard (src/board), que grava no cofre.",
+      "why": "As gravações passam pelo quadro, com a conclusão de sempre."
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "does": "Fora da Missão: o plugin (src/main.ts).",
+      "why": "A aba própria é registrada pelo plugin."
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "does": "Fora da Missão: a API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*) chegam a ela."
+    },
+    {
+      "id": "ext.definicoes",
+      "role": "external",
+      "does": "As definições do sistema (`src/definicoes.ts`): o leitor puro do bloco `definicoes` do salvamento, com os padrões da v0.",
+      "why": "Sem a tabela vigente dos papéis (um teste, um lugar sem o gerente), a Missão pede o protocolo pelos padrões da v0."
+    }
+  ],
+  "connections": [
+    {
+      "from": "base",
+      "to": "ext.canvas",
+      "carries": "tipos: ProjectRef"
+    },
+    {
+      "from": "base",
+      "to": "ext.engine",
+      "carries": "DIA, diaDoArquivo, diaEHoraNoInicio, diaNoInicio, ehDia, partesDoDia, isoWeekOf, periodOfWeeks, quarterOfWeek, quarterWeeks, weekDates; tipos: DomainField, DomainModel, DomainState, GrammarCounts, Habit, StatePlace, WeightReason, PanelDirectionWeights"
+    },
+    {
+      "from": "base",
+      "to": "ext.project",
+      "carries": "linkTarget"
+    },
+    {
+      "from": "base",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "base",
+      "carries": "FRASES, MESES, MODELO_ANTIGO, PRATELEIRAS, PROFUNDIDADE_MAXIMA, addWeeks, chaveDeHoje, chaveNaEscala, chavesDaJanela, diaDaSemana, diaMes, diasDoPeriodo, ehHoje, idDoPeriodo, isChaveEspecial, janelaDe, linhaDe, marcaDePessoas, minutosTexto, periodoDoId, rotuloDoStatus, semanaCurta, semanasDoAno, LIGAR, ehDia; tipos: AdicaoAoCampo, ArquivosDoNo, CamadasDoLugar, Candidato, ChaveEspecial, Contagens, Criavel, Escala, EscolhaDoNo, EspecieDoRamo, Passagem, Faixa, FiltrosResolvidos, GestoNoCampo, ItemDoRamo, Janela, LeitorDoEscolher, LeitorDoRamo, Ligacao, LinhaAberta, LinhaFechada, ListaDoEscolher, LugarDaLinha, MarcaDoRamo, MarcaFechada, MissaoEntrada, MissaoFiltros, MissaoIndice, MissaoModelo, MissaoNo, MissaoTarefa, NivelDoRamo, OpcaoDeEscolher, OrigemDoNovo, Papel, PessoaDaMissao, RamoDoNo, Reserva, Sinal, Trecho, VisaoVigente, OpcaoDeLigar, ResultadoDoLigar, ProximaAcao"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "ext.canvas",
+      "carries": "motherLink, patchFor; tipos: LinkTask"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "ext.engine",
+      "carries": "SMART_HORIZON, comoEdita, linkNames, showGrammar, timeHorizon, valorDoCampo, dayGrammar, dayLoad, loadText, overCapacity, parseBlockMinutes, periodOfWeeks, quarterGrammar, quarterOfWeek, quarterPeriod, quarterWeeks, weekDates, weekGrammar, weekLoadSummary; tipos: DomainField, DomainModel, RegrasDoValor, WeightReason, BranchDirection, BlockTask"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "ext.project",
+      "carries": "fold, linkTarget, progressText, projectKeys, projectProgress, smartChildren"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "ext.tasks",
+      "carries": "listOf"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "fn.formularios",
+      "carries": "candidatosDoCampo, noDaEscolha, nomeParaOLink; tipos: TipoDoNovo"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "fn.gestos",
+      "carries": "estadoInicial, intencaoDeSoltar, intencaoDaAlca"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "fn.lugar",
+      "carries": "camadasDoLugar, colecoesDaLinha, comNotaNoCampo, custoDaPassagem, datasDaPassagem, detalheDoNo, diasDaPessoa, diasPorPassagem, passagens, faixaDoPeriodo, indiceDasColecoes, lugarDoDia, lugarDoNo, marcaDasExposicoes, marcaDoDia, marcaDoNoAr, noDoLugarPeloNome, noDoTrecho, noDoVinculo, pessoasDaPassagem, pessoasDaMissao, pessoasDoDia, PREFIXO_DA_PESSOA, regrasDoLugar, reserva, somaDoPeriodo, trechosDasPassagens, trechosPlanejados, visaoVigente, linhaDoSistema, comandoDoDia, linhaDoComando, marcaDoNoArNaSemana, marcaDoRamoNoPeriodo; tipos: IndiceDasColecoes, MarcaDoDia"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "fn.sinais",
+      "carries": "CONFIG_PADRAO, prateleira, sinais, sinaisDeclarados, sinaisDosTrechos, sinaisPorAlvo; tipos: ConfigDosSinais"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "fn.trabalho",
+      "carries": "VISAO_ID, buscar, familiaDe, filtrosPadrao, idDaArea, idDoProjeto, indiceDaMissao, linhagemDe, modeloDaNota, resolverFiltros, valorEmTexto, proximaAcaoDoProjeto; tipos: ContextoDosFiltros"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "ramo-principal",
+      "carries": "tipos: RamoPrincipal"
+    },
+    {
+      "from": "fn.formularios",
+      "to": "base",
+      "carries": "DIA, addWeeks, chaveDeHoje, diaDaSemana, diaMes, idDoPeriodo, isChaveEspecial, periodoDoId, semanaCurta, trimestreDoDia, partesDoDia; tipos: Candidato, Escala, EscolhaDoNo, MissaoIndice, MissaoModelo, OrigemDoNovo"
+    },
+    {
+      "from": "fn.formularios",
+      "to": "ext.canvas",
+      "carries": "motherLink, patchFor; tipos: LinkTask"
+    },
+    {
+      "from": "fn.formularios",
+      "to": "ext.engine",
+      "carries": "BOTOES_DO_CICLO, aberturaDoCampo, camposComDestaque, formularioDoProtocolo, respostaVazia, rodadaCompleta, rodadaDoFormulario, validarFormulario, valorDoCampo, quarterOfWeek; tipos: CampoDoFormulario, ContextoDaRodada, CreateDateVariable, DatasDaRodada, DomainField, DomainModel, EstadoDoFormulario, FieldSuggestion, LeitorDoFormulario, MotivoFora, MotivoPulado, RegrasDoValor, RodadaDoFormulario, SuggestionSource"
+    },
+    {
+      "from": "fn.formularios",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "fn.formularios",
+      "to": "ramo-principal",
+      "carries": "dataDoPeriodo; tipos: CicloDoPeriodo, GestoDeRegistro, RamoPrincipal, NovoDoNo"
+    },
+    {
+      "from": "fn.gestos",
+      "to": "base",
+      "carries": "APROXIMA, DIA, FRASES, PINCA, RAMO, ESCALAS, addDays, addWeeks, chaveDeHoje, diaDaSemana, diaMes, levarFoco, periodoDoId, semanaCurta, andar, escalaDoNivel, idDoPeriodo, isChaveEspecial; tipos: Achado, Destino, Escala, EstadoTela, Ligacao, MissaoModelo, MissaoNo, MissaoProjeto, MissaoTarefa, PassoDeNivel, EspecieDoRamo, ItemDoRamo, NivelDaNavegacao, NivelDoPanorama, RamoDoNo, RelacaoDoRamo, TipoDeNo"
+    },
+    {
+      "from": "fn.gestos",
+      "to": "ext.canvas",
+      "carries": "linkFor, patchFor, unpatchFor; tipos: End, Link, LinkTask, Patch, ProjectRef"
+    },
+    {
+      "from": "fn.gestos",
+      "to": "ext.engine",
+      "carries": "isoWeekOf, weekDates; tipos: DomainState, DomainModel, Formacao"
+    },
+    {
+      "from": "fn.gestos",
+      "to": "ext.project",
+      "carries": "fold, linkTarget"
+    },
+    {
+      "from": "fn.gestos",
+      "to": "ext.tasks",
+      "carries": "listOf"
+    },
+    {
+      "from": "fn.lugar",
+      "to": "base",
+      "carries": "addDays, dataDoCampo, DIA, diaDaSemana, diaMes, ehDia, FRASES, reais, textoDoCampo, addQuarters, chaveDeHoje, trimestreDoDia, diaDoArquivo; tipos: CamadasDoLugar, CidadeDoLugar, CustoDaPassagem, DetalheDoNo, Passagem, Ligacao, LugarDoNo, MissaoEntrada, MissaoNo, NotaComCampos, NotaDeLugar, NotaDePeriodo, PaisDoLugar, PassoDoLugar, PessoaDaMissao, RegrasDoLugar, Reserva, Trecho, TrechoDeLugar, VisaoVigente, LinhaDoSistema, TrimestreDoSistema, ComandoDoDia, CompromissoDeixado, DoDia, MissaoIndice, MissaoTarefa"
+    },
+    {
+      "from": "fn.lugar",
+      "to": "ext.engine",
+      "carries": "fieldNumber, linkNames, TRILHAS_EXPOSICAO, releasedOnDay, comandoDaDay, inheritedCommitment, leftTriggerLabel, releasedInWeek; tipos: DomainModel, BlockTask"
+    },
+    {
+      "from": "fn.lugar",
+      "to": "ext.project",
+      "carries": "fold, linkTarget"
+    },
+    {
+      "from": "fn.lugar",
+      "to": "ramo-principal",
+      "carries": "tipos: ColecaoDoRamo, FonteDaColecao"
+    },
+    {
+      "from": "fn.sinais",
+      "to": "base",
+      "carries": "addDays, addWeeks, chaveDeHoje, dataDoCampo, diaMes, ehDia, semanaCurta, textoDoCampo, diaNoInicio, partesDoDia, diaDaSemana; tipos: DeclaracoesDeSinais, Passagem, GrupoDaTriagem, ItemDaTriagem, MissaoEntrada, MissaoIndice, MissaoTarefa, NotaComCampos, PassoDeclarado, Prateleira, ProximoPasso, Sinal, TipoDeSinal"
+    },
+    {
+      "from": "fn.sinais",
+      "to": "ext.engine",
+      "carries": "fieldNumber, agendadaForaDaSemana, diasUteisVazios, planejadaDepoisDoPrazo, projetoForaDoFoco, weekDates, weekGrammar, classificarDirecao, externaQueEspera, infiniteVerb, ehManutencao; tipos: Direcao"
+    },
+    {
+      "from": "fn.sinais",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "fn.trabalho",
+      "to": "base",
+      "carries": "CASAS_PADRAO, DIA, ESCALAS, addDays, chaveDeHoje, chaveNaEscala, dentro, diaDaSemana, diaMes, diasDoPeriodo, estaAberta, estaAlgumDia, estaFeita, estadoDaTarefa, estadoDoProjeto, ficouDeAntes, idDoPeriodo, isChaveEspecial, linhaDe, lugarNoTempo, minutosTexto, periodoDoId, reais, semanaCurta, tabelasVazias, tarefaEmCasa, diaEHoraNoInicio; tipos: Achado, Coluna, Escala, FiltrosResolvidos, FocoFiltro, Janela, LigacoesDaNota, LinhaAberta, LinkDaNota, MissaoArea, MissaoEntrada, MissaoFiltros, MissaoIndice, MissaoNo, MissaoProjeto, MissaoTarefa, MotivoDoProjeto, Papel, PeriodoFiltro, Recorte, ProximaAcao"
+    },
+    {
+      "from": "fn.trabalho",
+      "to": "ext.engine",
+      "carries": "camposNoFormato, fieldNumber, fixadaEntre, isoWeekOf, quarterOfWeek, quarterWeeks, weekDates; tipos: DomainField, DomainModel, DomainState"
+    },
+    {
+      "from": "fn.trabalho",
+      "to": "ext.project",
+      "carries": "fold, linkTarget, projectKeys"
+    },
+    {
+      "from": "fn.trabalho",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "ramo-principal",
+      "to": "base",
+      "carries": "ESCALAS, diasDoPeriodo, isChaveEspecial; tipos: Escala, EscolhaDoNo"
+    },
+    {
+      "from": "ramo-principal",
+      "to": "ext.engine",
+      "carries": "DIA, parseFormacao; tipos: Formacao"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "base",
+      "carries": "DIA, addDays, ehDia, STATUS; tipos: Avisar, Destino, RegistroDoFeito, ResultadoDaGravacao, ResultadoDoDesfazer"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "ext.board",
+      "carries": "tipos: CompletionWhen"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "ext.canvas",
+      "carries": "linkFor, motherLink, patchFor; tipos: LinkTask, Patch"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "ext.engine",
+      "carries": "TASK_CONTEXTS, TIPO_DA_TAREFA, pedidoDoFrontmatter, HISTORY_FOLDER, TASKNOTES_FOLDER, captureTaskFrontMatter, isDeadFolder, sideQuestFrontMatter, targetPathFor; tipos: DatasDaRodada, PedidoDeCriacao, WeightReason"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "fn.formularios",
+      "carries": "frontmatterInicial, variaveisDasDatas; tipos: NotaCandidata, OpcoesDoPasso, ProtocoloDaGaveta"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "fn.gestos",
+      "carries": "patchDeDesfazer, patchDoGesto, rotuloDoGesto; tipos: ContextoDoGesto, Intencao"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "fn.sinais",
+      "carries": "OPCAO_DA_IDEIA, PASTA_DOS_RASCUNHOS, PROTOCOLO_DA_IDEIA, variaveisDaIdeia; tipos: DestinoDaCaixa, DestinoDaIdeia"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "fn.trabalho",
+      "carries": "acrescentarItem, marcarItem, tirarItem; tipos: EdicaoDaChecklist"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "base",
+      "carries": "CASAS_PADRAO, addWeeks, caminhoImporta, chaveDeHoje, chavesDoLegado, dentro, direto, entradaVazia, excluido, periodoDaNota, tabelasVazias; tipos: CasasDaMissao, MarcaDoRamo, MissaoEntrada, MissaoFiltros, MissaoModelo, NotaComCampos, ParDaSemana, ProjetoEntrada, TabelasDaMissao"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "compoe.modelo",
+      "carries": "modeloDaMissao"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "ext.engine",
+      "carries": "DOMAIN_MODELS_FOLDER, EXPOSICAO_TIPO, HABIT_TRACKER_FOLDER, dayOf, focoDoTrimestre, isRecordPathCounted, linkNames, matchesRecord, parseDomainModel, parseHabit, temporadaFrom, DEFAULT_INBOX_FOLDER, triageCandidates, declaredNextAction, quarterWeeks, DECISION_WEIGHTS_PATH, parsePanelWeights, CAMPOS_DO_COMANDO; tipos: DomainModel, TaskScore"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "ext.obsidian",
+      "carries": "TFile, TFolder; tipos: App"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "fn.lugar",
+      "carries": "chaveDaFonte"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "fn.sinais",
+      "carries": "declaracoesDosModelos"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "fn.trabalho",
+      "carries": "filtrosPadrao; tipos: ContextoDosFiltros"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "ramo-principal",
+      "carries": "PASTA_DOS_RAMOS, lerRamoPrincipal; tipos: RamoPrincipal"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "base",
+      "carries": "DIA; tipos: LidoDosProtocolos, ReputacaoDoNo"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "ext.board",
+      "carries": "tipos: MissionBoard"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "ext.canvas",
+      "carries": "canvasWritesAllowed"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "ext.engine",
+      "carries": "PROTOCOLOS_DOMINIO, TASK_CONTEXTS, ehPassoDeContextoGenerico, esperarProtocolos, notasCandidatas, noteNameToTitle, shortenTaskTitle, RESOURCES_FOLDER, isDeadFolder, resourceTypes; tipos: DatasDaRodada, DayRead, OpcaoDoCampo, Vocabularios"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "ext.main",
+      "carries": "DFMPlugin"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "ext.obsidian",
+      "carries": "ItemView, TFile, TFolder, getLinkpath; tipos: App, ViewStateResult, WorkspaceLeaf"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "ext.ui",
+      "carries": "ligarDicas, marcarDica"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "fn.formularios",
+      "carries": "rodadasNaNota; tipos: NotaCandidata, ProtocoloDaGaveta"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "fn.trabalho",
+      "carries": "filtrosPadrao; tipos: LigacoesDaNota"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "ramo-principal",
+      "carries": "RAMO_DE_PARTIDA, PASTA_DOS_RAMOS, caminhoDoRamo, idAtualDoRamo, lerRamoPrincipal; tipos: RamoPrincipal"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "liga.gravar",
+      "carries": "gavetaDoProtocolo; tipos: MotorDaGaveta"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "vista.casco",
+      "carries": "montarMissao; tipos: AdaptadorDaMissao, EstadoDaMissao, GravarDaMissao, RamoParaEscolher, MissaoMontada"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "fn.gestos",
+      "carries": "migrarChaveDoRamo (a chave antiga do ramo escolhido no estado da aba, 30/10)"
+    },
+    {
+      "from": "vista.base",
+      "to": "base",
+      "carries": "MODELO_ANTIGO, periodoDoId, rotuloDoStatus, LIGAR, STATUS, PAINEL; tipos: Escala, MarcaFechada, MissaoModelo, MissaoNo, MissaoTarefa, Sinal, Ligacao, OpcaoDeLigar, ResultadoDoLigar"
+    },
+    {
+      "from": "vista.base",
+      "to": "ext.engine",
+      "carries": "comoEdita, listaPorLinha, textoParaEditar, textoPorLinha; tipos: DomainField, GrammarCounts, OpcaoDoCampo, Vocabularios"
+    },
+    {
+      "from": "vista.base",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "vista.base",
+      "to": "fn.gestos",
+      "carries": "opcoesDoEstado; tipos: Caixa, OpcaoDoEstado"
+    },
+    {
+      "from": "vista.base",
+      "to": "fn.sinais",
+      "carries": "FALTAS"
+    },
+    {
+      "from": "vista.base",
+      "to": "fn.trabalho",
+      "carries": "campoDoEstado, modeloDaNota; tipos: LigacoesDaNota, LinkDoCampo, RotulosDosVocabularios"
+    },
+    {
+      "from": "vista.base",
+      "to": "ramo-principal",
+      "carries": "tipos: CicloDoPeriodo, RamoPrincipal, NovoDoNo"
+    },
+    {
+      "from": "vista.casco",
+      "to": "base",
+      "carries": "ADICIONAR, ESCALAS, STATUS, FRASES, GAVETA, addDays, chaveDeHoje, diaDaSemana, diaMes, ehDia, isChaveEspecial, periodoDoId, semanaCurta, AFASTA, APROXIMA, navegacaoInicial, passoDaNavegacao, PINCA; tipos: Achado, AdicaoAoCampo, Avisar, Destino, Escala, EstadoTela, GestoDaEscolha, ItemDaTriagem, LeitorDoEscolher, Ligacao, LinhaAberta, ListaDoEscolher, MissaoModelo, OrigemDoNovo, RegistroDoFeito, ResultadoDaGravacao, ResultadoDoDesfazer, LeitorDoRamo, NivelDaNavegacao, PassoDeNivel, RamoDoNo"
+    },
+    {
+      "from": "vista.casco",
+      "to": "ext.engine",
+      "carries": "TASK_CONTEXTS, valorDoCampo, quarterOfWeek; tipos: DatasDaRodada, DomainField, Vocabularios, WeightReason, Formacao"
+    },
+    {
+      "from": "vista.casco",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "vista.casco",
+      "to": "fn.formularios",
+      "carries": "NOME_DA_NOTA, campoDoTitulo, candidatosDoCampo, chaveDoRascunho, comEtiquetas, conferirGaveta, contextoDoNovo, criacoesAoGravar, entradasDoNovo, escolhaDoNovo, notaDoRamo, novosDoNo, origemDoNovo, origemEmPalavras, pedidoDoCiclo, respostasDoProtocolo, resumoDoResto, rodadaCompletaDaGaveta, rodadaDaGaveta, smartDosValores, sugestoesDoNovo, tiposDoCampo, tiposDoNovo, tituloDaBusca, validarCampos, variaveisDasDatas, vistaDaGaveta; tipos: CriacoesPedidas, OpcoesDoPasso, PassoDoProtocolo, PedidoDoCiclo, ProtocoloDaGaveta, TipoDoNovo, VistaDaGaveta"
+    },
+    {
+      "from": "vista.casco",
+      "to": "fn.gestos",
+      "carries": "RODA_PARADA, alternarAbrirTudo, andarFoco, comEscala, intencaoDaAlca, intencaoDeDesligar, intencaoDeSoltar, irParaAchado, irParaHoje, ligacaoDesligavel, linhaAberta, opcoesDeMover, passoDaRoda, podeTomarFoco, transicaoDoPasso, valorDoEstado, classeDaPinca, comNivel, comTopo, CURSOR_INICIAL, ehDaProfundidade, escalaDaTela, formacaoDoDominio, formacaoDoNo, maisConexoes, migalhasDoZoom, navegaveisDoRamo, origemDaPinca, passoDaPinca, passoHorizontal, PINCA_PARADA, vizinhoNaFormacao, voltarAte, mapaDoRamo, CURVA_DA_PINCA, DURACAO_DA_PINCA, escalasDaPinca, flipDe, abrirGrupo, rolarNoBloco; tipos: EstadoDaRoda, IntencaoDaTela, CursorDoRamo, EstadoDaPinca, MapaDoRamo, Caixa"
+    },
+    {
+      "from": "vista.casco",
+      "to": "fn.lugar",
+      "carries": "datasDaPassagem, periodoDaVisao"
+    },
+    {
+      "from": "vista.casco",
+      "to": "fn.sinais",
+      "carries": "TRIAGEM_INICIAL, comFiltro, depoisDoDesfazer, depoisDoGesto, intencaoDaTecla, itemAtual, pular, voltar; tipos: DestinoDaCaixa, DestinoDaIdeia, EstadoDaTriagem, FiltroDaTriagem, IntencaoDaTriagem"
+    },
+    {
+      "from": "vista.casco",
+      "to": "fn.trabalho",
+      "carries": "chaveDoContexto, checagensDoTexto, lugaresDoOnde, modeloDaNota, valorEmTexto, VISAO_ID; tipos: LigacoesDaNota"
+    },
+    {
+      "from": "vista.casco",
+      "to": "ramo-principal",
+      "carries": "ciclosDoPeriodo, dataDoPeriodo, ramoQueAmplia, planoDaGrade, colunaDoHorizonte; tipos: CicloDoPeriodo, RamoPrincipal, PlanoDaGrade"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.base",
+      "carries": "amostraEl, CORES_DE_RAMO, DICAS_SO_DO_NOME, botao, el, estadoDoNo, janela, lupa, rotulosDoCatalogo, svg, acenderLinhagem, ligarCurvas, ligarInteracao, ligarRealce, previaDoLigar; tipos: Contexto, DicasDaMissao, SuperficieDasLigacoes"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.entrada",
+      "carries": "ligarArrasto"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.gaveta",
+      "carries": "conteudoDaGaveta, conteudoDoNovo; tipos: FormDaGaveta, FormDoNovo"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.linhas",
+      "carries": "linhaAbertaEl, linhaFechadaEl"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.painel",
+      "carries": "conteudoDoPainel, trilhaEl, rotuloDoType; tipos: PassoDaTrilha"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.ramo",
+      "carries": "ramoEl, superficieDoRamo"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.sistema",
+      "carries": "sistemaEl"
+    },
+    {
+      "from": "vista.casco",
+      "to": "vista.triagem",
+      "carries": "conteudoDaTriagem; tipos: FormDaTriagem"
+    },
+    {
+      "from": "vista.entrada",
+      "to": "base",
+      "carries": "idDoPeriodo, periodoDoId; tipos: Escala, ItemDaTriagem, MissaoModelo"
+    },
+    {
+      "from": "vista.entrada",
+      "to": "fn.gestos",
+      "carries": "intencaoDeSoltar, intervaloDaBorda, pixelsDaBorda, velocidadeDaBorda, DRAG_THRESHOLD; tipos: IntencaoDaTela"
+    },
+    {
+      "from": "vista.entrada",
+      "to": "vista.base",
+      "carries": "el"
+    },
+    {
+      "from": "vista.gaveta",
+      "to": "base",
+      "carries": "ADICIONAR, ESCOLHER, FRASES, GAVETA, PAINEL, SMART_DA_SEMANA_ATE, diaDaSemana, diaMes, idDoPeriodo, semanaCurta; tipos: Candidato, Escala, OpcaoDeEscolher"
+    },
+    {
+      "from": "vista.gaveta",
+      "to": "ext.engine",
+      "carries": "textoParaEditar; tipos: DomainField"
+    },
+    {
+      "from": "vista.gaveta",
+      "to": "fn.formularios",
+      "carries": "resumoDoResto, rotuloDoPasso; tipos: CampoDoNovo, CampoNaGaveta, CriacoesPedidas, Sugestao, TipoDoNovo, TituloNaGaveta, VistaDaGaveta"
+    },
+    {
+      "from": "vista.gaveta",
+      "to": "vista.base",
+      "carries": "botao, caixaDoCampo, el, noEl, rotulosDoCatalogo, tracos; tipos: Contexto"
+    },
+    {
+      "from": "vista.linhas",
+      "to": "base",
+      "carries": "FRASES, idDoPeriodo, marcaDePessoas; tipos: Passagem, Faixa, Ligacao, LinhaAberta, LinhaFechada, MissaoNo, TrechoDeLugar"
+    },
+    {
+      "from": "vista.linhas",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "vista.linhas",
+      "to": "fn.gestos",
+      "carries": "linhaAceitaSoltar"
+    },
+    {
+      "from": "vista.linhas",
+      "to": "fn.lugar",
+      "carries": "datasDaPassagem, ordemDosPaises"
+    },
+    {
+      "from": "vista.linhas",
+      "to": "ramo-principal",
+      "carries": "nosDaFonte; tipos: ColunaNoPlano, RamoPrincipal, PlanoDaGrade, VazioDaColuna"
+    },
+    {
+      "from": "vista.linhas",
+      "to": "vista.base",
+      "carries": "botao, cicloEl, el, marcaEl, noEl, periodoEl, svg, ferramentasDoNo, maisDoContexto; tipos: Contexto"
+    },
+    {
+      "from": "vista.painel",
+      "to": "base",
+      "carries": "ADICIONAR, chaveDeHoje, diaDaSemana, diaMes, diasDoPeriodo, FRASES, isChaveEspecial, PAINEL, periodoDoId, REGISTRO, semanaCurta, STATUS; tipos: DetalheDoNo, Escala, Passagem, LugarDoNo, MissaoNo, MissaoTarefa, PessoaDaMissao"
+    },
+    {
+      "from": "vista.painel",
+      "to": "ext.engine",
+      "carries": "camposNoFormato, comoEdita; tipos: DomainField"
+    },
+    {
+      "from": "vista.painel",
+      "to": "fn.formularios",
+      "carries": "destinosDoFeito"
+    },
+    {
+      "from": "vista.painel",
+      "to": "fn.gestos",
+      "carries": "acoesParaLigar, ligacoesDoNo, opcoesDeMover, ORDEM_DOS_GRUPOS"
+    },
+    {
+      "from": "vista.painel",
+      "to": "fn.lugar",
+      "carries": "datasDaPassagem, PREFIXO_DA_PESSOA, trilhaDoLugar"
+    },
+    {
+      "from": "vista.painel",
+      "to": "fn.trabalho",
+      "carries": "CAMPO_DA_ORIGEM, campoDoEstado, camposCrus, camposDoNo, conexoesDaNota, idDaArea, idDoProjeto, linksDoCampo, modeloDaNota, mostraCampos, relacoesNaLinha, valorEmTexto, VISAO_ID; tipos: GrupoDeConexoes, RotulosDosVocabularios"
+    },
+    {
+      "from": "vista.painel",
+      "to": "vista.base",
+      "carries": "botao, botaoDeCorrente, botaoDoStatus, estadoDoNo, botaoDoCiclo, caixaDoCampo, cicloEl, el, icone, linhaDeCampo, noEl, rotulosDoCatalogo, tracos, valorDeLinks, valorEmSpan; tipos: Contexto, EstadoDoNo"
+    },
+    {
+      "from": "vista.ramo",
+      "to": "base",
+      "carries": "PINCA, RAMO"
+    },
+    {
+      "from": "vista.ramo",
+      "to": "ext.engine",
+      "carries": "tipos: Formacao"
+    },
+    {
+      "from": "vista.ramo",
+      "to": "fn.gestos",
+      "carries": "TRACO_DAS_LIGACOES; tipos: MigalhaDoZoom, CartaoDoRamo, MapaDoRamo"
+    },
+    {
+      "from": "vista.ramo",
+      "to": "vista.base",
+      "carries": "botao, el, noEl, svg, maisDoContexto; tipos: Contexto, SuperficieDasLigacoes"
+    },
+    {
+      "from": "vista.sistema",
+      "to": "base",
+      "carries": "PINCA; tipos: LinhaDoSistema"
+    },
+    {
+      "from": "vista.sistema",
+      "to": "vista.base",
+      "carries": "el, noEl; tipos: Contexto"
+    },
+    {
+      "from": "vista.triagem",
+      "to": "base",
+      "carries": "addDays; tipos: ItemDaTriagem, MissaoModelo"
+    },
+    {
+      "from": "vista.triagem",
+      "to": "ext.engine",
+      "carries": "tipos: Vocabularios"
+    },
+    {
+      "from": "vista.triagem",
+      "to": "fn.sinais",
+      "carries": "ESTIMATIVAS, GRUPOS, TECLAS_POR_TIPO, filtrosDaTriagem, itemAtual, pendentes, posicao, teclasDoItem; tipos: EstadoDaTriagem"
+    },
+    {
+      "from": "vista.triagem",
+      "to": "vista.base",
+      "carries": "botao, el, icone"
+    },
+    {
+      "from": "ramo-principal",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "fn.formularios",
+      "to": "ext.definicoes",
+      "carries": "DEFINICOES_PADRAO (a tabela dos papéis sem a leitura do lugar)"
+    },
+    {
+      "from": "liga.gravar",
+      "to": "ext.definicoes",
+      "carries": "DEFINICOES_PADRAO (a tabela dos papéis sem a leitura do lugar)"
+    },
+    {
+      "from": "liga.leitor",
+      "to": "ext.definicoes",
+      "carries": "DEFINICOES_PADRAO (a tabela dos papéis sem a leitura do lugar)"
+    },
+    {
+      "from": "vista.casco",
+      "to": "ext.definicoes",
+      "carries": "DEFINICOES_PADRAO (a tabela dos papéis sem a leitura do lugar)"
+    }
+  ]
+}

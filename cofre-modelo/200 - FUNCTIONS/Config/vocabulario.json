@@ -1,0 +1,155 @@
+{
+  "contrato": "O vocabulário que o sistema não usa para medir ninguém, numa lista só: cada termo com o padrão, o porquê, o alcance e os lugares onde vale. O sistema descreve o que aconteceu, nunca o caráter de quem fez; os sinais citam o fato, o limiar e a pergunta. Os termos que a pessoa acrescenta ficam nas definições do sistema (a aba do plugin, `vocabulario.termos_extra`). Quem lê: o juiz do vocabulário da bancada, quando ele está no cofre. Mudar um termo é mudar este arquivo, sem código.",
+  "lugares": {
+    "modelos": {
+      "descricao": "Os modelos de nota (os de ciclo em Models/ e os de Templates/): o texto que a nota nova traz e o que os painéis dela escrevem.",
+      "globs": [
+        "200 - FUNCTIONS/Models/*.md",
+        "200 - FUNCTIONS/Templates/**/*.md"
+      ]
+    },
+    "protocolos": {
+      "descricao": "Os textos que os protocolos mostram ou gravam: perguntas, opções, exemplos, modelos da nota, nomes e descrições (os ids, as pastas, os destinos e as condições não são texto para ler).",
+      "globs": [
+        "200 - FUNCTIONS/Protocolos/*.json"
+      ]
+    },
+    "scripts": {
+      "descricao": "Os scripts dataview que escrevem texto nas notas (as linhas de comentário não contam: ninguém as lê na nota).",
+      "globs": [
+        "200 - FUNCTIONS/Scripts/*.js"
+      ]
+    }
+  },
+  "negacao": {
+    "padrao": "\\b(n[ãa]o|nem|nunca|sem|jamais)\\b",
+    "motivo": "O texto que diz o veto ('não é falha', 'não há streak nem dia perdido', 'sem taxa nem medalha') é o veto em uso, não a infração: um termo que tem antes dele, na mesma frase, uma destas palavras não conta."
+  },
+  "termos": [
+    {
+      "id": "vergonha",
+      "termo": "vergonha (envergonhar a pessoa)",
+      "padrao": "\\bvergonhos[oa]s?\\b|\\b(deveria|devia) (ter|sentir) vergonha\\b|\\bque vergonha\\b",
+      "motivo": "O sistema não envergonha a pessoa: a vergonha é a avaliação de si com que a gente se funde (ACT) e tira o foco da ação.",
+      "alcance": "O sistema chamando algo dela de vergonhoso ou dizendo que ela deveria sentir vergonha. Nomear a emoção que ela sente (os exercícios ACT: 'medo, vergonha, tristeza') não é o alvo: é o exercício.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "acusacao_moral",
+      "termo": "acusação moral",
+      "padrao": "\\bpregui[çc]os[oa]s?\\b|\\bfracassad[oa]s?\\b|\\bvagabund[oa]s?\\b|\\bindisciplinad[oa]s?\\b|\\bmed[íi]ocre|\\bcovardia disfar[çc]ada\\b|\\beu fui fraco\\b|\\bfraco de car[áa]ter|\\bfalha de car[áa]ter|\\bculpa (é )?(sua|tua)\\b|\\bvoc[êe] est[áa] evitando\\b|\\bfoco insuficiente\\b",
+      "motivo": "O sistema descreve o que aconteceu, nunca o caráter de quem fez: o rótulo moral é a avaliação de si que o ACT ensina a soltar.",
+      "alcance": "Um rótulo sobre a pessoa (preguiçoso, fracassado, medíocre, 'a culpa é sua'). O projeto que 'fracassou' no pré-mortem e a culpa como emoção a observar (o Jogo da Culpa do ACT) não são o alvo.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "eu_ideal",
+      "termo": "\"Eu Ideal\"",
+      "padrao": "\\beu ideal\\b",
+      "motivo": "Comparar a pessoa com um 'Eu Ideal' é uma régua que o sistema não usa: a direção são os valores, não um eu a alcançar.",
+      "alcance": "Todo lugar que a pessoa lê.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "sucesso_falha",
+      "termo": "Via Negativa \"Sucesso/Falha\"",
+      "padrao": "\\bsucesso\\s*/\\s*falha\\b|\\bsucesso ou falha\\b|\\b(n[ãa]o|sim) \\((sucesso|falha)\\)|\\bse o sucesso fosse garantido\\b",
+      "motivo": "O dia não se classifica em sucesso ou falha: o sistema registra fatos.",
+      "alcance": "O veredito binário sobre o dia ou a pessoa.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "cobranca_de_registro",
+      "termo": "cobrança pela falta de registro",
+      "padrao": "\\b(esqueceu|deixou) de (registrar|preencher|marcar)\\b|\\bn[ãa]o (registrou|preencheu|marcou)\\b|\\bd[íi]vida (de|do) registro\\b|\\bregistros? (atrasados?|em atraso|pendentes?)\\b|\\bdias? perdidos?\\b|\\bcompensar o dia\\b",
+      "motivo": "\"Ausência de registro é ausência de dado\": o dia sem marca não vira dívida, dia perdido nem compensação; marcar depois é o uso normal.",
+      "alcance": "Todo lugar que a pessoa lê.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "porcentagem_da_pessoa",
+      "termo": "porcentagem como medida da pessoa",
+      "padrao": "%\\s*(de\\s+)?(execu[çc][ãa]o|ades[ãa]o|cumprimento|conclus[ãa]o|aproveitamento|produtividade|disciplina|consist[êe]ncia)|\\b(meta|taxa|[íi]ndice) de (execu[çc][ãa]o|ades[ãa]o|cumprimento|conclus[ãa]o|aproveitamento)\\b|\\b(execu[çc][ãa]o|ades[ãa]o|cumprimento|aproveitamento)\\s+(semanal\\s+|di[áa]ri[oa]\\s+)?(em\\s+)?\\(?%",
+      "motivo": "O retorno que controla ('você cumpriu 60%') enfraquece a motivação de dentro, e o que informa ('4 de 6, faltam 2') a sustenta: o plano e os hábitos mostram a contagem pela forma única.",
+      "alcance": "A porcentagem do que a pessoa fez (execução, adesão, cumprimento, conclusão do plano ou do hábito). A porcentagem de uma coisa fica: um orçamento, a probabilidade de um medo, o '1% melhor'.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "medalha",
+      "termo": "medalha como medida da pessoa",
+      "padrao": "\\bmedalh\\w*|🏅|🥇|🥈|🥉",
+      "motivo": "A medalha é a nota sobre si em forma de prêmio: mede a pessoa em vez de informar o feito.",
+      "alcance": "A medalha, o pódio. O 🏆 das vitórias que a própria pessoa escreve não é medida: é o registro do feito.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "sequencia",
+      "termo": "sequência (streak)",
+      "padrao": "\\bstreaks?\\b|\\bdias (seguidos|consecutivos)\\b|\\bsequ[êe]ncia (de dias|atual|perfeita|quebrada|de \\d+)|\\bn[ãa]o quebr\\w* a (sequ[êe]ncia|corrente)\\b",
+      "motivo": "Perder uma sequência leva a desistir de tudo (o efeito 'dane-se'): o progresso é contagem de execuções, e a pausa não zera nada.",
+      "alcance": "A contagem de dias seguidos, da pessoa ou do hábito. A sequência de passos de um processo não é o alvo.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "atrasado",
+      "termo": "\"atrasado\" num sinal",
+      "padrao": "\\batrasad[oa]s?\\b|\\bem atraso\\b",
+      "motivo": "Os sinais descrevem o plano e os dados, nunca a pessoa: a tarefa tem um prazo e uma data; 'atrasado' é um veredito.",
+      "alcance": "O texto que o sistema mostra. A data, o prazo e o 'venceu em' ficam.",
+      "onde": [
+        "modelos",
+        "protocolos",
+        "scripts"
+      ]
+    },
+    {
+      "id": "falha",
+      "termo": "\"falha\" num sinal",
+      "padrao": "\\bfalh(a|as|ou|aram)\\b",
+      "motivo": "Os sinais descrevem o plano e os dados, nunca a pessoa: o dia sem marca, o plano que mudou e a pausa não são falha.",
+      "alcance": "O texto que o sistema escreve nas notas (os modelos e os scripts). Fica de fora a falha que a pessoa analisa numa coisa: os modos de falha de um plano, o teste de falha de um componente.",
+      "onde": [
+        "modelos",
+        "scripts"
+      ],
+      "nao_e": [
+        {
+          "padrao": "\\bmodos? de falha\\b",
+          "motivo": "Os modos de falha de um plano: o risco que a própria pessoa escreveu, não um veredito sobre ela."
+        }
+      ]
+    }
+  ]
+}

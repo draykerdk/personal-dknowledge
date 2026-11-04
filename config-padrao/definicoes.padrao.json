@@ -1,0 +1,67 @@
+{
+  "_sobre": "As definições de partida do sistema: o que a aba de configurações do plugin mostra antes da inicialização e o que o protocolo de inicialização preenche. Cada campo, o tipo, o padrão e onde o código o lê hoje estão em config-padrao/README.md. Os padrões são neutros: nenhum valor, área, nome ou número de alguém.",
+  "versao": 1,
+  "inicializado": false,
+  "pessoa": {
+    "nome": "",
+    "fuso_horario": ""
+  },
+  "rotulos": {
+    "nivel_pessoal": "",
+    "agente": "",
+    "_porque": "os nomes que o sistema mostra: o do nível pessoal (vazio = 'Nível pessoal') e o do agente (vazio = 'o agente'); o que mais entra aqui depende da pergunta J5 do mapa"
+  },
+  "valores": [],
+  "valores_relacoes": [],
+  "areas": [],
+  "trimestre": {
+    "foco": [],
+    "_porque": "o foco de cada trimestre continua gravado na nota do trimestre; aqui fica o do trimestre corrente, que o 🧭 oferece e grava na nota (pergunta J6 do mapa)"
+  },
+  "pesos": {
+    "ajustes": {},
+    "_porque": "os números de partida moram no arquivo de pesos (arquivos.pesos), a fonte única do plugin e da bancada; aqui ficam só os ajustes da pessoa, categoria por categoria, por cima dele. Vazio = os de partida (B5 e a pergunta J8 do mapa)"
+  },
+  "vocabulario": {
+    "termos_extra": [],
+    "_porque": "termos que a pessoa acrescenta à lista do que o sistema não usa para medir ou julgar alguém; a lista de partida mora em arquivos.vocabulario"
+  },
+  "pastas": {
+    "inbox": "300 - RUNTIME/001 - INBOX",
+    "protocolos": "200 - FUNCTIONS/Protocolos",
+    "revisao_semanal": "400 - MEMORY/200 - WEEKLY",
+    "valores": "400 - MEMORY/Valores",
+    "excluidas": ["000 - KERNEL", "200 - FUNCTIONS", "300 - RUNTIME"]
+  },
+  "arquivos": {
+    "pesos": "200 - FUNCTIONS/Config/pesos_decisao.json",
+    "reputacao": "200 - FUNCTIONS/Config/reputacao.json",
+    "ech": "200 - FUNCTIONS/Config/ech.json",
+    "vocabulario": "200 - FUNCTIONS/Config/vocabulario.json",
+    "reserva": "",
+    "_porque": "os pesos, a reputação, o ECH e o vocabulário são lidos pelo plugin e pela bancada de juízes; a aba edita estes arquivos, que seguem sendo a fonte única. A nota da reserva é opcional: vazia, o módulo do dinheiro fica desligado (A6)"
+  },
+  "ponte": {
+    "ligada": false,
+    "porta": 3082,
+    "_porque": "a ponte do agente local (o DSH): desligada, nada escuta nem avisa; ligada, escuta só no 127.0.0.1, na porta (de 1024 a 65535), e grava o descritor que o lado do agente lê"
+  },
+  "protocolos_por_papel": {
+    "_porque": "o código pede um protocolo pelo papel, nunca pelo id; papel sem protocolo (null, ou id sem arquivo no cofre) esconde o botão ou a opção",
+    "planejar_semana": "planejamento_semanal",
+    "revisar_semana": "review_semanal",
+    "planejar_trimestre": "planejamento_trimestral",
+    "inicializar": "inicializacao",
+    "abrir_dia": null,
+    "fechar_dia": null,
+    "planejar_dia": null,
+    "revisar_trimestre": null,
+    "perguntar_a_situacao": null,
+    "criar_projeto": null,
+    "criar_departamento": null,
+    "nova_tarefa_do_projeto": null,
+    "destino_da_ideia": null,
+    "desbloquear": null,
+    "visao": null
+  }
+}

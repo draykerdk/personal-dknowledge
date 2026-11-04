@@ -1,0 +1,18 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": true,
+		// `skipLibCheck` pelo mesmo motivo do script de build: as tipagens de
+		// `node_modules` (o próprio `obsidian.d.ts` declara `Menu`/`Modal`
+		// implementando `HistoryHandler` sem o método exigido) geram erro que não é
+		// nosso. Sem isto, o ruído da biblioteca esconde o erro do teste — que é o
+		// único que interessa aqui.
+		"skipLibCheck": true,
+		"types": ["node"],
+		// O código de `src` usa `Array.prototype.at` (ES2022) e o alvo do tsconfig
+		// principal é ES6/ES2019 — o build não reclama porque `skipLibCheck` e o
+		// esbuild transpilam; aqui o alvo precisa alcançar o que o código já usa.
+		"lib": ["DOM", "ES2022"]
+	},
+	"include": ["src/**/*.ts", "tests/**/*.ts"]
+}

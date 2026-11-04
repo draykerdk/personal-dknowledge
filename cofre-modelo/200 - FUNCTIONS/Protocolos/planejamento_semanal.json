@@ -1,0 +1,145 @@
+{
+  "id": "planejamento_semanal",
+  "name": "🌳 Planejar a semana",
+  "icon": "calendar-days",
+  "description": "Abre a semana em poucos passos: a semana que passou numa linha, o par de valores, até três SMART, as tarefas de cada uma e o que fica de fora. Grava nas propriedades da nota da semana e põe a semana nas SMART e nas tarefas escolhidas. Rodar de novo atualiza as propriedades e deixa o texto da nota como está.",
+  "objetivo": "escolher o pouco que a semana vai carregar",
+  "fase": "planejamento",
+  "fase_uso": "nova",
+  "useCurrentDate": true,
+  "targetFolder": "300 - RUNTIME/302 - Daymiss/Week",
+  "filename": "{{targetweek:GGGG}}-W{{targetweek:WW}}",
+  "onExisting": "merge_frontmatter",
+  "templateFile": "200 - FUNCTIONS/Models/Week modelo.md",
+  "logMode": "link",
+  "steps": [
+    {
+      "id": "direcao",
+      "type": "text",
+      "prompt": "🌱 A semana que passou, numa linha: o que ela deixa para esta?",
+      "placeholder": "Ex.: terminar o que ficou pela metade antes de abrir coisa nova",
+      "info": "Vira a direção da semana, no topo da nota. Se a semana passada tem revisão, a resposta abre com o que você escolheu mudar nela.",
+      "defaultFrom": [
+        {
+          "path": "300 - RUNTIME/302 - Daymiss/Week/{{targetweek:GGGG-[W]WW}}.md",
+          "field": "direcao",
+          "origem": "o que a nota da semana já tem"
+        },
+        {
+          "path": "400 - MEMORY/200 - WEEKLY/{{date:GGGG}}-W{{date:WW}} - Review.md",
+          "field": "ajuste_minimo",
+          "origem": "o que mudar, da revisão da semana passada"
+        }
+      ],
+      "required": true
+    },
+    {
+      "id": "valor_semana",
+      "type": "suggest_note",
+      "prompt": "🧭 O seu valor desta semana",
+      "info": "Um da sua lista de valores. A sugestão sai da ordem do trimestre; trocar é normal.",
+      "folder": "400 - MEMORY/Valores",
+      "allowAnyNote": false,
+      "allowFreeText": false,
+      "criteria": {
+        "property": [
+          { "key": "type", "value": "valor" },
+          { "key": "grupo", "value": "individual" }
+        ]
+      },
+      "limit": 12,
+      "sugestaoDaSemana": "valor",
+      "required": true
+    },
+    {
+      "id": "valor_relacao",
+      "type": "suggest_note",
+      "prompt": "🤝 O valor das suas relações nesta semana",
+      "info": "Um dos valores do grupo das relações. Sem nenhum na lista, pule.",
+      "folder": "400 - MEMORY/Valores",
+      "allowAnyNote": false,
+      "allowFreeText": false,
+      "criteria": {
+        "property": [
+          { "key": "type", "value": "valor" },
+          { "key": "grupo", "value": "relacional" }
+        ]
+      },
+      "limit": 12,
+      "sugestaoDaSemana": "relacao",
+      "skipDisplay": "nenhum nesta semana",
+      "optional": true
+    },
+    {
+      "id": "smart_semana",
+      "type": "multiselect_note",
+      "prompt": "🎯 Até três SMART para esta semana",
+      "info": "As SMART abertas que ainda não têm semana, e as que já são desta. As escolhidas ganham esta semana no campo week.",
+      "criteria": {
+        "folder": "TaskNotes/Tasks",
+        "property": [
+          { "key": "type", "value": "tarefa_smart" },
+          { "key": "status", "value": ["done", "cancelled"], "negate": true },
+          { "key": "archived", "value": true, "negate": true }
+        ],
+        "propertyAny": [
+          [{ "key": "week", "value": "!null", "negate": true }],
+          [{ "key": "week", "value": "" }],
+          [{ "key": "week", "value": "{{targetweek:GGGG-[W]WW}}" }]
+        ]
+      },
+      "maxSelect": 3,
+      "skipLabel": "⏭️ Nenhuma por agora",
+      "emptyMessage": "Nenhuma SMART aberta sem semana. A semana segue com as tarefas soltas.",
+      "optional": true
+    },
+    {
+      "id": "tarefas_semana",
+      "type": "multiselect_note",
+      "prompt": "🪜 As tarefas de cada SMART que entram nesta semana",
+      "info": "As tarefas abertas que apontam para as SMART escolhidas no campo projects. As marcadas também ganham esta semana.",
+      "condition": { "variable": "smart_semana", "filled": true },
+      "criteria": {
+        "folder": "TaskNotes/Tasks",
+        "property": [
+          { "key": "type", "value": "tarefa_smart", "negate": true },
+          { "key": "status", "value": ["done", "cancelled"], "negate": true },
+          { "key": "archived", "value": true, "negate": true }
+        ],
+        "linkedTo": { "variable": "smart_semana", "property": "projects" }
+      },
+      "skipLabel": "⏭️ Nenhuma agora",
+      "emptyMessage": "As SMART escolhidas ainda não têm tarefas. Elas entram depois, pela SMART.",
+      "optional": true
+    },
+    {
+      "id": "lista_nao",
+      "type": "text",
+      "prompt": "🚫 O que fica de fora desta semana, de propósito?",
+      "placeholder": "Ex.: não aceitar pedido novo até sexta",
+      "defaultFrom": {
+        "path": "300 - RUNTIME/302 - Daymiss/Week/{{targetweek:GGGG-[W]WW}}.md",
+        "field": "lista_nao",
+        "origem": "o que a nota da semana já tem"
+      },
+      "optional": true
+    }
+  ],
+  "properties": {
+    "type": "weekly_note",
+    "week": "{{targetweek:GGGG-[W]WW}}",
+    "quarter": "{{weekday:_target_week:4:YYYY-[Q]Q}}",
+    "direcao": "{{direcao}}",
+    "valor_semana": "{{valor_semana_display}}",
+    "valor_relacao": "{{valor_relacao_display}}",
+    "lista_nao": "{{lista_nao}}",
+    "status": "open"
+  },
+  "updateSelectedNotes": {
+    "variable": ["smart_semana", "tarefas_semana"],
+    "allowedFolder": "TaskNotes/Tasks",
+    "properties": {
+      "week": "{{targetweek:GGGG-[W]WW}}"
+    }
+  }
+}

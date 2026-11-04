@@ -1,0 +1,1137 @@
+{
+  "id": "criacao",
+  "titulo": "Criação",
+  "descricao": "O ramo Criação: as peças de criação, da ideia ao revisado, em todo formato, cada um com a publicação dele (o vídeo primeiro, com o longo, o short e o corte; e o artigo, o carrossel, a imagem, o post e o e-mail): canais, frentes, ideias, peças, desdobramentos (os cortes, as versões e os posts que saem de uma peça) e as tarefas de cada peça, no dia, na semana, no trimestre e no ano.",
+  "escalas": [
+    "dia",
+    "semana",
+    "trimestre",
+    "ano"
+  ],
+  "centro": {
+    "fonte": "colecoes.pecas",
+    "rotulo": {
+      "dia": "Peça",
+      "semana": "Peça",
+      "trimestre": "Peça",
+      "ano": "Peça"
+    },
+    "largura": "170px",
+    "painel": "centro",
+    "habitos": false,
+    "vazio": "sem peça neste período"
+  },
+  "recorte": {
+    "tags": [
+      "criacao",
+      "video"
+    ]
+  },
+  "trabalho": [
+    {
+      "id": "canais",
+      "rotulo": "Canais",
+      "fonte": "colecoes.canais",
+      "largura": "minmax(96px,.62fr)",
+      "celular": 0.42,
+      "painel": "estrutura",
+      "vazio": "sem canal"
+    },
+    {
+      "id": "frentes",
+      "rotulo": "Frentes",
+      "fonte": "colecoes.frentes",
+      "largura": "minmax(134px,1fr)",
+      "celular": 0.58,
+      "painel": "estrutura",
+      "vazio": "sem frente",
+      "amplia": {
+        "ramo": "projetos",
+        "tipos": [
+          "projeto",
+          "departamento"
+        ]
+      }
+    },
+    {
+      "id": "ideias",
+      "rotulo": "Ideias",
+      "fonte": "colecoes.ideias",
+      "largura": "minmax(134px,1fr)",
+      "celular": 0.58,
+      "painel": "pecas",
+      "vazio": "sem ideia"
+    },
+    {
+      "id": "pecas",
+      "rotulo": "Peças",
+      "fonte": "colecoes.pecas",
+      "largura": "minmax(142px,1.05fr)",
+      "celular": 1,
+      "painel": "pecas"
+    },
+    {
+      "id": "desdobramentos",
+      "rotulo": "Desdobramentos",
+      "fonte": "colecoes.desdobramentos",
+      "largura": "minmax(142px,1.05fr)",
+      "celular": 1,
+      "painel": "pecas",
+      "vazio": "sem desdobramento"
+    },
+    {
+      "id": "tarefas",
+      "ligacoes": "padrao",
+      "rotulo": "Tarefas",
+      "fonte": "faixas",
+      "pendentes": "pendentes",
+      "horarios": "horarios",
+      "faixas": true,
+      "largura": "minmax(214px,1.6fr)",
+      "celular": 1,
+      "painel": "centro",
+      "junto": true,
+      "marcas": true
+    }
+  ],
+  "tempo": [
+    {
+      "id": "dia",
+      "rotulo": "Dia",
+      "fonte": "centro",
+      "escalas": [
+        "dia"
+      ],
+      "largura": "minmax(110px,.8fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    },
+    {
+      "id": "semana",
+      "rotulo": "Semana",
+      "fonte": "centro",
+      "escalas": [
+        "semana"
+      ],
+      "largura": "minmax(118px,.85fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    },
+    {
+      "id": "trimestre",
+      "rotulo": "Trimestre",
+      "fonte": "centro",
+      "escalas": [
+        "trimestre"
+      ],
+      "largura": "minmax(118px,.85fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    },
+    {
+      "id": "ano",
+      "rotulo": "Ano",
+      "fonte": "centro",
+      "escalas": [
+        "ano"
+      ],
+      "largura": "minmax(118px,.85fr)",
+      "celular": 0.5,
+      "painel": "tempo",
+      "nota": true
+    }
+  ],
+  "paineis": [
+    {
+      "id": "estrutura",
+      "rotulo": "Canais e frentes",
+      "dica": "onde vai ao ar e o que divulga",
+      "alinhar": "start"
+    },
+    {
+      "id": "pecas",
+      "rotulo": "Peças",
+      "dica": "as ideias, as peças e os desdobramentos",
+      "alinhar": "start"
+    },
+    {
+      "id": "centro",
+      "rotulo": "Peça",
+      "dica": "a peça da linha e as tarefas das peças",
+      "alinhar": "center"
+    },
+    {
+      "id": "tempo",
+      "rotulo": "Tempo",
+      "dica": "o período: o dia, a semana, o trimestre ou o ano",
+      "alinhar": "end"
+    }
+  ],
+  "ligacoes": {
+    "estrutura": {
+      "traco": "continuo",
+      "rotulo": "a peça: canal e frente → peça → desdobramento → tarefa"
+    },
+    "bloqueio": {
+      "traco": "tracejado",
+      "rotulo": "a dependência: o que bloqueia → a bloqueada"
+    },
+    "tempo": {
+      "traco": "pontilhado",
+      "rotulo": "tempo: tarefa → período"
+    },
+    "pendente": {
+      "traco": "tracejado",
+      "rotulo": "pendente de antes"
+    }
+  },
+  "minimo": {
+    "dia": 1288,
+    "semana": 1288,
+    "trimestre": 1288,
+    "ano": 1288
+  },
+  "colecoes": [
+    {
+      "id": "ideias",
+      "rotulo": "Ideias",
+      "fontes": [
+        {
+          "casa": "500 - RESOURCES/Ideias",
+          "type": "idea",
+          "rotulo": "Ideia",
+          "de": "date",
+          "ate": "roteiro_em",
+          "usada": {
+            "colecoes": [
+              "pecas",
+              "desdobramentos"
+            ],
+            "campo": "ideia_origem"
+          },
+          "linha": [
+            "destino"
+          ],
+          "campos": [
+            {
+              "nome": "destino",
+              "rotulo": "Destino"
+            },
+            {
+              "nome": "date",
+              "rotulo": "Capturada em",
+              "formato": "data"
+            },
+            {
+              "nome": "roteiro_em",
+              "rotulo": "Virou roteiro em",
+              "formato": "data",
+              "nota": "preencha quando a ideia virar roteiro: ela sai da coluna"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pecas",
+      "rotulo": "Peças",
+      "ordem": {
+        "campo": "publicar_em",
+        "semValor": "recente"
+      },
+      "fontes": [
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Longo",
+          "filtro": {
+            "formato": [
+              "longo"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "de": "created",
+          "ate": "publicar_em",
+          "linha": [
+            "status",
+            "canal",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Short",
+          "filtro": {
+            "formato": [
+              "short"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "de": "created",
+          "ate": "publicar_em",
+          "linha": [
+            "status",
+            "canal",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Artigo",
+          "filtro": {
+            "formato": [
+              "artigo"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "sem": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "linha": [
+            "status",
+            "canal",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Carrossel",
+          "filtro": {
+            "formato": [
+              "carrossel"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "sem": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "linha": [
+            "status",
+            "canal",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Imagem",
+          "filtro": {
+            "formato": [
+              "imagem"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "sem": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "linha": [
+            "status",
+            "canal",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Post",
+          "filtro": {
+            "formato": [
+              "post"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "sem": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "linha": [
+            "status",
+            "canal",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "E-mail",
+          "filtro": {
+            "formato": [
+              "email"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "sem": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "linha": [
+            "status",
+            "canal",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "desdobramentos",
+      "rotulo": "Desdobramentos",
+      "ordem": {
+        "campo": "publicar_em",
+        "semValor": "recente"
+      },
+      "fontes": [
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Corte",
+          "filtro": {
+            "formato": [
+              "corte"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "de": "created",
+          "ate": "publicar_em",
+          "segue": "de",
+          "linha": [
+            "status",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "de",
+              "rotulo": "Corte de"
+            },
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Artigo",
+          "filtro": {
+            "formato": [
+              "artigo"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "com": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "segue": "de",
+          "linha": [
+            "status",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "de",
+              "rotulo": "Desdobramento de"
+            },
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Carrossel",
+          "filtro": {
+            "formato": [
+              "carrossel"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "com": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "segue": "de",
+          "linha": [
+            "status",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "de",
+              "rotulo": "Desdobramento de"
+            },
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Imagem",
+          "filtro": {
+            "formato": [
+              "imagem"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "com": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "segue": "de",
+          "linha": [
+            "status",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "de",
+              "rotulo": "Desdobramento de"
+            },
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "Post",
+          "filtro": {
+            "formato": [
+              "post"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "com": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "segue": "de",
+          "linha": [
+            "status",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "de",
+              "rotulo": "Desdobramento de"
+            },
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        },
+        {
+          "dominio": "roteiro_video",
+          "type": "roteiro_video",
+          "titulo": "titulo",
+          "rotulo": "E-mail",
+          "filtro": {
+            "formato": [
+              "email"
+            ],
+            "status": [
+              "ideia",
+              "roteiro",
+              "pronto_para_gravar",
+              "gravado",
+              "editado",
+              "no_ar",
+              "revisado"
+            ]
+          },
+          "com": [
+            "de"
+          ],
+          "de": "created",
+          "ate": "publicar_em",
+          "segue": "de",
+          "linha": [
+            "status",
+            "publicar_em"
+          ],
+          "campos": [
+            {
+              "nome": "de",
+              "rotulo": "Desdobramento de"
+            },
+            {
+              "nome": "canal",
+              "rotulo": "Canal"
+            },
+            {
+              "nome": "status",
+              "rotulo": "Estado"
+            },
+            {
+              "nome": "publicar_em",
+              "rotulo": "Vai ao ar em",
+              "formato": "data"
+            },
+            {
+              "nome": "plataforma",
+              "rotulo": "Plataforma"
+            },
+            {
+              "nome": "link",
+              "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "resultado",
+              "rotulo": "O que trouxe"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canais",
+      "rotulo": "Canais",
+      "vinculo": {
+        "colecao": "pecas",
+        "campo": "canal"
+      },
+      "fontes": []
+    },
+    {
+      "id": "frentes",
+      "rotulo": "Frentes",
+      "vinculo": {
+        "colecao": "pecas",
+        "campo": "projects"
+      },
+      "fontes": [
+        {
+          "dominio": "projeto",
+          "type": "iniciativa",
+          "rotulo": "Projeto"
+        },
+        {
+          "dominio": "departamento",
+          "type": "departamento",
+          "rotulo": "Departamento"
+        }
+      ]
+    }
+  ],
+  "novo": {
+    "tipos": [
+      {
+        "tipo": "roteiro_video",
+        "rotulo": "Roteiro",
+        "titulo": "Novo roteiro"
+      },
+      {
+        "tipo": "tarefa",
+        "rotulo": "Tarefa",
+        "titulo": "Nova tarefa"
+      }
+    ],
+    "no": {
+      "dia": [
+        {
+          "tipo": "roteiro_video",
+          "rotulo": "Novo roteiro"
+        },
+        {
+          "tipo": "tarefa",
+          "rotulo": "Nova tarefa",
+          "escolher": "soltar"
+        }
+      ],
+      "semana": [
+        {
+          "tipo": "roteiro_video",
+          "rotulo": "Novo roteiro"
+        },
+        {
+          "tipo": "tarefa",
+          "rotulo": "Nova tarefa",
+          "escolher": "soltar"
+        }
+      ]
+    },
+    "etiquetas": [
+      "criacao"
+    ]
+  },
+  "ciclos": {
+    "semana": [
+      {
+        "emoji": "🌳",
+        "rotulo": "planejar",
+        "dica": "Planejar a semana",
+        "protocolo": "planejamento_semanal",
+        "ponta": "inicio",
+        "variaveis": {
+          "_target_week_pin": "{chave}"
+        }
+      },
+      {
+        "emoji": "📅",
+        "rotulo": "revisar",
+        "dica": "Revisar a semana",
+        "protocolo": "review_semanal",
+        "ponta": "fim",
+        "variaveis": {
+          "_context_date": "{data}"
+        }
+      }
+    ],
+    "trimestre": [
+      {
+        "emoji": "🧭",
+        "rotulo": "planejar",
+        "dica": "Planejar o trimestre",
+        "protocolo": "planejamento_trimestral",
+        "ponta": "inicio",
+        "variaveis": {
+          "_target_quarter_pin": "{chave}"
+        }
+      }
+    ]
+  }
+}

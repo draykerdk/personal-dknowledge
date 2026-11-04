@@ -1,0 +1,1202 @@
+{
+  "dfm": 1,
+  "system": "engine",
+  "purpose": "O motor do dfm-system (`src/engine`): os protocolos, os pesos e a ordem, as contagens, os leitores das notas e das Days, os ciclos, o canvas, o Mission Control, o núcleo e o operador. Este mapa declara os módulos em três espécies (as funções, `base` e `fn.*`; os que compõem funções, `compoe.*`; os que ligam módulos, `liga.*`) e as conexões permitidas, e a tabela das camadas mora no guarda tests/engine/modeloMotor.test.ts, que confere a declaração contra os imports reais. Esta peça declara e guarda o motor sem refatorá-lo: o que hoje foge das regras está na DIVIDA do guarda, que só encolhe.",
+  "default_grade": "G1",
+  "effects": [
+    "app.vault.*",
+    "app.metadataCache.*",
+    "app.workspace.*",
+    "this.app.*",
+    "new Notice"
+  ],
+  "modules": [
+    {
+      "id": "base",
+      "paths": [
+        "taskContexts.ts",
+        "taskSemantics.ts",
+        "noteLink.ts",
+        "showGrammar.ts",
+        "protocolGroups.ts",
+        "dia.ts",
+        "periodo.ts",
+        "papeisDeProtocolo.ts"
+      ],
+      "role": "functions",
+      "core": true,
+      "does": "Funções. O chão do motor: o vocabulário das tarefas (os lugares do campo `contexts` em taskContexts; o status, a prioridade e o impacto em taskSemantics), o nome de link de uma nota e o nome que um link escrito aponta (noteLink), a forma de mostrar os números (showGrammar), o grupo de um protocolo pelo prefixo do id (protocolGroups) e o dia escrito `AAAA-MM-DD`, a regex única do plugin inteiro, com as leituras do dia num texto maior: no começo, em qualquer lugar, com a hora, os números e o nome do arquivo da Day (dia), e a semana `AAAA-Www` e o trimestre `AAAA-Qn` escritos, também com um dono só (periodo); e os papéis de protocolo, a tabela papel → id que o código pede no lugar dos ids do cofre (papeisDeProtocolo).",
+      "why": "Camada 0: tudo no motor pode ler daqui, e ela não lê nada do motor; sem Obsidian, sem cofre, sem relógio escondido.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/contracts/livroNoSistemaEtapaC.test.ts tests/engine/nowTree.test.ts tests/engine/missionPlan.test.ts tests/engine/showGrammar.test.ts tests/engine/dia.test.ts tests/engine/diaNosLeitores.test.ts tests/engine/diaSemCopia.test.ts tests/engine/periodo.test.ts tests/engine/periodoSemCopia.test.ts tests/engine/papeisDeProtocolo.test.ts"
+      ]
+    },
+    {
+      "id": "fn.blocos",
+      "paths": [
+        "blockLog.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O registro dos blocos (blockLog): a linha que cada bloco aberto pelo gesto deixa (o tipo de tarefa, o lugar, o tamanho e o início), o fechamento e o encaixe aprendido que os pesos leem.",
+      "why": "Camada 1: os pesos, a árvore do agora e a reputação leem os blocos, então o registro fica abaixo deles.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/blockLog.test.ts"
+      ]
+    },
+    {
+      "id": "fn.modelos",
+      "paths": [
+        "domainModel.ts",
+        "fieldModel.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Os modelos de tipo: o modelo de um domínio, com os candidatos, os campos, os estados e os pesos que ele declara (domainModel), e os campos do modelo para editar, quem edita cada um e como o valor digitado vira frontmatter conferido (fieldModel).",
+      "why": "Camada 1: o domínio declara e o núcleo faz; o modelo é dado lido de `Config/dominios/`, sem lógica própria de domínio.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/domainModel.test.ts tests/engine/fieldModel.test.ts"
+      ]
+    },
+    {
+      "id": "fn.habitos",
+      "paths": [
+        "habits.ts",
+        "habitoDoEstado.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Os hábitos nativos do DFM (habits): a leitura de uma nota de hábito, a cadência, a grade e as métricas; e o hábito que o estado de uma nota marca (habitoDoEstado, 03/11: o roteiro que entra em gravado marca o 🎥).",
+      "why": "Camada 1: o painel, a árvore do agora, o diário, o protocolo e a reputação leem os hábitos; quem grava a marca é o liga.habitos.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/habits.test.ts tests/engine/habitoDoEstado.test.ts"
+      ]
+    },
+    {
+      "id": "fn.caixa",
+      "paths": [
+        "inboxRules.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. As regras da caixa de entrada (inboxRules): o que é captura e o que entra na triagem (isTriageCapture, triageCandidates), as pastas dos destinos e as pastas mortas, os tipos de recurso, o nome da nota e o frontmatter do Side Quest e do Virar tarefa. Mudaram de ui/mission/ para cá em 02/11/2026, com a aposentadoria do painel antigo.",
+      "why": "Camada 1: a triagem da Missão e o ECH leem as mesmas regras, sem Obsidian; quem move e grava é a Missão (liga.gravar).",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/inboxRules.test.ts tests/missao/triagemWrites.test.ts"
+      ]
+    },
+    {
+      "id": "fn.tarefas",
+      "paths": [
+        "tasknotesAdapter.ts",
+        "tasknotesCreate.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. As tarefas no TaskNotes: os status canônicos e as transições (tasknotesAdapter) e o pedido de criação pela API, que garante o `type` (tasknotesCreate).",
+      "why": "Camada 1: o formato do pedido e da transição fica fora do Obsidian; quem chama a API são os módulos de cima.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/tasknotesAdapter.test.ts tests/engine/tasknotesCreate.test.ts"
+      ]
+    },
+    {
+      "id": "fn.operador",
+      "paths": [
+        "dshAllowlist.ts",
+        "dshSkills.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O que o operador DSH pode: os protocolos que ele conduz (dshAllowlist) e os caminhos das skills no cofre (dshSkills).",
+      "why": "Camada 1: o Mission Control lê a lista sem importar o operador; importar o operador fecharia um ciclo, porque o operador projeta o snapshot do Mission Control.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/dshSkills.test.ts"
+      ]
+    },
+    {
+      "id": "fn.canvas",
+      "paths": [
+        "canvasMap.ts",
+        "canvasTree.ts",
+        "dfmBlocks.ts",
+        "canvasengine/canvasSplice.ts",
+        "canvasengine/canvasBlockSplice.ts",
+        "canvasengine/canvasRailPlan.ts",
+        "canvasengine/canvasEngineTypes.ts",
+        "canvasengine/canvasTargets.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O canvas como texto e geometria: o mapa de um `.canvas` (canvasMap), a árvore de canvas (canvasTree), o splice textual que preserva o arquivo byte a byte (canvasSplice, canvasBlockSplice), o plano de inserção de um nó de arquivo e o dia de uma tarefa (canvasRailPlan), a notação dos botões do bloco ```dfm``` (dfmBlocks), os tipos que o motor de canvas entrega a quem trabalha para ele, o motor como interface e o contexto da criação de uma tarefa (canvasEngineTypes), e as vistas de canvas abertas e o alvo de uma soltura (canvasTargets).",
+      "why": "Camada 1: o canvas se lê e se escreve como texto puro; os planos, os comandos e o painel compõem por cima. Os marcadores de widget saíram em 02/11/2026, com a camada morta dos widgets por marcador.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/canvasMap.test.ts tests/engine/canvasTree.test.ts tests/engine/dfmBlocks.test.ts tests/engine/canvasBlockSplice.test.ts tests/engine/canvasRailFileNode.test.ts"
+      ]
+    },
+    {
+      "id": "fn.pesos",
+      "paths": [
+        "decisionWeights.ts",
+        "choose.ts",
+        "protocolRank.ts",
+        "panelWeights.ts",
+        "proximaAcao.ts",
+        "direcao.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Os pesos e a ordem: a tabela única dos pesos categóricos, o dia e a semana de um campo (decisionWeights), o escolher para qualquer lista de candidatos, com os motivos (choose), o mais provável primeiro em cada parada do 🧭 (protocolRank) e os pesos do painel do Mission Control (panelWeights), e a próxima ação fixada na nota do projeto, `proxima_acao_real` (proximaAcao, 02/11: o leitor do campo e a fixada entre as candidatas, que o painel antigo e a Missão leem), e a direção do trabalho (direcao, 02/11: para fora ou para dentro pelo verbo e pela entrega, com os pesos que chegam, o verbo sem fim e a ação para fora que espera, que a intenção antiga e a Missão leem).",
+      "why": "Camada 2: toda escolha do sistema é uma soma de pesos; os leitores, as contagens, o protocolo e a projeção leem daqui.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/decisionWeights.test.ts tests/engine/choose.test.ts tests/engine/protocolRank.test.ts tests/engine/panelWeights.test.ts tests/engine/proximaAcao.test.ts tests/engine/direcao.test.ts"
+      ]
+    },
+    {
+      "id": "fn.leitores",
+      "paths": [
+        "records.ts",
+        "diaryReader.ts",
+        "commitmentLeft.ts",
+        "exposicoes.ts",
+        "suportes.ts",
+        "teleprompter.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Os leitores das notas e das Days: o registro com tipo (records), a leitura do diário da Day (diaryReader), o compromisso que o 🌙 deixou e o Comando do Dia que o ▶️ gravou (commitmentLeft; desde 02/11 com o compromisso deixado para hoje e o comando da Day, que o painel antigo e a Missão leem), as exposições da semana (exposicoes) e os Suportes e decisões de uma nota de período (suportes). E o teleprompter de um roteiro (teleprompter, 03/11): só a fala, do Gancho ao CTA, em linhas curtas para o celular, com as faltas ditas.",
+      "why": "Camada 3: leem o que o cofre já entregou como dado, com o dia e o campo dos pesos; quem lê o cofre são os serviços de cima.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/records.test.ts tests/engine/diaryReader.test.ts tests/engine/commitmentLeft.test.ts tests/engine/comandoDaDay.test.ts tests/engine/exposicoes.test.ts tests/engine/suportes.test.ts tests/engine/teleprompter.test.ts"
+      ]
+    },
+    {
+      "id": "fn.ciclos",
+      "paths": [
+        "cycleTemplate.ts",
+        "quarterHandoff.ts",
+        "temporada.ts",
+        "valorSemana.ts",
+        "contextDate.ts",
+        "conferenciasDoPlano.ts",
+        "calendario.ts",
+        "tarefasNoPeriodo.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Os ciclos e as notas temporais: o modelo do trimestre com os marcadores (cycleTemplate), a passagem de um trimestre ao seguinte (quarterHandoff), a Temporada do trimestre (temporada), o par de valores da semana (valorSemana), o período de uma semana ou de um trimestre e o dia de contexto dele (contextDate), o calendário da semana e do trimestre (as datas de uma semana ISO, a semana de um dia, o trimestre da quinta-feira, as semanas do trimestre e a semana em foco: calendario) e as tarefas num período (a forma de mostrar, a carga do dia contra o Bloco Sagrado e as peças no ar: tarefasNoPeriodo). Os dois últimos vieram dos modelos dos canvas da semana e do trimestre, aposentados em 02/11/2026. As conferências do plano da semana, que a Missão mostra como sinais e o plano antigo também lê (conferenciasDoPlano).",
+      "why": "Camada 3: o ciclo responde a data e os campos de um período; quem lê o cofre e grava são os módulos de cima.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/cycleTemplate.test.ts tests/engine/trimestrePadrao.test.ts tests/engine/temporada.test.ts tests/engine/valorSemana.test.ts tests/engine/contextDate.test.ts tests/engine/conferenciasDoPlano.test.ts tests/engine/calendario.test.ts tests/engine/tarefasNoPeriodo.test.ts"
+      ]
+    },
+    {
+      "id": "fn.contagens",
+      "paths": [
+        "ech.ts",
+        "reputacao.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. As contagens: as três contagens do ECH, a expansão, a complexidade e a harmonia (ech), e a base da reputação contextual, a grade ciclo × ECH com a meia-vida, a evidência e os níveis (reputacao).",
+      "why": "Camada 4: contam sobre os leitores e os pesos; o serviço do núcleo entrega os fatos e mostra o resultado.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/ech.test.ts tests/engine/reputacao.test.ts"
+      ]
+    },
+    {
+      "id": "fn.protocolo",
+      "paths": [
+        "protocolForm.ts",
+        "stepRules.ts",
+        "stepDefault.ts",
+        "commonSteps.ts",
+        "noteCandidates.ts",
+        "sugestoesDoPasso.ts",
+        "templateTokens.ts",
+        "secaoDaNota.ts",
+        "inicializacao.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O protocolo sem Obsidian: o formulário de um protocolo na gaveta (protocolForm), as regras de um passo (stepRules), a resposta com que um passo abre (stepDefault), as sugestões declaradas nos passos (sugestoesDoPasso), os passos comuns (commonSteps), as notas candidatas de um `suggest_note` (noteCandidates) os marcadores de um modelo (templateTokens) a linha a mais na seção de uma nota que já existe (secaoDaNota, o `appendToSection`) e a ação de sistema `inicializar`: o plano da árvore e das notas de partida de um cofre vazio pelas definições, e o aplicador que só cria o que falta, dentro do cofre, pelo cofre que recebe (inicializacao).",
+      "why": "Camada 4: o laço do motor (liga.protocolo) e a gaveta da Missão usam as mesmas regras de passo, escritas uma vez.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/inicializacao.test.ts tests/engine/protocolForm.test.ts tests/engine/sugestoesDoPasso.test.ts tests/engine/tarefaHojeOuSemana.test.ts tests/engine/commonSteps.test.ts tests/engine/noteCandidates.test.ts tests/engine/templateTokens.test.ts tests/engine/secaoDaNota.test.ts"
+      ]
+    },
+    {
+      "id": "fn.agora",
+      "paths": [
+        "nowTree.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. A árvore do agora (nowTree): onde estou e quanto tempo tenho → as tarefas que cabem, ordenadas pela tabela de pesos, cada uma com a linha do porquê.",
+      "why": "Camada 4: o ▶️, o gesto e o protocolo leem a mesma árvore; o serviço (liga.agora) a liga ao cofre e ao TaskNotes.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/nowTree.test.ts"
+      ]
+    },
+    {
+      "id": "compoe.projecao",
+      "paths": [
+        "missionGraph.ts",
+        "missionIntent.ts",
+        "missionKanban.ts",
+        "missionMatrix.ts",
+        "missionPlan.ts",
+        "missionPortfolio.ts",
+        "missionCanvasIndex.ts",
+        "missionFractal.ts",
+        "missionBench.ts",
+        "protocolCatalog.ts",
+        "areaIndex.ts",
+        "missionTypes.ts",
+        "missionSnapshot.ts",
+        "missionCalendar.ts"
+      ],
+      "role": "module",
+      "does": "Compõe funções (puro): a projeção do Mission Control. Os tipos de base da tarefa, do projeto, da área, da árvore e do canvas (missionTypes) e o retrato que o agregador monta (missionSnapshot), as contas do dia em UTC (missionCalendar), o grafo da missão (missionGraph), a intenção, para onde o esforço aponta (missionIntent), o plano (missionPlan), a matriz de ação (missionMatrix), o kanban (missionKanban), o portfólio dos projetos (missionPortfolio), o índice que liga canvas a projetos, áreas e tarefas (missionCanvasIndex), a escala fractal do canvas aberto (missionFractal), a bancada (missionBench), o catálogo dos protocolos (protocolCatalog) e a nota de uma área (areaIndex).",
+      "why": "Camada 5: o agregador (liga.missao) lê o cofre e passa o quadro; estas peças compõem o snapshot sem ler nada.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/missionGraph.test.ts tests/engine/missionIntent.test.ts tests/engine/missionKanban.test.ts tests/engine/missionMatrix.test.ts tests/engine/missionPlan.test.ts tests/engine/missionPortfolio.test.ts tests/engine/missionCanvasIndex.test.ts tests/engine/missionFractal.test.ts tests/engine/missionBench.test.ts tests/board/protocolModel.test.ts tests/engine/areaIndex.test.ts"
+      ]
+    },
+    {
+      "id": "compoe.canvas",
+      "paths": [
+        "canvasFractalContext.ts",
+        "canvasMenuCanvas.ts",
+        "canvasengine/canvasFractalModel.ts",
+        "canvasengine/canvasFractalNodesPlan.ts",
+        "canvasengine/canvasFractalHeaderPlan.ts",
+        "canvasengine/canvasFractalTaskLink.ts",
+        "canvasengine/canvasFractalPlan.ts",
+        "canvasengine/canvasMenuPlan.ts",
+        "canvasengine/canvasMenuModel.ts",
+        "canvasengine/canvasMenu.ts"
+      ],
+      "role": "module",
+      "does": "Compõe funções (puro): os planos do canvas. O contexto fractal, com o modelo, os nós, o cabeçalho e o vínculo das tarefas (canvasFractalContext, canvasFractalModel, canvasFractalNodesPlan, canvasFractalHeaderPlan, canvasFractalTaskLink, canvasFractalPlan), e o menu do acervo dentro do desenho, com o plano e o modelo do menu (canvasMenuCanvas, canvasMenuPlan, canvasMenuModel, canvasMenu).",
+      "why": "Camada 6: o plano diz o que escrever; quem escreve no `.canvas` são os comandos (liga.comandos).",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/canvasFractalContext.test.ts tests/engine/canvasMenuCanvas.test.ts tests/engine/canvasIntegrityA3.test.ts tests/engine/canvasFractalHeaderPlan.test.ts tests/engine/canvasFractalTaskLink.test.ts tests/engine/canvasMaterializationO8.test.ts tests/engine/canvasMenu.test.ts"
+      ]
+    },
+    {
+      "id": "compoe.agente",
+      "paths": [
+        "estadoDaMissao.ts",
+        "propostasDoAgente.ts",
+        "noParaOAgente.ts"
+      ],
+      "role": "module",
+      "does": "Compõe o que o agente do sistema lê da Missão e o que ele propõe a ela, já digerido: o estado e a ordem de um período com o porquê dos pesos (estadoDaMissao), o nó com o ramo, os sinais, os protocolos com o porquê e as situações do P13 (noParaOAgente), e a fila das propostas, conferidas pela função do arrasto e aceitas na triagem pelas gravações do quadro (propostasDoAgente, com os efeitos pela borda).",
+      "why": "Camada 6: a projeção é pura e recebe o modelo da Missão já montado; o operador (camada 9) a chama pela rota, e o agente escolhe da lista em vez de interpretar notas (a proposta do Dk pessoal, 02/11/2026).",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/estadoDaMissao.test.ts tests/engine/propostasDoAgente.test.ts tests/engine/noParaOAgente.test.ts"
+      ]
+    },
+    {
+      "id": "liga.missao",
+      "paths": [
+        "missionControl.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o agregador do Mission Control (missionControl), que lê o cofre, o TaskNotes e os hábitos e monta o snapshot pela projeção.",
+      "why": "Camada 7: a leitura do cofre para o painel fica num lugar só; a projeção recebe o quadro pronto.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/missionControl.test.ts"
+      ]
+    },
+    {
+      "id": "liga.progressao",
+      "paths": [
+        "progressionEngine.ts",
+        "recordsVault.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o motor da árvore de progressão (progressionEngine), porta do `progression_tree.py`, que lê, avalia e atualiza a árvore no cofre, e a leitura das notas do cofre com o frontmatter para o registro com tipo (recordsVault), que a progressão e o núcleo contam.",
+      "why": "Camada 7: lê e grava o cofre; o motor de canvas sincroniza a árvore por ele, e o serviço do núcleo (camada 8) lê as notas do registro por aqui.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/progressionEngine.test.ts tests/engine/records.test.ts"
+      ]
+    },
+    {
+      "id": "liga.diario",
+      "paths": [
+        "diaryService.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o serviço do diário (diaryService), que liga a leitura pura do diário ao cofre, ao TaskNotes e aos hábitos.",
+      "why": "Camada 7: o protocolo lê o diário por ele; a leitura pura fica em fn.leitores.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/diaryService.test.ts"
+      ]
+    },
+    {
+      "id": "liga.canvas",
+      "paths": [
+        "canvasengine/canvasEngine.ts",
+        "canvasengine/canvasFormatter.ts",
+        "canvasengine/canvasSync.ts",
+        "canvasengine/canvasModals.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o motor de canvas. Os eventos do canvas no Obsidian (canvasEngine), o cartão de tarefa (canvasFormatter), a sincronização das relações e das dependências com as arestas (canvasSync) e a confirmação ao operador (canvasModals).",
+      "why": "Camada 8: é o dono do canvas aberto; os widgets, os planos e a data do canvas recebem o motor dele pela interface das funções do canvas (canvasEngineTypes), que a classe implementa.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/canvasEngine.test.ts tests/engine/canvasSyncCanvasLink.test.ts"
+      ]
+    },
+    {
+      "id": "liga.comandos",
+      "paths": [
+        "canvasengine/canvasFractal.ts",
+        "canvasengine/canvasFractalHeader.ts",
+        "canvasengine/canvasFractalWriter.ts",
+        "canvasengine/canvasMenuWriter.ts",
+        "canvasengine/canvasMenuApply.ts",
+        "canvasengine/canvasFractalNavigation.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: os comandos que escrevem no `.canvas` e navegam por ele: o contexto fractal (canvasFractal, canvasFractalHeader, canvasFractalWriter), o menu do acervo (canvasMenuWriter, canvasMenuApply) e a navegação fractal com o histórico das visitas (canvasFractalNavigation).",
+      "why": "Camada 8: o plano vem pronto de compoe.canvas; aqui se lê o arquivo, se grava com guarda e se abre a nota.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/canvasMaterializationO8.test.ts tests/ui/canvasFractalWrite.test.ts tests/engine/canvasIntegrityA3.test.ts tests/ui/canvasMenuCanvas.test.ts tests/engine/canvasFractalNavigation.test.ts"
+      ]
+    },
+    {
+      "id": "liga.nucleo",
+      "paths": [
+        "nucleoService.ts",
+        "routeLog.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o serviço do núcleo (nucleoService), que liga o escolher, o modelo de domínio, o registro com tipo, o ECH e a reputação ao cofre, e o registro das rotas do 🧭 (routeLog).",
+      "why": "Camada 8: o núcleo faz e o domínio declara; a leitura e a gravação do cofre para o núcleo ficam aqui.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/nucleoService.test.ts tests/engine/routeLog.test.ts"
+      ]
+    },
+    {
+      "id": "liga.agora",
+      "paths": [
+        "nowTreeService.ts",
+        "tasknotesBridge.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o serviço da árvore do agora e do bloco aberto (nowTreeService) e a ponte com a API do TaskNotes para o gesto: o pomodoro, o formulário de criação e o status (tasknotesBridge).",
+      "why": "Camada 8: liga as funções do agora e dos blocos ao cofre e ao TaskNotes.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/nowTreeService.test.ts tests/engine/tasknotesBridge.test.ts"
+      ]
+    },
+    {
+      "id": "liga.habitos",
+      "paths": [
+        "habitLog.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o registro dos hábitos marcados pelo DFM (habitLog): o protocolo concluído, o Pomodoro, o Comando do Dia, o bloco do agora e o 📖 Pelo diário, cada marca uma data em `entries` da nota do hábito.",
+      "why": "Camada 8: uma porta só grava a marca do hábito.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/habitLog.test.ts"
+      ]
+    },
+    {
+      "id": "liga.vigia",
+      "paths": [
+        "metadataWatcher.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o vigia dos metadados (metadataWatcher), que reage à mudança de uma nota no cofre: a tarefa concluída deixa o registro da conclusão, o projeto que muda de coluna ganha o destino dela, e a nota que entra num estado que marca um hábito (o roteiro gravado, 03/11) marca o dia pelo liga.habitos.",
+      "why": "Camada 8: o evento do Obsidian chega aqui e vira a chamada certa.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/metadataWatcher.test.ts tests/engine/habitoDoEstado.test.ts"
+      ]
+    },
+    {
+      "id": "liga.protocolo",
+      "paths": [
+        "jsonProtocol.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o motor de protocolos (jsonProtocol): o laço que roda um protocolo JSON passo a passo, os modais, as notas que ele cria e a gravação.",
+      "why": "Camada 9: o topo do motor; usa as regras de passo, os pesos, os ciclos, o agora e o diário, e grava no cofre.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/jsonProtocol.test.ts tests/engine/protocolGolden.test.ts tests/engine/protocolGoldenRegistro.test.ts"
+      ]
+    },
+    {
+      "id": "liga.operador",
+      "paths": [
+        "dshOperatorCore.ts",
+        "dshOperatorBridge.ts",
+        "dshService.ts",
+        "dshService.test.ts",
+        "contextBridge.ts"
+      ],
+      "role": "module",
+      "does": "Liga módulos: o operador DSH e as ferramentas do celular: o núcleo do operador, que valida e executa os pedidos e projeta o snapshot (dshOperatorCore), a ponte HTTP local (dshOperatorBridge), o serviço do controlador (dshService, com o teste dshService.test.ts ao lado) e a ponte da nota atual (contextBridge). O `src/mobile` usa o núcleo do operador.",
+      "why": "Camada 9: o pedido de fora entra por aqui e passa pelas mesmas validações; nada abaixo conhece a rede.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/missionKanban.test.ts tests/ui/missionKanbanPanel.test.ts tests/engine/dshOperatorBridge.test.ts tests/engine/dshService.test.ts"
+      ]
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "does": "A Missão (`src/missao`), com o mapa e o guarda dela; o motor lê dela o lugar, o tempo, os tipos, o dinheiro e o registro do feito.",
+      "why": "A Missão é a tela; o motor que lê dela recebe funções puras, e o que ela pede ao motor passa pelas conexões dela."
+    },
+    {
+      "id": "ext.board",
+      "role": "external",
+      "does": "O quadro (`src/board`): a conclusão de uma tarefa (taskCompletion).",
+      "why": "O vigia e o agora usam a mesma regra da conclusão que o quadro."
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "does": "A camada nova de canvas (`src/canvas`): os ids e a zona gerida, a cor da tarefa.",
+      "why": "O motor de canvas respeita a zona gerida que a camada nova desenha."
+    },
+    {
+      "id": "ext.project",
+      "role": "external",
+      "does": "Os canvas de projeto (`src/project`): o modelo e o caminho do canvas de um projeto.",
+      "why": "O índice de canvas e o motor usam o mesmo caminho e o mesmo modelo de projeto."
+    },
+    {
+      "id": "ext.temporal",
+      "role": "external",
+      "does": "As notas de período (`src/temporal`): o reparo da Week e do trimestre criados crus. Os canvas da semana e do trimestre que moravam lá se aposentaram em 02/11/2026; o calendário e as contas que o motor lia deles vieram para fn.ciclos (calendario, tarefasNoPeriodo).",
+      "why": "O período tem um dono só; o motor pergunta a ele."
+    },
+    {
+      "id": "ext.ui",
+      "role": "external",
+      "does": "A interface (`src/ui`): os modais, os seletores, as regras da caixa de entrada e os widgets e o layout da missão.",
+      "why": "Os módulos do motor que desenham usam os componentes da interface."
+    },
+    {
+      "id": "ext.settings",
+      "role": "external",
+      "does": "As configurações do plugin (`src/settings.ts`).",
+      "why": "O motor de protocolos lê o padrão das configurações."
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "does": "O plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; o motor nunca importa o main em execução."
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos liga.* chegam a ela em execução; nas funções, só como tipo."
+    },
+    {
+      "id": "ext.child_process",
+      "role": "external",
+      "does": "O child_process do Node, só como tipo (o require roda no serviço do controlador).",
+      "why": "O controlador DSH roda fora do Obsidian."
+    },
+    {
+      "id": "ext.crypto",
+      "role": "external",
+      "does": "O crypto do Node, só como tipo (o require roda na ponte do operador).",
+      "why": "A ponte do operador gera o token e o id de correlação."
+    },
+    {
+      "id": "ext.http",
+      "role": "external",
+      "does": "O http do Node, só como tipo (o require roda na ponte do operador).",
+      "why": "A ponte do operador escuta na porta local."
+    },
+    {
+      "id": "ext.path",
+      "role": "external",
+      "does": "O path do Node, só como tipo (o require roda no serviço do controlador).",
+      "why": "O controlador DSH monta o caminho do script."
+    },
+    {
+      "id": "ext.vitest",
+      "role": "external",
+      "does": "O vitest, no teste que mora ao lado do serviço do controlador (dshService.test.ts).",
+      "why": "O teste prova o serviço; ele mora em src/engine desde antes deste mapa."
+    },
+    {
+      "id": "ext.definicoes",
+      "role": "external",
+      "does": "As definições do sistema (`src/definicoes.ts`): o leitor puro do bloco `definicoes` do salvamento, com os padrões da v0.",
+      "why": "Os leitores do motor pedem as definições pelo plugin (definicoesDe): as pastas, os valores, o nível pessoal e a tabela dos papéis; sem a tabela vigente, os padrões da v0."
+    }
+  ],
+  "connections": [
+    {
+      "from": "fn.operador",
+      "to": "base",
+      "carries": "tipos: Papel, TabelaDosPapeis (a lista da ponte do agente é de papéis)"
+    },
+    {
+      "from": "fn.ciclos",
+      "to": "base",
+      "carries": "diaNoInicio, partesDaSemana, partesDoTrimestre, diaMais, ehSemana, segundaDaSemana, semanaOuVazio, trimestreNoTexto, trimestreOuVazio"
+    },
+    {
+      "from": "liga.operador",
+      "to": "base",
+      "carries": "ehSemana"
+    },
+    {
+      "from": "compoe.canvas",
+      "to": "base",
+      "carries": "protocolGroup"
+    },
+    {
+      "from": "compoe.canvas",
+      "to": "compoe.projecao",
+      "carries": "areaCockpitOf, canvasContents, canvasesOfArea, canvasIndexOf, readFractalScale; tipos: CanvasIndexEntry, FractalReading, FractalScale, MissionCanvasIndex"
+    },
+    {
+      "from": "compoe.canvas",
+      "to": "fn.canvas",
+      "carries": "applyDfmAction, CANVAS_FILE_NODE_HEIGHT, CANVAS_FILE_NODE_WIDTH, canvasViewsOf, centerOfCanvasNodes, COCKPIT_PATH, elementosDoCanvas, findMarkedBlockSpan, parseCanvasGraph, railDay, railNodeIdFor; tipos: CanvasDropTarget, CanvasEngine, DfmBlockAction, DfmBlockHandlers"
+    },
+    {
+      "from": "compoe.projecao",
+      "to": "base",
+      "carries": "DIA, diaNoInicio, isHighImpact, isTerminalStatus, normalizeLink, parseImpactScore, parseMinutes, parseSchedule, partesDoDia; tipos: GrammarUnit"
+    },
+    {
+      "from": "compoe.projecao",
+      "to": "ext.project",
+      "carries": "isProjectCanvasPath"
+    },
+    {
+      "from": "compoe.projecao",
+      "to": "fn.canvas",
+      "carries": "COCKPIT_PATH; tipos: CanvasGraph"
+    },
+    {
+      "from": "compoe.projecao",
+      "to": "fn.habitos",
+      "carries": "tipos: HabitCadence"
+    },
+    {
+      "from": "compoe.projecao",
+      "to": "fn.modelos",
+      "carries": "tipos: DomainChoice"
+    },
+    {
+      "from": "compoe.projecao",
+      "to": "fn.ciclos",
+      "carries": "agendadaForaDaSemana, diasUteisVazios, planejadaDepoisDoPrazo, projetoForaDoFoco"
+    },
+    {
+      "from": "compoe.projecao",
+      "to": "fn.pesos",
+      "carries": "columnStatus, declaredNextAction, fixadaEntre, panelWeights, usoDatas, classificarDirecao, externaQueEspera, infiniteVerb, MIN_DECIDING_SCORE, READY_INTERNAL_AFTER, titleWords; tipos: DayRead, ClassificacaoDaDirecao"
+    },
+    {
+      "from": "fn.agora",
+      "to": "base",
+      "carries": "DIA, TASK_CONTEXTS"
+    },
+    {
+      "from": "fn.agora",
+      "to": "fn.blocos",
+      "carries": "tipos: BlockOutcome, BlockRecord"
+    },
+    {
+      "from": "fn.agora",
+      "to": "fn.habitos",
+      "carries": "habitActionTitle, habitNowWeight; tipos: Habit"
+    },
+    {
+      "from": "fn.agora",
+      "to": "fn.leitores",
+      "carries": "leftCommitmentMark"
+    },
+    {
+      "from": "fn.agora",
+      "to": "fn.pesos",
+      "carries": "formatPoints, isClosedUnit, scoreTask; tipos: DecisionContext, TaskRelations, TaskUnit, WeightReason, WeightTable"
+    },
+    {
+      "from": "fn.canvas",
+      "to": "base",
+      "carries": "diaNoInicio"
+    },
+    {
+      "from": "fn.canvas",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "fn.canvas",
+      "to": "ext.obsidian",
+      "carries": "tipos: App, TFile"
+    },
+    {
+      "from": "fn.ciclos",
+      "to": "fn.pesos",
+      "carries": "linkName, listOf"
+    },
+    {
+      "from": "fn.ciclos",
+      "to": "ext.project",
+      "carries": "tipos: TaskInfo"
+    },
+    {
+      "from": "fn.contagens",
+      "to": "base",
+      "carries": "DIA"
+    },
+    {
+      "from": "fn.contagens",
+      "to": "fn.blocos",
+      "carries": "tipos: BlockRecord"
+    },
+    {
+      "from": "fn.contagens",
+      "to": "fn.habitos",
+      "carries": "parseHabit"
+    },
+    {
+      "from": "fn.contagens",
+      "to": "fn.leitores",
+      "carries": "isRecordPathCounted, matchesRecord, sectionOwnLines"
+    },
+    {
+      "from": "fn.contagens",
+      "to": "fn.pesos",
+      "carries": "dayOf, fieldText; tipos: DayRead"
+    },
+    {
+      "from": "fn.habitos",
+      "to": "base",
+      "carries": "diaNoTexto"
+    },
+    {
+      "from": "fn.leitores",
+      "to": "base",
+      "carries": "DIA, grammarText, partesDoDia"
+    },
+    {
+      "from": "fn.leitores",
+      "to": "fn.pesos",
+      "carries": "dayOf, fieldText"
+    },
+    {
+      "from": "fn.modelos",
+      "to": "base",
+      "carries": "DIA, TASK_CONTEXTS"
+    },
+    {
+      "from": "fn.pesos",
+      "to": "base",
+      "carries": "DIA, diaNoTexto, parseImpactScore, parseMinutes, partesDoDia, taskContextsFrom, normalizeLink"
+    },
+    {
+      "from": "fn.pesos",
+      "to": "fn.blocos",
+      "carries": "learnedFit; tipos: BlockRecord"
+    },
+    {
+      "from": "fn.pesos",
+      "to": "fn.modelos",
+      "carries": "bandsOf; tipos: DomainCategory, DomainChoice, DomainFilter"
+    },
+    {
+      "from": "fn.protocolo",
+      "to": "base",
+      "carries": "DIA"
+    },
+    {
+      "from": "fn.protocolo",
+      "to": "ext.missao",
+      "carries": "addDays, diaDaSemana, diaMes, lugarDoDia; tipos: Estadia"
+    },
+    {
+      "from": "fn.protocolo",
+      "to": "fn.leitores",
+      "carries": "leftCommitmentMark"
+    },
+    {
+      "from": "fn.protocolo",
+      "to": "fn.pesos",
+      "carries": "isClosedUnit, isoWeekOf, linkName; tipos: TaskUnit"
+    },
+    {
+      "from": "liga.agora",
+      "to": "base",
+      "carries": "DIA"
+    },
+    {
+      "from": "liga.agora",
+      "to": "ext.board",
+      "carries": "confirmNightRecords, nightCandidates, probableNightChoice; tipos: NightCandidate"
+    },
+    {
+      "from": "liga.agora",
+      "to": "ext.obsidian",
+      "carries": "App, TFile"
+    },
+    {
+      "from": "liga.agora",
+      "to": "fn.agora",
+      "carries": "blockOutcomeOf, rankForNow, smartsDaSemanaDe; tipos: NowRanking"
+    },
+    {
+      "from": "liga.agora",
+      "to": "fn.blocos",
+      "carries": "blockLogPath, closeBlockRecords, lastChoice, parseBlockLog, previousMonth, renderBlockLog, withCompletion; tipos: BlockMeasure, BlockRecord, CompletionFact"
+    },
+    {
+      "from": "liga.agora",
+      "to": "fn.ciclos",
+      "carries": "currentQuarter, temporadaFrom"
+    },
+    {
+      "from": "liga.agora",
+      "to": "fn.habitos",
+      "carries": "HABIT_TRACKER_FOLDER, parseHabit; tipos: Habit"
+    },
+    {
+      "from": "liga.agora",
+      "to": "fn.pesos",
+      "carries": "buildTaskRelations, DECISION_WEIGHTS_PATH, isoWeekOf, lineageOf, linkName, parseWeightTable, taskUnitFrom; tipos: DecisionContext, TaskUnit, WeightTableParse"
+    },
+    {
+      "from": "liga.agora",
+      "to": "fn.tarefas",
+      "carries": "comTipoNaCriacao"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "compoe.projecao",
+      "carries": "areaFolderOf, areaIndexPath, areaLink, isAreaType"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.canvas",
+      "carries": "applyCanvasPlan, canvasNameIsProject, canvasRelationsAllowed, canvasWritesAllowed, hasManagedZone, isManagedId, isTaskType, legacyEdgeAllowed, legacyRemovalAsks, taskColor; tipos: ApplyResult"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.obsidian",
+      "carries": "App, debounce, Modal, Notice, TFile, TFolder"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.project",
+      "carries": "fold; tipos: CanvasData"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "fn.canvas",
+      "carries": "tipos: CanvasEngine, TaskCreationContext"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "liga.progressao",
+      "carries": "arvoreCanvasPayload, ProgressionTree"
+    },
+    {
+      "from": "liga.comandos",
+      "to": "compoe.canvas",
+      "carries": "ancoraDeInsercao, ancoraDoCabecalho, baseReport, buildCanvasMenuTree, CANVAS_MENU_GROUP_LIMIT, CANVAS_MENU_LABEL, CANVAS_MENU_MARKER, CANVAS_MENU_WIDTH, canvasMenuBlockHeight, canvasMenuNodeIds, collectCanvasMenuInventory, findCanvasMenuSpan, findFractalHeaderSpan, FRACTAL_CONTEXT_LIMIT, FRACTAL_HEADER_MARKER, FRACTAL_HEADER_WIDTH, fractalHeaderBlockHeight, fractalHeaderNodeIds, fractalHeaderTrail, idColidente, idsDoTexto, mensagemDoMenu, planCanvasMenu, planFractalContextForFrame, renderCanvasMenuNodes, renderFractalHeaderNodes, reportDoBloco; tipos: CanvasFractalOutcome, CanvasFractalPorts, CanvasFractalReport, CanvasMenuFrame, CanvasMenuPorts, CanvasMenuReport, FractalCanvasFrame, FractalContextPlan, FractalContextSkip, FractalFramePlan, FractalHeaderBlock"
+    },
+    {
+      "from": "liga.comandos",
+      "to": "compoe.projecao",
+      "carries": "areaCockpitOf, canvasContents, canvasIndexOf, readFractalScale; tipos: FractalReading, MissionSnapshot"
+    },
+    {
+      "from": "liga.comandos",
+      "to": "ext.obsidian",
+      "carries": "Notice"
+    },
+    {
+      "from": "liga.comandos",
+      "to": "fn.canvas",
+      "carries": "CANVAS_FILE_NODE_HEIGHT, CANVAS_FILE_NODE_WIDTH, centerOfCanvasNodes, cleanOrphanEdges, COCKPIT_PATH, findMarkedBlockSpan, indentacaoDeElemento, insertCanvasNodeText, parseCanvasGraph, removeCanvasElement, spliceMarkedBlock, planCanvasFileNodeInsertion"
+    },
+    {
+      "from": "liga.diario",
+      "to": "base",
+      "carries": "DIA"
+    },
+    {
+      "from": "liga.diario",
+      "to": "ext.obsidian",
+      "carries": "App, TFile"
+    },
+    {
+      "from": "liga.diario",
+      "to": "fn.habitos",
+      "carries": "HABIT_TRACKER_FOLDER, isActionHabit, parseHabit; tipos: Habit"
+    },
+    {
+      "from": "liga.diario",
+      "to": "fn.leitores",
+      "carries": "DIARY_HABIT_PREFIX, DIARY_TASK_PREFIX, diaryHabitMatches, diaryHasOwnText, diaryOwnLines, diaryTaskMatches, habitNameOf, tomorrowSentences"
+    },
+    {
+      "from": "liga.diario",
+      "to": "fn.pesos",
+      "carries": "isClosedUnit, isoWeekOf; tipos: TaskUnit"
+    },
+    {
+      "from": "liga.habitos",
+      "to": "base",
+      "carries": "DIA, diaNoTexto"
+    },
+    {
+      "from": "liga.habitos",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.habitos",
+      "to": "ext.obsidian",
+      "carries": "TFile"
+    },
+    {
+      "from": "liga.missao",
+      "to": "base",
+      "carries": "diaNoInicio, isHighImpact, isTerminalStatus, normalizeLink, parseImpactScore, parseMinutes, parseSchedule, protocolGroup, TERMINAL_STATUSES"
+    },
+    {
+      "from": "liga.missao",
+      "to": "compoe.projecao",
+      "carries": "actionScore, buildIntent, buildMissionGraph, buildPortfolio, buildPriorityMatrix, buildQuarterRadar, buildTimeline, buildWeekPlan, classifyWork, indexProjectTasks, MissionPortfolio, PortfolioProject, PROJECT_STAGES, tasksForProject, usageByProtocol, USO_JANELA_LONGA, windowStart; tipos: MissionArea, MissionBucketSpec, MissionCanvas, MissionCycle, MissionCycleField, MissionCycleKind, MissionCycleState, MissionHabitRow, MissionHabits, MissionHealth, MissionOperator, MissionProject, MissionProtocol, MissionSnapshot, MissionTask, MissionTaskBoard, MissionTaskTotals, MissionTree, MissionTreeTier, ProtocolCatalogInput, ProtocolDefinitionEntry"
+    },
+    {
+      "from": "liga.missao",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.missao",
+      "to": "ext.obsidian",
+      "carries": "App, moment, TFile, TFolder"
+    },
+    {
+      "from": "liga.missao",
+      "to": "fn.ciclos",
+      "carries": "currentQuarter, focoDoTrimestre, quarterReviewOf, withReviewFields; tipos: ReviewCandidate"
+    },
+    {
+      "from": "liga.missao",
+      "to": "fn.habitos",
+      "carries": "buildGrid, calcGridStats, calcHabitMetrics, Habit, habitToday, parseHabit"
+    },
+    {
+      "from": "liga.missao",
+      "to": "fn.leitores",
+      "carries": "comandoDaDay, DayCommitment, inheritedCommitment, leftTriggerLabel, tomorrowTriggerValue"
+    },
+    {
+      "from": "liga.missao",
+      "to": "fn.operador",
+      "carries": "protocolosDaPonte, dshSkills por import()"
+    },
+    {
+      "from": "liga.missao",
+      "to": "fn.pesos",
+      "carries": "DECISION_WEIGHTS_PATH, PROTOCOLOS_DOMINIO, usePanelWeights; tipos: DayRead"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "base",
+      "carries": "DIA, diaDoArquivo, ECH_EMPTY, echCountsOf, echText, showGrammar, SMART_HORIZON, timeHorizon; tipos: GrammarHorizon, ShownGrammar"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "compoe.projecao",
+      "carries": "weekBounds, weekOf"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "ext.missao",
+      "carries": "CASAS_PADRAO, diasDasNotas, FRASES, reserva; tipos: Reserva"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "ext.project",
+      "carries": "fold, progressText, projectProgress; tipos: TaskInfo"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "fn.blocos",
+      "carries": "BLOCK_LOG_FOLDER, parseBlockLog; tipos: BlockRecord"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "fn.ciclos",
+      "carries": "currentQuarter, dayGrammar, dayLoad, dayPeriod, isoWeekOf, loadText, parEmCadeia, parseBlockMinutes, pesosDaTabela, quarterGrammar, quarterOfWeek, quarterPeriod, quarterWeeks, weekGrammar, weekPeriod; tipos: BlockTask, ParSemana, ParValores, ValorFundamental"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "fn.contagens",
+      "carries": "contarEch, contextoDoCredito, ECH_CONFIG_PATH, fatosEch, funcaoDaNota, lerEch, lerReputacao, lerReputacaoDoCofre, linhaDaReputacao, momentoDoFatoEch, niveisDasFuncoes, precisaDeTexto, REPUTACAO_CONFIG_PATH, rodadasDasDays; tipos: DefProtocolo, EchContagem, EntradaDaReputacao, LinhaDaReputacao, NotaDoCofre, Periodo, ReputacaoConfig, ReputacaoLida"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "fn.leitores",
+      "carries": "contarRegistros, EXPOSICAO_TIPO, exposicoesSemana, isRecordPathCounted, registrosDe, TRILHAS_EXPOSICAO; tipos: ConsultaRegistros, ExposicoesSemana, NotaComCampos"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "fn.modelos",
+      "carries": "domainModelPath, domainWeightProblems, domainWeightsOf, hasChoice, parseDomainModel; tipos: ChoiceModel, DomainModel"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "fn.pesos",
+      "carries": "choiceReasonLine, DECISION_WEIGHTS_PATH, escolher, esperarProtocolos, fieldNumber, linkName, protocolCampos, usoRecenteJanela; tipos: Candidato, DayRead, Escolha, Ordenado"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "liga.progressao",
+      "carries": "notasDoVault"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.child_process",
+      "carries": "tipos: typeof import('child_process')"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.crypto",
+      "carries": "tipos: typeof import('crypto')"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.http",
+      "carries": "tipos: typeof import('http')"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.obsidian",
+      "carries": "Notice, Platform, TFile"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.path",
+      "carries": "tipos: typeof import('path')"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.vitest",
+      "carries": "describe, expect, it"
+    },
+    {
+      "from": "liga.operador",
+      "to": "fn.operador",
+      "carries": "PAPEIS_DA_PONTE, protocolosDaPonte"
+    },
+    {
+      "from": "liga.operador",
+      "to": "fn.tarefas",
+      "carries": "comTipoNaCriacao"
+    },
+    {
+      "from": "liga.operador",
+      "to": "liga.missao",
+      "carries": "DEFAULT_PROJECTION_LIMITS, MISSION_SECTIONS, MissionProjectionLimits, projectMissionSnapshot"
+    },
+    {
+      "from": "liga.progressao",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.progressao",
+      "to": "ext.obsidian",
+      "carries": "Notice, TFile, TFolder"
+    },
+    {
+      "from": "liga.progressao",
+      "to": "fn.leitores",
+      "carries": "contarRegistros, isRecordPathCounted, parseRecordCriterion; tipos: NotaComCampos"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "base",
+      "carries": "DIA, diaNoInicio, TASK_CONTEXT_INFO, TASK_CONTEXT_QUESTION, TASK_CONTEXT_SKIP, TASK_CONTEXTS, taskContextsFrom, taskContextsYaml"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "ext.missao",
+      "carries": "estadias, linhasDoRegistro"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "ext.obsidian",
+      "carries": "App, Notice, TFile"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "ext.ui",
+      "carries": "DFM_Suggester, InputModal, MultiSelectModal, noteLinkName, NoteSuggester, TaskSuggester, TextAreaModal"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.agora",
+      "carries": "NOW_NEW_TASK_LABEL, NOW_PLACE_INFO, NOW_PLACE_PROMPT, NOW_TIME_INFO, NOW_TIME_PROMPT, nowReasonLine, placeOptions, timeChoiceOf, timeOptions"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.ciclos",
+      "carries": "contextDayOf, focoDoTrimestre, herancaDoFoco, herancaText, linkNames, quarterLogContent, quarterOfWeek, quarterReviewOf, shiftQuarter, temporadaFrom"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.habitos",
+      "carries": "HABIT_TRACKER_FOLDER"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.leitores",
+      "carries": "avisoDasFaltas, commitmentNoteName, lastLeftCommitment, leftWhenLabel, noteNameOf, pertenceAoProjeto, RECORD_TYPE_PATTERN, recordPropertiesFor, teleprompterDoRoteiro"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.pesos",
+      "carries": "buildTaskRelations, choiceRankItems, escolher, isClosedUnit, rankableTargets, rankOptions, scoreTask, stepTargets, taskUnitFrom; tipos: ChoiceRankItem, RankedOptions"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.protocolo",
+      "carries": "aberturaDoPasso, acrescentarNaSecao, avisoDoProblema, chavesDaResposta, COMMONS_FOLDER, conditionMatches, declaraSugestao, defaultSourcesOf, ehPassoDeContextoGenerico, expandCommonSteps, fontesDaAbertura, listFromAnswer, ORIGEM_DO_FORMULARIO, parseCommon, passosContinuados, planWeekStart, problemaDaResposta, pulaNoSeletorDeNota, renderTemplateTokens, resolveClockTokens, resolveDateTokens, resolveWeekdayTokens, respondidoNoFormulario, RESPONDIDOS, respondidosDe, sugestaoDoPasso, targetQuarterStart, targetWeekStart, VALORES_INICIAIS, valoresIniciaisDe, weekStartFromValue; tipos: Abertura, CommonDef, ContextoDaRodada, ContextoDaSugestao, LeitorDoFormulario, PontosDaTarefa, ResolvedorDeSugestao, TokenClock"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.tarefas",
+      "carries": "completeTaskFrontmatter"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "liga.diario",
+      "carries": "chosenDiaryLabels, diaryNoticeText, diaryOptions"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "base",
+      "carries": "DIA"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "compoe.projecao",
+      "carries": "coldStorageDestination, PROJECT_COLUMNS"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "ext.board",
+      "carries": "completionKind, completionLogTarget, completionWeekLine, neutralRecordTarget, neutralWeekLine, recurringInstanceDate, releaseOffer, takeCompletionAnswer, takeCompletionNoticed, whenFromCompletedDate, withWeekLogLine; tipos: CompletionWhen, NeutralRecordTarget"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "ext.obsidian",
+      "carries": "App, Notice, TFile, TFolder"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "fn.pesos",
+      "carries": "isoWeekOf"
+    },
+    {
+      "from": "compoe.agente",
+      "to": "ext.missao",
+      "carries": "addDays, addWeeks, chaveDeHoje, intencaoDeSoltar, modeloDaNota; tipos: Avisar, Destino, ItemDaTriagem, ItemDoRamo, LeitorDoRamo, LidoDosProtocolos, MissaoModelo, MissaoNo, ResultadoDaGravacao, ResultadoDoDesfazer"
+    },
+    {
+      "from": "liga.operador",
+      "to": "compoe.agente",
+      "carries": "estadoDoPeriodo, ITENS_DO_ESTADO, noParaOAgente, PERIODOS_DO_ESTADO, RecusaDaProposta; tipos: FilaDePropostas, PeriodoDoEstado"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.missao",
+      "carries": "tipos: LeitorDoRamo, LidoDosProtocolos, MissaoModelo"
+    },
+    {
+      "from": "compoe.agente",
+      "to": "base",
+      "carries": "ehDia"
+    },
+    {
+      "from": "compoe.agente",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "compoe.agente",
+      "to": "fn.modelos",
+      "carries": "QUANDO_ESTADO"
+    },
+    {
+      "from": "fn.contagens",
+      "to": "fn.caixa",
+      "carries": "isTriageCapture, normalizeTags"
+    },
+    {
+      "from": "fn.protocolo",
+      "to": "fn.ciclos",
+      "carries": "weekDates"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "fn.habitos",
+      "carries": "habitoDaPassagem, habitoValeNoFormato, regraDaNota, regrasDosHabitos; tipos: RegraDoHabito"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "fn.modelos",
+      "carries": "DOMAIN_MODELS_FOLDER, parseDomainModel; tipos: DomainModel"
+    },
+    {
+      "from": "liga.agora",
+      "to": "ext.definicoes",
+      "carries": "DEFINICOES_PADRAO (a tabela dos papéis sem o gerente)"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "ext.definicoes",
+      "carries": "chaveDoNivelPessoal, DEFINICOES_PADRAO, definicoesDe"
+    },
+    {
+      "from": "liga.nucleo",
+      "to": "ext.definicoes",
+      "carries": "definicoesDe (a pasta das notas de valor, os valores, a nota da reserva)"
+    },
+    {
+      "from": "liga.vigia",
+      "to": "ext.definicoes",
+      "carries": "definicoesDe (a pasta da Caixa de entrada)"
+    },
+    {
+      "from": "fn.protocolo",
+      "to": "ext.definicoes",
+      "carries": "lerDefinicoes (a inicialização confere as respostas pelo leitor)"
+    },
+    {
+      "from": "fn.protocolo",
+      "to": "ext.ui",
+      "carries": "blocoComMudanca, editarLista, editarTexto, SEPARADOR; tipos: Edicao (as respostas da inicialização pela mesma edição da aba, puras)"
+    }
+  ]
+}

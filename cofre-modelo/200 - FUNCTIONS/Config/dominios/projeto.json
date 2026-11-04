@@ -1,0 +1,145 @@
+{
+  "dominio": "projeto",
+  "descricao": "O projeto (a iniciativa, `type: iniciativa`; a nota-índice tem o nome da pasta). Os campos padrão na ordem do painel do nó e a tabela de estados, um por coluna do quadro de projetos.",
+  "candidatos": {
+    "pasta": "100 - AREAS",
+    "type": "iniciativa"
+  },
+  "campos": [
+    {
+      "nome": "projects",
+      "rotulo": "A central a que serve",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "acima",
+      "sugestao": [
+        {
+          "de": "no.central"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "não serve a uma central"
+    },
+    {
+      "nome": "status",
+      "rotulo": "Estágio (a coluna)",
+      "tipo": "escolha",
+      "valores": [
+        "backlog",
+        "active",
+        "waiting",
+        "review",
+        "done",
+        "integration"
+      ],
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "area",
+      "rotulo": "Área",
+      "tipo": "link",
+      "alvo": [
+        "area"
+      ],
+      "ramo": "acima",
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "no.area"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "blockedBy",
+      "rotulo": "Bloqueado por",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota",
+      "criar": false
+    },
+    {
+      "nome": "scope",
+      "rotulo": "Escopo",
+      "tipo": "escolha",
+      "valores": [
+        "epic",
+        "large",
+        "medium",
+        "small",
+        "contínuo"
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "created",
+      "rotulo": "Criado em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "protocolos": [
+    {
+      "id": "review_semanal",
+      "papel": "revisa"
+    }
+  ],
+  "estados": [
+    {
+      "valor": "backlog",
+      "coluna": "1 - Backlog",
+      "estado": "fora_do_periodo",
+      "rotulo": "fora do período",
+      "mostrar": "claro"
+    },
+    {
+      "valor": "active",
+      "coluna": "2 - Active",
+      "estado": "ativo",
+      "rotulo": "ativo",
+      "mostrar": "faixa"
+    },
+    {
+      "valor": "waiting",
+      "coluna": "3 - Waiting",
+      "estado": "pausado",
+      "rotulo": "pausado",
+      "mostrar": "faixa_recolhida",
+      "marca": "⏸"
+    },
+    {
+      "valor": "review",
+      "coluna": "4 - Review",
+      "estado": "em_revisao",
+      "rotulo": "ativo, em revisão",
+      "mostrar": "faixa",
+      "marca": "🏁"
+    },
+    {
+      "valor": "done",
+      "coluna": "5 - Done",
+      "estado": "feito",
+      "rotulo": "feito",
+      "mostrar": "cheio"
+    },
+    {
+      "valor": "integration",
+      "coluna": "6 - Integration",
+      "estado": "integrando",
+      "rotulo": "ativo, integrando",
+      "mostrar": "faixa"
+    }
+  ]
+}

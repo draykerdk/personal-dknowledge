@@ -1,0 +1,47 @@
+{
+  "dominio": "visao",
+  "descricao": "A visão (`type: visao`): a vigente é a mais nova que nenhuma outra aponta como `versao_anterior`.",
+  "candidatos": {
+    "pasta": "400 - MEMORY/400 - QUARTERLY/Visão",
+    "type": "visao"
+  },
+  "campos": [
+    {
+      "nome": "horizonte",
+      "rotulo": "Horizonte",
+      "tipo": "escolha",
+      "valores": [
+        "1 Ano (Tático)",
+        "3 Anos (Estratégico)",
+        "5 Anos (Visão)",
+        "10 Anos (Legado)"
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "revisar_em",
+      "rotulo": "Revisar em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "nota"
+    },
+    {
+      "nome": "versao_anterior",
+      "rotulo": "Versão anterior",
+      "tipo": "link",
+      "alvo": [
+        "visao"
+      ],
+      "ramo": "lado",
+      "dono": "nota"
+    },
+    {
+      "nome": "date",
+      "rotulo": "Data",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ]
+}

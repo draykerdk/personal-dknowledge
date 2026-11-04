@@ -1,0 +1,83 @@
+{
+  "_sobre": "Os estados das tarefas do sistema, que o instalador grava no data.json de partida do TaskNotes (o TaskNotes completa o resto com os padrões dele). A Missão, os protocolos e os juízes leem estes valores.",
+  "defaultTaskStatus": "inbox",
+  "customStatuses": [
+    {
+      "id": "inbox",
+      "value": "inbox",
+      "label": "📥 Caixa de Entrada",
+      "color": "#808080",
+      "isCompleted": false,
+      "excludeFromCycle": false,
+      "order": 0,
+      "autoArchive": false,
+      "autoArchiveDelay": 5
+    },
+    {
+      "id": "next-action",
+      "value": "next-action",
+      "label": "▶️ Próxima Ação",
+      "color": "#ff9900",
+      "isCompleted": false,
+      "excludeFromCycle": false,
+      "order": 1,
+      "autoArchive": false,
+      "autoArchiveDelay": 5
+    },
+    {
+      "id": "in-progress",
+      "value": "in-progress",
+      "label": "🏃 Em Andamento",
+      "color": "#0066cc",
+      "isCompleted": false,
+      "excludeFromCycle": false,
+      "order": 2,
+      "autoArchive": false,
+      "autoArchiveDelay": 5
+    },
+    {
+      "id": "done",
+      "value": "done",
+      "label": "✅ Concluído",
+      "color": "#00aa00",
+      "isCompleted": true,
+      "excludeFromCycle": false,
+      "order": 3,
+      "autoArchive": true,
+      "autoArchiveDelay": 0
+    },
+    {
+      "id": "waiting-on",
+      "value": "waiting-on",
+      "label": "⏳ Aguardando Terceiros",
+      "color": "#cc0000",
+      "isCompleted": false,
+      "excludeFromCycle": false,
+      "order": 4,
+      "autoArchive": false,
+      "autoArchiveDelay": 5
+    },
+    {
+      "id": "someday",
+      "value": "someday",
+      "label": "🧊 Algum Dia / Talvez",
+      "color": "#66cccc",
+      "isCompleted": false,
+      "excludeFromCycle": true,
+      "order": 5,
+      "autoArchive": false,
+      "autoArchiveDelay": 5
+    },
+    {
+      "id": "cancelled",
+      "value": "cancelled",
+      "label": "🛑 Cancelado",
+      "color": "#6366f1",
+      "isCompleted": true,
+      "excludeFromCycle": false,
+      "order": 6,
+      "autoArchive": true,
+      "autoArchiveDelay": 6
+    }
+  ]
+}

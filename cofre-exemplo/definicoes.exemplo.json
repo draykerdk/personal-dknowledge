@@ -1,0 +1,90 @@
+{
+  "_sobre": "As definições do sistema da pessoa do cofre de exemplo (inventada), no esquema de config-padrao/definicoes.padrao.json. Num cofre, elas moram nas configurações do plugin.",
+  "versao": 1,
+  "inicializado": true,
+  "pessoa": {
+    "nome": "Irene Paiva",
+    "fuso_horario": "America/Sao_Paulo"
+  },
+  "rotulos": {
+    "nivel_pessoal": "",
+    "agente": "",
+    "_porque": "os nomes que o sistema mostra: o do nível pessoal (vazio = 'Nível pessoal') e o do agente (vazio = 'o agente'); o que mais entra aqui depende da pergunta J5 do mapa"
+  },
+  "valores": [
+    {
+      "nome": "Curiosidade",
+      "porque": "perguntar antes de concluir é o que melhora o trabalho"
+    }
+  ],
+  "valores_relacoes": [],
+  "areas": [
+    {
+      "nome": "Trabalho",
+      "pasta": "100 - AREAS/01 - Trabalho",
+      "etiqueta": "trabalho"
+    },
+    {
+      "nome": "Saúde",
+      "pasta": "100 - AREAS/02 - Saúde",
+      "etiqueta": "saude"
+    },
+    {
+      "nome": "Casa",
+      "pasta": "100 - AREAS/03 - Casa",
+      "etiqueta": "casa"
+    }
+  ],
+  "trimestre": {
+    "foco": [
+      "Portfólio novo",
+      "Correr 5 km"
+    ],
+    "_porque": "o foco de cada trimestre continua gravado na nota do trimestre; aqui fica o do trimestre corrente, que o 🧭 oferece e grava na nota (pergunta J6 do mapa)"
+  },
+  "pesos": {
+    "ajustes": {},
+    "_porque": "os números de partida moram no arquivo de pesos (arquivos.pesos), a fonte única do plugin e da bancada; aqui ficam só os ajustes da pessoa, categoria por categoria, por cima dele. Vazio = os de partida (B5 e a pergunta J8 do mapa)"
+  },
+  "vocabulario": {
+    "termos_extra": [],
+    "_porque": "termos que a pessoa acrescenta à lista do que o sistema não usa para medir ou julgar alguém; a lista de partida mora em arquivos.vocabulario"
+  },
+  "pastas": {
+    "inbox": "300 - RUNTIME/001 - INBOX",
+    "protocolos": "200 - FUNCTIONS/Protocolos",
+    "revisao_semanal": "400 - MEMORY/200 - WEEKLY",
+    "valores": "400 - MEMORY/Valores",
+    "excluidas": [
+      "000 - KERNEL",
+      "200 - FUNCTIONS",
+      "300 - RUNTIME"
+    ]
+  },
+  "arquivos": {
+    "pesos": "200 - FUNCTIONS/Config/pesos_decisao.json",
+    "reputacao": "200 - FUNCTIONS/Config/reputacao.json",
+    "ech": "200 - FUNCTIONS/Config/ech.json",
+    "vocabulario": "200 - FUNCTIONS/Config/vocabulario.json",
+    "reserva": "",
+    "_porque": "os pesos, a reputação, o ECH e o vocabulário são lidos pelo plugin e pela bancada de juízes; a aba edita estes arquivos, que seguem sendo a fonte única. A nota da reserva é opcional: vazia, o módulo do dinheiro fica desligado (A6)"
+  },
+  "protocolos_por_papel": {
+    "_porque": "o código pede um protocolo pelo papel, nunca pelo id; papel sem protocolo (null, ou id sem arquivo no cofre) esconde o botão ou a opção",
+    "planejar_semana": "planejamento_semanal",
+    "revisar_semana": "review_semanal",
+    "planejar_trimestre": "planejamento_trimestral",
+    "inicializar": "inicializacao",
+    "abrir_dia": null,
+    "fechar_dia": null,
+    "planejar_dia": null,
+    "revisar_trimestre": null,
+    "perguntar_a_situacao": null,
+    "criar_projeto": null,
+    "criar_departamento": null,
+    "nova_tarefa_do_projeto": null,
+    "destino_da_ideia": null,
+    "desbloquear": null,
+    "visao": null
+  }
+}

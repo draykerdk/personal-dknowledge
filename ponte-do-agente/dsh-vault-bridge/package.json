@@ -1,0 +1,20 @@
+{
+  "name": "@dfm/dsh-vault-bridge",
+  "version": "2.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Ponte nativa entre Obsidian/DFM e as ferramentas da sessão DSH.",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./context-pack": "./lib/context-pack.js",
+    "./operator-client": "./lib/operator-client.js",
+    "./schema": "./lib/schema.js",
+    "./digest": "./lib/digest.js",
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-tools": "*"
+  }
+}

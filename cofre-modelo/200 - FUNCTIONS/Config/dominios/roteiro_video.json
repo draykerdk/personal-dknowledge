@@ -1,0 +1,395 @@
+{
+  "dominio": "roteiro_video",
+  "descricao": "A peça de criação: um conteúdo em qualquer formato, da ideia ao revisado. O vídeo é o primeiro formato (o longo, o short e o corte); os outros entram pelo mesmo campo `formato` (o artigo, o carrossel, a imagem, o post e o e-mail), e cada um declara a publicação dele no bloco `formatos`, com os campos que ela pede (a plataforma, o dia e o link) e o estado em que a peça está publicada (no ar). Os campos, na ordem do painel: o canal onde a peça vai ao ar; a frente que ela divulga (`projects`, o projeto ou o departamento acima); o formato; o padrão que o roteiro segue; a peça de onde ela desdobra (`de`: o corte de um longo, o post que sai de um artigo); a ideia de origem; o estado; o dia de ir ao ar (`publicar_em`, que põe a peça na semana e no dia); a plataforma; onde está publicada (`link`); as cenas e o teleprompter, só do vídeo; e o que ela trouxe (`resultado`), anotado na revisão. Os estados seguem o caminho da peça: ideia → roteiro → pronto para gravar → gravado → editado → no ar → revisado; o arquivado é neutro e fica fora da conta. A peça nasce pelo Novo da Missão, como nota em `candidatos.pasta`. A lista de canais e a de padrões são suas: troque o exemplo pelos seus canais e pelos padrões que você usa.",
+  "candidatos": {
+    "pasta": "400 - MEMORY/200 - WEEKLY/Roteiros",
+    "type": "roteiro_video"
+  },
+  "campos": [
+    {
+      "nome": "canal",
+      "rotulo": "Canal",
+      "tipo": "escolha",
+      "valores": [
+        "Canal principal"
+      ],
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "projects",
+      "rotulo": "Frente",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "acima",
+      "sugestao": [
+        {
+          "de": "no.projeto"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "sem frente"
+    },
+    {
+      "nome": "formato",
+      "rotulo": "Formato",
+      "tipo": "escolha",
+      "valores": [
+        "longo",
+        "corte",
+        "short",
+        "artigo",
+        "carrossel",
+        "imagem",
+        "post",
+        "email"
+      ],
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "padrao",
+      "rotulo": "Padrão",
+      "tipo": "escolha",
+      "valores": [
+        "explicacao",
+        "passo_a_passo",
+        "bastidores",
+        "historia",
+        "opiniao"
+      ],
+      "dono": "nota",
+      "vazio": "a escolher"
+    },
+    {
+      "nome": "de",
+      "rotulo": "Desdobramento de",
+      "tipo": "link",
+      "alvo": [
+        "roteiro_video"
+      ],
+      "ramo": "acima",
+      "dono": "nota",
+      "vazio": "não é desdobramento"
+    },
+    {
+      "nome": "ideia_origem",
+      "rotulo": "Ideia de origem",
+      "tipo": "lista",
+      "dono": "nota",
+      "vazio": "do zero"
+    },
+    {
+      "nome": "status",
+      "rotulo": "Estado",
+      "tipo": "escolha",
+      "valores": [
+        "ideia",
+        "roteiro",
+        "pronto_para_gravar",
+        "gravado",
+        "editado",
+        "no_ar",
+        "revisado",
+        "arquivado"
+      ],
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "fixo",
+          "valor": "ideia"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "publicar_em",
+      "rotulo": "Vai ao ar em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "nota",
+      "vazio": "a definir"
+    },
+    {
+      "nome": "plataforma",
+      "rotulo": "Plataforma",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "vazio": "a escolher"
+    },
+    {
+      "nome": "link",
+      "rotulo": "Onde está publicado",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "bancada",
+      "rotulo": "Cenas do vídeo",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota"
+    },
+    {
+      "nome": "teleprompter",
+      "rotulo": "Teleprompter",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "criar": false,
+      "vazio": "ainda não montado"
+    },
+    {
+      "nome": "resultado",
+      "rotulo": "O que trouxe",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "created",
+      "rotulo": "Criado em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "criar": {
+    "via": "nota"
+  },
+  "estados": [
+    {
+      "valor": "ideia",
+      "estado": "ideia",
+      "rotulo": "ideia",
+      "mostrar": "claro",
+      "marca": "💡"
+    },
+    {
+      "valor": "roteiro",
+      "estado": "roteiro",
+      "rotulo": "roteiro",
+      "mostrar": "contorno"
+    },
+    {
+      "valor": "pronto_para_gravar",
+      "estado": "pronto_para_gravar",
+      "rotulo": "pronto para gravar",
+      "mostrar": "contorno",
+      "marca": "•"
+    },
+    {
+      "valor": "gravado",
+      "estado": "gravado",
+      "rotulo": "gravado",
+      "mostrar": "contorno"
+    },
+    {
+      "valor": "editado",
+      "estado": "editado",
+      "rotulo": "editado",
+      "mostrar": "contorno"
+    },
+    {
+      "valor": "no_ar",
+      "estado": "no_ar",
+      "rotulo": "no ar",
+      "mostrar": "cheio",
+      "marca": "📤"
+    },
+    {
+      "valor": "revisado",
+      "estado": "revisado",
+      "rotulo": "revisado",
+      "mostrar": "cheio"
+    },
+    {
+      "valor": "arquivado",
+      "estado": "arquivado",
+      "rotulo": "arquivado",
+      "mostrar": "oculto"
+    }
+  ],
+  "formatos": {
+    "campo": "formato",
+    "publicacoes": [
+      {
+        "id": "video",
+        "rotulo": "publicação de vídeo",
+        "campos": [
+          "plataforma",
+          "publicar_em",
+          "link"
+        ],
+        "estado": "no_ar"
+      },
+      {
+        "id": "artigo",
+        "rotulo": "publicação de artigo",
+        "campos": [
+          "plataforma",
+          "publicar_em",
+          "link"
+        ],
+        "estado": "no_ar"
+      },
+      {
+        "id": "imagem",
+        "rotulo": "publicação de imagem",
+        "campos": [
+          "plataforma",
+          "publicar_em",
+          "link"
+        ],
+        "estado": "no_ar"
+      },
+      {
+        "id": "texto",
+        "rotulo": "publicação de texto",
+        "campos": [
+          "plataforma",
+          "publicar_em",
+          "link"
+        ],
+        "estado": "no_ar"
+      },
+      {
+        "id": "email",
+        "rotulo": "envio de e-mail",
+        "campos": [
+          "plataforma",
+          "publicar_em",
+          "link"
+        ],
+        "estado": "no_ar"
+      }
+    ],
+    "valores": [
+      {
+        "valor": "longo",
+        "rotulo": "Longo",
+        "publicacao": "video",
+        "desdobramentos": [
+          "corte",
+          "short",
+          "artigo",
+          "carrossel",
+          "imagem",
+          "post",
+          "email"
+        ],
+        "campos": {
+          "de": {
+            "rotulo": "Corte de",
+            "vazio": "não é corte"
+          }
+        }
+      },
+      {
+        "valor": "short",
+        "rotulo": "Short",
+        "publicacao": "video",
+        "desdobramentos": [
+          "carrossel",
+          "imagem",
+          "post"
+        ],
+        "campos": {
+          "de": {
+            "rotulo": "Corte de",
+            "vazio": "não é corte"
+          }
+        }
+      },
+      {
+        "valor": "corte",
+        "rotulo": "Corte",
+        "publicacao": "video",
+        "desdobramentos": [],
+        "campos": {
+          "de": {
+            "rotulo": "Corte de",
+            "vazio": "não é corte"
+          }
+        }
+      },
+      {
+        "valor": "artigo",
+        "rotulo": "Artigo",
+        "publicacao": "artigo",
+        "desdobramentos": [
+          "short",
+          "carrossel",
+          "imagem",
+          "post",
+          "email"
+        ],
+        "habitos": false,
+        "fora": [
+          "padrao",
+          "bancada",
+          "teleprompter"
+        ]
+      },
+      {
+        "valor": "carrossel",
+        "rotulo": "Carrossel",
+        "publicacao": "imagem",
+        "desdobramentos": [
+          "post"
+        ],
+        "habitos": false,
+        "fora": [
+          "padrao",
+          "bancada",
+          "teleprompter"
+        ]
+      },
+      {
+        "valor": "imagem",
+        "rotulo": "Imagem",
+        "publicacao": "imagem",
+        "desdobramentos": [
+          "post"
+        ],
+        "habitos": false,
+        "fora": [
+          "padrao",
+          "bancada",
+          "teleprompter"
+        ]
+      },
+      {
+        "valor": "post",
+        "rotulo": "Post (texto)",
+        "publicacao": "texto",
+        "desdobramentos": [],
+        "habitos": false,
+        "fora": [
+          "padrao",
+          "bancada",
+          "teleprompter"
+        ]
+      },
+      {
+        "valor": "email",
+        "rotulo": "E-mail",
+        "publicacao": "email",
+        "desdobramentos": [],
+        "habitos": false,
+        "fora": [
+          "padrao",
+          "bancada",
+          "teleprompter"
+        ]
+      }
+    ]
+  }
+}

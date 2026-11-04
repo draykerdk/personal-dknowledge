@@ -1,0 +1,167 @@
+{
+  "sobre": "As exceções da guarda de vazamento: por caminho, as categorias da lista privada que podem aparecer ali, e por quê. Nunca o termo. Uma exceção sem porquê derruba a guarda.",
+  "excecoes": [
+    {
+      "caminho": "LICENSE",
+      "categorias": [
+        "autor_publico"
+      ],
+      "porque": "a licença nomeia o titular dos direitos, que é o nome público do autor"
+    },
+    {
+      "caminho": "plugin/manifest.json",
+      "categorias": [
+        "autor_publico"
+      ],
+      "porque": "o campo author do manifesto do Obsidian é o nome público do autor"
+    },
+    {
+      "caminho": "plugin/package.json",
+      "categorias": [
+        "autor_publico"
+      ],
+      "porque": "o campo author do pacote é o nome público do autor"
+    },
+    {
+      "caminho": "scripts/guarda_vazamento.py",
+      "categorias": [
+        "falas"
+      ],
+      "porque": "a guarda descreve e testa os padrões de fala datada; os exemplos dela são inventados"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Scripts/guarda_gemea.py",
+      "categorias": [
+        "falas"
+      ],
+      "porque": "a guarda gêmea do cofre testa o padrão de fala datada com um exemplo inventado"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Config/ramos/criacao.json",
+      "categorias": [
+        "ids_protocolo",
+        "ids_genericos"
+      ],
+      "porque": "o ramo lê as peças pelo tipo delas, que se chama como um protocolo do cofre de origem que o pacote não traz (aqui é só o `type` das notas e o modelo), e a coleção Ideias tem o id de uma palavra comum; nenhum protocolo da pessoa é chamado neste arquivo"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Config/dominios/roteiro_video.json",
+      "categorias": [
+        "ids_protocolo"
+      ],
+      "porque": "o tipo da peça de criação se chama como um protocolo do cofre de origem que o pacote não traz: aqui o nome é só o `type` das notas e o id do modelo (o leitor exige o id igual ao nome do arquivo); nenhum protocolo da pessoa é chamado neste arquivo"
+    },
+    {
+      "caminho": "plugin/src/board/boardModel.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "o filtro das tarefas em andamento do quadro tem o id de uma palavra comum que é também o id de um protocolo do cofre de origem; o valor é gravado nos quadros e nas notas que os desenham, e nenhum protocolo é chamado por ele"
+    },
+    {
+      "caminho": "plugin/src/board/boardSpec.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "o filtro das tarefas em andamento do quadro tem o id de uma palavra comum que é também o id de um protocolo do cofre de origem; o valor é gravado nos quadros e nas notas que os desenham, e nenhum protocolo é chamado por ele"
+    },
+    {
+      "caminho": "plugin/src/engine/reputacao.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "um dos objetivos da reputação tem o nome de uma palavra comum que é também o id de um protocolo do cofre de origem; é a chave que a tabela de pesos gravada usa, e nenhum protocolo é chamado por ela"
+    },
+    {
+      "caminho": "plugin/src/engine/exposicoes.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "uma trilha de exposição tem a chave de uma palavra comum que é também o id de um protocolo do cofre de origem; a chave é gravada nos registros, e nenhum protocolo é chamado por ela"
+    },
+    {
+      "caminho": "plugin/src/missao/missaoService.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "a casa das ideias da Missão tem a chave de uma palavra comum que é também o id de um protocolo do cofre de origem; o protocolo dono da casa vem pelo papel, e nenhum protocolo é chamado pela chave"
+    },
+    {
+      "caminho": "plugin/src/missao/tipos.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "um grupo da triagem da Missão tem o id de uma palavra comum que é também o id de um protocolo do cofre de origem; nenhum protocolo é chamado por ele"
+    },
+    {
+      "caminho": "plugin/src/missao/triagem.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "um grupo da triagem da Missão tem o id de uma palavra comum que é também o id de um protocolo do cofre de origem; nenhum protocolo é chamado por ele"
+    },
+    {
+      "caminho": "plugin/src/engine/jsonProtocol.ts",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "o motor casa duas palavras comuns (que são também ids de protocolos do cofre de origem) com as pastas genéricas das configurações do pacote, a da crise e a da revisão; o pacote não traz protocolo com esses ids, e nenhum é chamado por elas"
+    },
+    {
+      "caminho": "README.md",
+      "categorias": [
+        "fornecedores"
+      ],
+      "porque": "a tabela das dependências nomeia o DSH pelo nome e pelo pacote npm dele, para quem instala achar a ferramenta; é uma dependência citada, não uma assinatura"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Config/dominios/projeto.json",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "um estado do projeto (a coluna do quadro de projetos) tem o id de uma palavra comum que é também o id de um protocolo do cofre de origem; o valor é o `status` gravado nas notas de projeto, e nenhum protocolo é chamado por ele"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Config/pesos_decisao.json",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "o peso da coluna do quadro de projetos usa o mesmo estado do projeto, uma palavra comum que é também o id de um protocolo do cofre de origem; nenhum protocolo é chamado por ele"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Config/reputacao.json",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "a fase de execução dos protocolos e um dos objetivos da reputação têm o nome de uma palavra comum que é também o id de um protocolo do cofre de origem; são os valores que o campo `fase` e o leitor da reputação usam, e nenhum protocolo é chamado por eles"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Config/dominios/tarefa.json",
+      "categorias": [
+        "ids_protocolo"
+      ],
+      "porque": "a tarefa pode servir à peça de criação, cujo tipo se chama como um protocolo do cofre de origem que o pacote não traz (o mesmo do modelo da peça); aqui é só o tipo do alvo do campo `projects`, e nenhum protocolo é chamado"
+    },
+    {
+      "caminho": "ponte-do-agente/README.md",
+      "categorias": [
+        "fornecedores"
+      ],
+      "porque": "o passo a passo para ligar a ponte nomeia o DSH pelo nome e pelo pacote npm dele, para quem instala achar a ferramenta; é uma dependência citada, não uma assinatura"
+    },
+    {
+      "caminho": "ponte-do-agente/dsh-vault-bridge/package.json",
+      "categorias": [
+        "fornecedores"
+      ],
+      "porque": "o pacote da ponte declara como dependências os pacotes npm do DSH em que ele se encaixa, pelo nome publicado deles; é uma dependência citada, não uma assinatura"
+    },
+    {
+      "caminho": "ponte-do-agente/dsh-vault-bridge/lib/index.js",
+      "categorias": [
+        "fornecedores"
+      ],
+      "porque": "a ponte carrega o pacote de ferramentas do DSH pelo nome npm publicado dele, de dentro do DSH que a roda; é uma dependência citada, não uma assinatura"
+    }
+  ]
+}

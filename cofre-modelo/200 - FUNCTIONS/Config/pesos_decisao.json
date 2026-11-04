@@ -1,0 +1,127 @@
+{
+  "versao": 1,
+  "descricao": "A tabela de pesos da decisão: uma só, num lugar só. Cada categoria da tarefa soma o seu peso; o peso propõe a ordem, com o porquê, e a escolha é sua, e cada sugestão mostra quais pesos a puseram ali. Ajuste os números aqui: valem no gesto (a árvore do agora), na Missão (a direção da tarefa, para dentro ou para fora, lida do verbo e da entrega e nunca do lugar), na escolha do protocolo e no par de valores da semana. As categorias painel_agora e painel_projeto_proximo são as do painel de projetos; a Missão ordena pelos pesos do gesto. Os números são os de partida; mudar um número é mudar este arquivo, sem código.",
+  "pesos": {
+    "urgencia": {
+      "high": 2,
+      "normal": 1,
+      "low": 0,
+      "none": 0
+    },
+    "prazo": {
+      "vencida": 3,
+      "hoje": 3,
+      "semana": 2
+    },
+    "status": {
+      "in-progress": 2,
+      "next-action": 0
+    },
+    "agendada_hoje": 3,
+    "semana_ou_smart": 2,
+    "trava_outras": {
+      "cada": 1,
+      "maximo": 3
+    },
+    "par_ignicao_soltar": 1,
+    "impacto_divisor": 3,
+    "temporada": 1,
+    "aprendizado": 1,
+    "habito": {
+      "hoje": 2,
+      "meta_semana": 1
+    },
+    "protocolos": {
+      "contexto_do_no": {
+        "cada": 2,
+        "maximo": 1
+      },
+      "fase_uso": {
+        "em_uso": 1,
+        "nova": 1,
+        "dominada": 0
+      },
+      "uso_recente": {
+        "cada": 1,
+        "maximo": 3
+      }
+    },
+    "painel_direcao": {
+      "verbo_externo": 4,
+      "verbo_interno": 1,
+      "esperando": 1,
+      "declara_entrega": 1,
+      "link_de_saida": 1
+    },
+    "painel_agora": {
+      "para_fora": 40,
+      "direcao_indeterminada": 20,
+      "para_dentro": 10,
+      "impacto_por_ponto": 4,
+      "prazo_vencido": 15,
+      "vence_hoje": 10,
+      "intencao_vencida": 8,
+      "vence_em_breve": 5,
+      "em_andamento": 5
+    },
+    "painel_projeto_proximo": {
+      "coluna": {
+        "active": 40,
+        "review": 25,
+        "waiting": 20,
+        "backlog": 10
+      },
+      "cada_externa": 6,
+      "nota_indice": 3,
+      "foco_da_semana": 8
+    },
+    "valor_da_semana": {
+      "primeiro": 3,
+      "segundo": 2,
+      "terceiro": 1
+    }
+  },
+  "legenda": {
+    "urgencia": "urgência declarada (priority): alta +2 · normal +1 · baixa ou nenhuma 0",
+    "prazo": "urgência pelo prazo (due): vencida +3 · vence hoje +3 · vence nesta semana +2",
+    "status": "em andamento +2 · próxima ação 0 (a entrada vai para a triagem; esperando e algum dia ficam fora)",
+    "agendada_hoje": "planejada para hoje (scheduled hoje)",
+    "semana_ou_smart": "na semana em foco (week) ou na SMART da vez",
+    "trava_outras": "trava outras tarefas: cada blockedBy aberto que aponta para ela, até o máximo",
+    "par_ignicao_soltar": "🔥 aberta sem o seu 📤, ou 📤 pendente",
+    "impacto_divisor": "importância: impacto (1 a 10) dividido por este número",
+    "temporada": "projeto da temporada (o campo temporada da nota do trimestre)",
+    "aprendizado": "o mesmo tipo de tarefa já rendeu neste lugar e neste tamanho de bloco (o registro dos blocos)",
+    "habito": "hábito em treino como candidato na escolha da hora: ainda sem a marca de hoje +2 · abaixo da meta_semanal +1",
+    "protocolos": {
+      "fase_uso": "a fase de uso do protocolo de destino (fase_uso no JSON): em uso +1 · nova +1 · dominada 0",
+      "uso_recente": "as vezes em que o protocolo rodou nos últimos 14 dias (as linhas do motor nas Days): +1 por vez, até 3",
+      "contexto_do_no": "a situação do nó na Missão (o bloco `situacoes` do modelo do tipo) que leva a este protocolo: +2 com um fato, e dois não somam (máximo 1)"
+    },
+    "painel_direcao": {
+      "verbo_externo": "a direção da tarefa, para dentro ou para fora, lida só do verbo e da entrega (o lugar não é a direção): cada verbo de ato externo no título (publicar, enviar, vender…): o resultado depende do mundo responder",
+      "verbo_interno": "cada verbo de trabalho interno no título (revisar, pesquisar, organizar…); pesa menos que o externo",
+      "esperando": "status waiting-on: o ciclo já está com terceiro (conta para fora)",
+      "declara_entrega": "declara entrega_observavel ou criterio_suficiente (conta para fora)",
+      "link_de_saida": "tem link de saída no corpo (conta para fora)"
+    },
+    "painel_agora": {
+      "para_fora": "o painel de projetos, a faixa Agora e as faixas da direção: a tarefa é para fora (o resultado está no mundo)",
+      "direcao_indeterminada": "a direção não se decide (nada decide ou empate)",
+      "para_dentro": "a tarefa é para dentro",
+      "impacto_por_ponto": "importância: cada ponto de impacto (1 a 10) vale este número",
+      "prazo_vencido": "o prazo (due) já passou",
+      "vence_hoje": "o prazo é hoje",
+      "intencao_vencida": "o scheduled já passou e a tarefa segue aberta",
+      "vence_em_breve": "o prazo é daqui a 1 a 3 dias",
+      "em_andamento": "status in-progress"
+    },
+    "painel_projeto_proximo": {
+      "coluna": "o projeto mais perto de gerar resultado, pela coluna do quadro de projetos (as que não estão aqui valem 0)",
+      "cada_externa": "cada ação para fora, executável e sem bloqueador, do projeto",
+      "nota_indice": "a nota-índice do projeto declara type: iniciativa",
+      "foco_da_semana": "o projeto está no projetos_foco da semana"
+    },
+    "valor_da_semana": "o par de valores sugerido da semana (o seu e o das relações): o sorteio pesa pela ordem de importância (as notas de valor, ou os valores das definições): o primeiro 3 · o segundo 2 · o terceiro 1; o valor da semana anterior no mesmo grupo fica de fora, e a sugestão é fixa para a semana"
+  }
+}

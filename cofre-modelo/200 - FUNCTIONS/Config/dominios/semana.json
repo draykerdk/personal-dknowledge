@@ -1,0 +1,79 @@
+{
+  "dominio": "semana",
+  "descricao": "A semana (`type: weekly_note`). Os campos que a Missão mostra, na ordem do painel do nó; o 🌳 grava o par de valores, e o 📅 a revisa.",
+  "candidatos": {
+    "pasta": "300 - RUNTIME/302 - Daymiss/Week",
+    "type": "weekly_note"
+  },
+  "campos": [
+    {
+      "nome": "valor_semana",
+      "rotulo": "Valor da semana",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "protocolo:planejamento_semanal#valor_semana"
+    },
+    {
+      "nome": "valor_relacao",
+      "rotulo": "Valor da relação",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "protocolo:planejamento_semanal#valor_relacao"
+    },
+    {
+      "nome": "status",
+      "rotulo": "Status",
+      "tipo": "escolha",
+      "valores": [
+        "open",
+        "closed"
+      ],
+      "dono": "protocolo:planejamento_semanal"
+    },
+    {
+      "nome": "week",
+      "rotulo": "Semana",
+      "tipo": "data",
+      "formato": "semana",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "quarter",
+      "rotulo": "Trimestre",
+      "tipo": "data",
+      "formato": "trimestre",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "criar": {
+    "via": "protocolo",
+    "protocolo": "planejamento_semanal",
+    "passos": {
+      "valor_semana": "valor_semana",
+      "valor_relacao": "valor_relacao"
+    }
+  },
+  "protocolos": [
+    {
+      "id": "review_semanal",
+      "papel": "revisa"
+    }
+  ],
+  "formacao": {
+    "colunas": [
+      "projeto",
+      "smart",
+      "acao",
+      "dia",
+      "centro",
+      "trimestre",
+      "ano",
+      "visao",
+      "lado"
+    ],
+    "mais": "acao",
+    "aVista": 40
+  }
+}

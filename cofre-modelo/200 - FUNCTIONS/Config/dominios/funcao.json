@@ -1,0 +1,38 @@
+{
+  "dominio": "funcao",
+  "descricao": "A nota de função (`type: funcao`): o \"como se faz\" de uma função importante de um módulo. Nasce pelo Novo, na pasta `Funções` do módulo, pelo molde da função.",
+  "candidatos": {
+    "pasta": "100 - AREAS",
+    "type": "funcao"
+  },
+  "campos": [
+    {
+      "nome": "modulo",
+      "rotulo": "Módulo",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "ramo": "acima",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "created",
+      "rotulo": "Criada em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "criar": {
+    "via": "nota",
+    "casa": {
+      "campo": "modulo",
+      "subpasta": "Funções"
+    },
+    "molde": "200 - FUNCTIONS/Templates/Funcao_template.md"
+  }
+}

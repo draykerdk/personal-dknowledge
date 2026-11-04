@@ -1,0 +1,169 @@
+{
+  "dominio": "smart",
+  "descricao": "A SMART (`type: tarefa_smart`), uma TaskNote: o estado vem da tabela da tarefa. Os campos padrão na ordem do painel do nó; o 🌳 põe a semana nela, e o 📅 a revisa.",
+  "candidatos": {
+    "pasta": "TaskNotes/Tasks",
+    "type": "tarefa_smart"
+  },
+  "campos": [
+    {
+      "nome": "title",
+      "rotulo": "Título",
+      "tipo": "texto",
+      "formato": "curto",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "week",
+      "rotulo": "Semana",
+      "tipo": "data",
+      "formato": "semana",
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "linha.semana"
+        },
+        {
+          "de": "semana_alvo"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "due",
+      "rotulo": "Prazo",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "nota"
+    },
+    {
+      "nome": "projects",
+      "rotulo": "Projeto",
+      "tipo": "link",
+      "alvo": [
+        "projeto",
+        "departamento"
+      ],
+      "multiplo": true,
+      "ramo": "acima",
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "no.projeto"
+        },
+        {
+          "de": "fio.projeto"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "sem projeto"
+    },
+    {
+      "nome": "impacto",
+      "rotulo": "Impacto",
+      "tipo": "texto",
+      "formato": "numero",
+      "dono": "nota"
+    },
+    {
+      "nome": "natureza",
+      "rotulo": "Natureza",
+      "tipo": "escolha",
+      "valores": [
+        "manutencao"
+      ],
+      "dono": "nota",
+      "criar": false,
+      "vazio": "estratégica"
+    },
+    {
+      "nome": "contexts",
+      "rotulo": "Onde",
+      "tipo": "lista",
+      "valores": "contextos",
+      "sugestao": [
+        {
+          "de": "onde_estou"
+        }
+      ],
+      "dono": "nota",
+      "vazio": "sem lugar marcado"
+    },
+    {
+      "nome": "entrega_observavel",
+      "rotulo": "Entrega observável",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "criterio_suficiente",
+      "rotulo": "Critério de suficiente",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "valor_contribuicao",
+      "rotulo": "Valor e contribuição",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "limite_escopo",
+      "rotulo": "Limite do escopo",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota"
+    },
+    {
+      "nome": "blockedBy",
+      "rotulo": "Bloqueada por",
+      "tipo": "link",
+      "alvo": [
+        "smart",
+        "tarefa"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota",
+      "criar": false
+    },
+    {
+      "nome": "status",
+      "rotulo": "Status",
+      "tipo": "escolha",
+      "valores": "status",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "dateCreated",
+      "rotulo": "Criada em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    },
+    {
+      "nome": "completedDate",
+      "rotulo": "Concluída em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "protocolos": [
+    {
+      "id": "planejamento_semanal",
+      "papel": "cria"
+    },
+    {
+      "id": "review_semanal",
+      "papel": "revisa"
+    }
+  ]
+}
