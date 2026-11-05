@@ -27,6 +27,7 @@ O que fica de fora por enquanto: o agente do celular e os pacotes de protocolo (
 | `config-padrao/` | as definições de partida que a aba de configurações usa antes da inicialização |
 | `cofre-exemplo/` | as notas de uma pessoa fictícia (áreas, projetos, tarefas, o dia, a semana, o trimestre, hábitos, um valor e um roteiro), para os testes e para ver o sistema funcionando; `scripts/montar_cofre_exemplo.py` o monta por cima do esqueleto numa pasta nova |
 | `ponte-do-agente/` | a ponte do agente, o lado do DSH (o pacote `dsh-vault-bridge`): as ferramentas pelas quais o Dk pessoal lê o estado da Missão e propõe, e o passo a passo para ligar |
+| `ponte-do-agente/skills/` | as instruções e as skills do Dk pessoal: o que fazem o agente local agir como o Dk pessoal sobre a ponte (ver "As skills do Dk pessoal", abaixo) |
 | `docs/` | a documentação de uso e de desenvolvimento |
 | `scripts/` | o instalador de um comando, a exportação por lista de permitidos, a guarda de vazamento e os gatilhos do git que a rodam antes de cada commit |
 
@@ -67,6 +68,35 @@ Ele constrói o plugin se ainda não foi construído (pede o Node.js), copia o e
 3. Abra a Missão e, no começo da semana, o 🌳.
 
 O Dk pessoal (o agente local) se liga à parte, pela [ponte do agente](ponte-do-agente/README.md).
+
+## As skills do Dk pessoal
+
+A ponte dá as ferramentas; as skills dão o comportamento. Elas ficam em [`ponte-do-agente/skills/`](ponte-do-agente/skills/README.md), uma pasta `<nome>/SKILL.md` por skill, escritas em passos curtos para funcionar também com modelos menores:
+
+| Skill | O que faz |
+|---|---|
+| `dk-pessoal` | as instruções-base: quem o Dk é, o que pode e não pode, como propõe (pela triagem da Missão, em Propostas, nada sem o seu sim), como fala e a regra de conferir pesquisa |
+| `dk-estado-agora` | o que está em jogo hoje ou na semana pela Missão, e uma próxima ação |
+| `dk-fechar-o-dia` | fecha o dia pelo que você fez, propondo as linhas e as conclusões |
+| `dk-material-da-semana` | junta o material para revisar e planejar a semana, sem planejar por você |
+| `dk-capturar-tarefas` | propõe as tarefas que você disse, cada uma com o pai e o porquê |
+| `dk-pesquisa-conferida` | a pesquisa com fonte, data e o que falta conferir |
+| `dk-recomendar` | uma recomendação com o porquê |
+
+São duas camadas: a universal, que vem aqui, e a pessoal, um arquivo `dk-pessoal/camada-pessoal.md` que só existe no seu cofre (o seu ritmo, os seus valores, os seus protocolos e onde ler o que muda). O ponto de partida é `dk-pessoal/camada-pessoal.exemplo.md`, e o `.gitignore` barra a camada pessoal.
+
+**Como ligar ao DSH.** Com a ponte já ligada, ponha as skills numa pasta que o DSH varre, uma pasta por skill:
+
+```sh
+# no cofre, sem mexer na configuração do DSH (ele varre .agents/skills/ na raiz do projeto)
+mkdir -p /caminho/do/cofre/.agents/skills
+cp -R ponte-do-agente/skills/dk-* /caminho/do/cofre/.agents/skills/
+
+# ou na pasta do usuário do DSH, com um symlink por skill
+for s in ponte-do-agente/skills/dk-*; do ln -s "$(pwd)/$s" ~/.dsh/skills/"$(basename "$s")"; done
+```
+
+Numa sessão nova, as sete aparecem no catálogo de skills; peça "carregue a skill dk-pessoal" ou pergunte "o que faço agora?". O detalhe está em [`ponte-do-agente/skills/README.md`](ponte-do-agente/skills/README.md).
 
 ## A guarda de vazamento
 

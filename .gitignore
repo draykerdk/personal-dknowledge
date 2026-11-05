@@ -23,3 +23,6 @@ termos_privados*
 
 # o relatório local da exportação (o que ela copiou da última vez; ver scripts/exportar-do-cofre.py)
 scripts/exportados.txt
+
+# a camada pessoal do Dk (o ritmo, os valores e o foco de quem usa) nunca entra
+ponte-do-agente/skills/*/camada-pessoal.md

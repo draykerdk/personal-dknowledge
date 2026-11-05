@@ -63,8 +63,10 @@ Os testes do pacote, sem o DSH:
 node --test ponte-do-agente/dsh-vault-bridge/test/*.mjs
 ```
 
-## O que fica de fora por enquanto
+## As skills do Dk pessoal
 
-As instruções e as skills que fazem o DSH se comportar como o Dk pessoal ainda não estão aqui: sem elas, o DSH usa as ferramentas da ponte com o comportamento padrão dele.
+As instruções e as skills que fazem o DSH se comportar como o Dk pessoal estão em [`skills/`](skills/README.md), com o passo a passo para ligar. Sem elas, o DSH usa as ferramentas da ponte com o comportamento padrão dele.
+
+## O que fica de fora por enquanto
 
 Também dá para usar outras ferramentas de agente, por fora, lendo e editando as notas do cofre como arquivos; aí não há os efeitos ao vivo da ponte (a Missão, as tarefas do TaskNotes e os protocolos abertos na tela).

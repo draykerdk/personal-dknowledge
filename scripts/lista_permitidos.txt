@@ -141,6 +141,17 @@ copiar 200 - FUNCTIONS/Plugins/native-dsh/dfm-vault-bridge/**/* -> ponte-do-agen
 nunca 200 - FUNCTIONS/Plugins/native-dsh/dfm-vault-bridge/README.md
 nunca 200 - FUNCTIONS/Plugins/native-dsh/dfm-vault-bridge/node_modules/*
 
+# ── As instruções e as skills do Dk pessoal (o DSH agindo como o agente da pessoa) ───────
+# a camada universal: as instruções-base (`dk-pessoal`) e as skills `dk-*`, sobre as ferramentas
+# da ponte. A camada pessoal (`camada-pessoal.md`: o ritmo, os valores, o foco e os protocolos da
+# pessoa) e o README da pasta no cofre (os caminhos dela) nunca saem; no lugar, o pacote leva um
+# exemplo da camada e o README da pasta, escritos aqui.
+copiar 200 - FUNCTIONS/Skills/Dk Pessoal/**/* -> ponte-do-agente/skills
+nunca 200 - FUNCTIONS/Skills/Dk Pessoal/README.md
+nunca 200 - FUNCTIONS/Skills/Dk Pessoal/*/camada-pessoal.md
+proprio ponte-do-agente/skills/README.md
+proprio ponte-do-agente/skills/dk-pessoal/camada-pessoal.exemplo.md
+
 # ── A bancada de juízes e os scripts das notas-modelo ────────────────────────────────────
 copiar 200 - FUNCTIONS/Scripts/JUDGES.md -> cofre-modelo/200 - FUNCTIONS/Scripts
 copiar 200 - FUNCTIONS/Scripts/README.md -> cofre-modelo/200 - FUNCTIONS/Scripts
