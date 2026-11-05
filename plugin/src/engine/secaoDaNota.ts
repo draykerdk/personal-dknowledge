@@ -16,6 +16,7 @@ export type LinhaNaSecao = { texto: string } | { problema: 'vazio' | 'sem-secao'
 
 const semCR = (l: string) => (l.endsWith('\r') ? l.slice(0, -1) : l);
 const TITULO = /^(#{1,6})\s+\S/;
+const CERCA = /^\s*(```|~~~)/;
 const ITEM = /^\s*[-*+]\s/;
 const RECUO = /^\s+\S/;
 const REGUA = /^\s*(-{3,}|\*{3,}|_{3,})\s*$/;
@@ -79,4 +80,25 @@ export function acrescentarNaSecao(texto: string, secao: string, linha: string):
         linhas.splice(titulo + 1, 0, cr, `${nova}${cr}`, ...(titulo + 1 < linhas.length ? [cr] : []));
     }
     return { texto: linhas.join('\n') };
+}
+
+/**
+ * O que faz: os títulos de seção do corpo da nota (`## 🌃 Fechamento da noite`), na ordem do texto, aparados.
+ * Por quê: a proposta de uma linha numa nota (05/11, o Dk pessoal): a seção que não existe recusa, e a recusa
+ * diz quais seções a nota tem, para o agente corrigir com o título exato; a seção se acha pela mesma regra
+ * (`limitesDaSecao`), então o título que esta lista dá é um que `acrescentarNaSecao` acha.
+ * Entra → sai: o texto da nota → os títulos (vazio sem título).
+ * Erro e ataque: o título dentro do frontmatter ou de um bloco de código não conta; o `\r` do fim sai.
+ * Prova: tests/engine/secaoDaNota.test.ts ("os títulos da nota").
+ */
+export function titulosDaNota(texto: string): string[] {
+    const linhas = String(texto ?? '').split('\n');
+    const out: string[] = [];
+    let cerca = false;
+    for (let i = inicioDoCorpo(linhas); i < linhas.length; i++) {
+        const l = semCR(linhas[i]);
+        if (CERCA.test(l)) { cerca = !cerca; continue; }
+        if (!cerca && TITULO.test(l)) out.push(l.trim());
+    }
+    return out;
 }

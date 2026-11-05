@@ -8,7 +8,9 @@ import {
   MISSION_SECTIONS,
   MISSION_STATE_MAX_ITEMS,
   PROPOSAL_ACTIONS,
+  PROPOSAL_LINE_MAX,
   PROPOSAL_REASON_MAX,
+  PROPOSAL_SECTION_MAX,
   PROTOCOL_IDS_DE_PARTIDA,
   TASK_CONTEXTS,
   TASK_PRIORITIES,
@@ -81,6 +83,25 @@ export function typeSchemaParts(contract) {
     contextsChoice: description => stringArray(`${label("contexts", "Onde")}: ${description}`, 6, TASK_CONTEXTS),
   };
 }
+/**
+ * As ações que `dfm_propose` oferece: todas as da fila menos `linha`, que tem a tool dela (`dfm_line_propose`,
+ * com a seção e o texto); assim o modelo não escolhe uma ação cujos campos a tool não tem.
+ */
+export const PROPOSE_TOOL_ACTIONS = PROPOSAL_ACTIONS.filter(action => action !== "linha");
+
+/**
+ * O pedido da linha numa nota (`/v1/proposals/create`, `acao: linha`): o dia ou a semana vão em `valor`, um e
+ * só um. Devolve `{ error }` quando os dois faltam ou vêm juntos (nada vai ao gateway).
+ */
+export function lineProposalBody(args = {}) {
+  const dia = typeof args.dia === "string" && args.dia.trim() ? args.dia.trim() : undefined;
+  const semana = typeof args.semana === "string" && args.semana.trim() ? args.semana.trim() : undefined;
+  if (Boolean(dia) === Boolean(semana)) {
+    return { error: "Diga a nota: dia (AAAA-MM-DD) para a Day, ou semana (AAAA-Www) para a Week; um dos dois, não os dois." };
+  }
+  return compact({ acao: "linha", valor: dia ?? semana, secao: args.secao, linha: args.linha, porque: args.porque });
+}
+
 /** As seções do painel quando o agente não pede nenhuma: a curta (a ação de agora com o porquê). */
 export const MISSION_DEFAULT_SECTIONS = ["intent"];
 
@@ -144,6 +165,9 @@ export const BRIDGE_TOOL_NAMES = [
   "dfm_node",
   "dfm_propose",
   "dfm_task_create",
+  "dfm_line_propose",
+  "dfm_proposals_list",
+  "dfm_definitions",
   "dfm_task_update",
   "dfm_task_complete",
   "dfm_note_open",
@@ -348,7 +372,7 @@ function recoveredPluginFactory(harness, config = {}) {
         name: "dfm_propose",
         description: "Propõe UMA mudança para o operador aceitar na triagem da Missão; nunca grava a tarefa. acao: ligar_smart (valor = a SMART, caminho ou título), ligar_projeto (valor = o nome do projeto), semana (valor = AAAA-Www), dia (valor = AAAA-MM-DD), criar_tarefa (titulo = a ação nova; valor = a SMART ou o projeto-pai; semana opcional). tarefa = o caminho da TaskNote (de dfm_mission_state ou dfm_tasks_query); criar_tarefa não leva tarefa. porque = uma linha para o operador. Recusa volta com o motivo: corrija e tente de novo. repetida=true: a proposta já espera.",
         parameters: objectSchema({
-          acao: { type: "string", enum: PROPOSAL_ACTIONS, description: "O que propor." },
+          acao: { type: "string", enum: PROPOSE_TOOL_ACTIONS, description: "O que propor. Uma linha numa nota (a Day, a Week) vai por dfm_line_propose." },
           tarefa: { type: "string", description: "Caminho da TaskNote que muda (não em criar_tarefa)." },
           valor: { type: "string", description: "O alvo: a SMART, o projeto, a semana AAAA-Www ou o dia AAAA-MM-DD." },
           titulo: { type: "string", description: "Só criar_tarefa: o título da ação nova, até 140 caracteres." },
@@ -387,6 +411,46 @@ function recoveredPluginFactory(harness, config = {}) {
             semana: args.week,
             porque: args.porque,
           }));
+        },
+        output: textOutput,
+      }));
+
+      // A linha numa nota pela triagem (05/11): o mesmo caminho do dfm_task_create (`/v1/proposals/create`), com a
+      // ação `linha`; a nota é a do dia ou a da semana, achada pela Missão, e só se grava com o Y do operador.
+      tools.push(harness.defineTool({
+        name: "dfm_line_propose",
+        description: "Propõe UMA linha para entrar numa seção da nota do dia (a Day) ou da semana (a Week); NÃO grava a nota. A proposta espera na triagem da Missão (Propostas): o operador aceita (Y) e a linha entra no fim da lista da seção, com Desfazer; ou recusa (X). dia=AAAA-MM-DD ou semana=AAAA-Www (um dos dois). secao = o título exato, com os # (\"## ✍️ Diário\"); leia a nota antes para copiar o título. linha = uma linha só, como deve ficar na nota (\"- o reembolso saiu\"). porque = uma linha para o operador. Recusa volta com o motivo (a seção que falta vem com as que a nota tem): corrija e proponha de novo. repetida=true: já espera.",
+        parameters: objectSchema({
+          dia: { type: "string", description: "A Day: AAAA-MM-DD. Omita se for a Week." },
+          semana: { type: "string", description: "A Week: AAAA-Www. Omita se for a Day." },
+          secao: { type: "string", description: `O título exato da seção, com os #, até ${PROPOSAL_SECTION_MAX} caracteres.` },
+          linha: { type: "string", description: `A linha, até ${PROPOSAL_LINE_MAX} caracteres; quebra de linha vira espaço.` },
+          porque: { type: "string", description: `Por que propor, numa linha (até ${PROPOSAL_REASON_MAX} caracteres).` },
+        }, ["secao", "linha", "porque"]),
+        async execute(args) {
+          const body = lineProposalBody(args);
+          if (body.error) return { proposta: null, reason: body.error };
+          return operator.request("/v1/proposals/create", body);
+        },
+        output: textOutput,
+      }));
+
+      tools.push(harness.defineTool({
+        name: "dfm_proposals_list",
+        description: "As propostas que esperam o operador na triagem da Missão (Propostas), somente leitura: cada uma com a ação, o que aceitar faz (texto), o porquê, de onde veio e o que muda (a tarefa, ou a nota e a seção da linha). Chame antes de propor de novo, ou quando o operador perguntar o que está esperando.",
+        parameters: openObject,
+        async execute() {
+          return operator.request("/v1/proposals/list", {});
+        },
+        output: textOutput,
+      }));
+
+      tools.push(harness.defineTool({
+        name: "dfm_definitions",
+        description: "As definições do sistema, somente leitura, as mesmas que o plugin usa: o nome e o fuso da pessoa, os valores e os das relações, as áreas, o foco do trimestre, as pastas e as notas (a reserva, os pesos), a ponte e o protocolo de cada papel (fechar_dia, revisar_semana…), com os papéis sem protocolo. salvo=false: valem os padrões e as camadas de partida dos módulos.",
+        parameters: openObject,
+        async execute() {
+          return operator.request("/v1/definitions/query", {});
         },
         output: textOutput,
       }));

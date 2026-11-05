@@ -162,6 +162,27 @@
         "fornecedores"
       ],
       "porque": "a ponte carrega o pacote de ferramentas do DSH pelo nome npm publicado dele, de dentro do DSH que a roda; é uma dependência citada, não uma assinatura"
+    },
+    {
+      "caminho": "ponte-do-agente/modo-dk-pessoal/cordis.patch.yml",
+      "categorias": [
+        "fornecedores"
+      ],
+      "porque": "a declaração do modo monta os pacotes npm do DSH pelo nome publicado deles (a persona, as ferramentas, a compactação); é uma dependência citada, não uma assinatura"
+    },
+    {
+      "caminho": "ponte-do-agente/modo-dk-pessoal/gerar-patch.mjs",
+      "categorias": [
+        "fornecedores"
+      ],
+      "porque": "o gerador escreve a declaração do modo com os pacotes npm do DSH pelo nome publicado deles; é uma dependência citada, não uma assinatura"
+    },
+    {
+      "caminho": "ponte-do-agente/modo-dk-pessoal/README.md",
+      "categorias": [
+        "fornecedores"
+      ],
+      "porque": "o passo a passo para ligar o modo nomeia os pacotes npm do DSH de que ele depende (a declaração do preset e o bundle do app web); é uma dependência citada, não uma assinatura"
     }
   ]
 }

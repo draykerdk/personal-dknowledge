@@ -67,6 +67,8 @@ node --test ponte-do-agente/dsh-vault-bridge/test/*.mjs
 
 As instruções e as skills que fazem o DSH se comportar como o Dk pessoal estão em [`skills/`](skills/README.md), com o passo a passo para ligar. Sem elas, o DSH usa as ferramentas da ponte com o comportamento padrão dele.
 
+O modo (preset) Dk pessoal, com as instruções-base em toda sessão, a leitura de arquivos sem escrita e sem shell, está em [`modo-dk-pessoal/`](modo-dk-pessoal/README.md).
+
 ## O que fica de fora por enquanto
 
 Também dá para usar outras ferramentas de agente, por fora, lendo e editando as notas do cofre como arquivos; aí não há os efeitos ao vivo da ponte (a Missão, as tarefas do TaskNotes e os protocolos abertos na tela).

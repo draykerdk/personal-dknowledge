@@ -321,6 +321,7 @@
         "fn.pesos"
       ],
       "used_by": [
+        "compoe.agente",
         "liga.protocolo"
       ]
     },
@@ -403,19 +404,21 @@
       "id": "compoe.agente",
       "role": "module",
       "state": "standard",
-      "does": "Compõe o que o agente do sistema lê da Missão e o que ele propõe a ela, já digerido: o estado e a ordem de um período com o porquê dos pesos (estadoDaMissao), o nó com o ramo, os sinais, os protocolos com o porquê e as situações do P13 (noParaOAgente), e a fila das propostas, conferidas pela função do arrasto e aceitas na triagem pelas gravações do quadro (propostasDoAgente, com os efeitos pela borda).",
+      "does": "Compõe o que o agente do sistema lê da Missão e o que ele propõe a ela, já digerido: o estado e a ordem de um período com o porquê dos pesos (estadoDaMissao), o nó com o ramo, os sinais, os protocolos com o porquê e as situações do P13 (noParaOAgente), a fila das propostas, conferidas pela função do arrasto e aceitas na triagem pelas gravações do quadro ou pela linha a mais na seção da Day e da Week (propostasDoAgente, com os efeitos pela borda), e as definições do sistema na forma curta (definicoesParaOAgente).",
       "why": "Camada 6: a projeção é pura e recebe o modelo da Missão já montado; o operador (camada 9) a chama pela rota, e o agente escolhe da lista em vez de interpretar notas (a proposta do Dk pessoal, 02/11/2026).",
       "runs_on": "",
       "core": false,
       "replaces": "",
       "proof": [
-        "cd ../.. && npx vitest run tests/engine/estadoDaMissao.test.ts tests/engine/propostasDoAgente.test.ts tests/engine/noParaOAgente.test.ts"
+        "cd ../.. && npx vitest run tests/engine/estadoDaMissao.test.ts tests/engine/propostasDoAgente.test.ts tests/engine/noParaOAgente.test.ts tests/engine/definicoesParaOAgente.test.ts"
       ],
       "connects_to": [
         "base",
+        "ext.definicoes",
         "ext.missao",
         "ext.project",
-        "fn.modelos"
+        "fn.modelos",
+        "fn.protocolo"
       ],
       "used_by": [
         "liga.operador"
@@ -681,6 +684,7 @@
         "compoe.agente",
         "ext.child_process",
         "ext.crypto",
+        "ext.definicoes",
         "ext.http",
         "ext.main",
         "ext.missao",
@@ -938,9 +942,11 @@
       "proof": [],
       "connects_to": [],
       "used_by": [
+        "compoe.agente",
         "fn.protocolo",
         "liga.agora",
         "liga.nucleo",
+        "liga.operador",
         "liga.protocolo",
         "liga.vigia"
       ]
@@ -2866,6 +2872,20 @@
       }
     },
     {
+      "name": "definicoesParaOAgente",
+      "path": "definicoesParaOAgente.ts",
+      "line": 34,
+      "module": "compoe.agente",
+      "summary": "as definições na forma curta para o agente: os campos que dizem quem a pessoa é e onde as coisas estão, os protocolos só dos papéis que têm um, os papéis sem protocolo pelo nome e, dos ajustes dos pesos, só as categorias ajustadas.",
+      "card": {
+        "does": "as definições na forma curta para o agente: os campos que dizem quem a pessoa é e onde as coisas estão, os protocolos só dos papéis que têm um, os papéis sem protocolo pelo nome e, dos ajustes dos pesos, só as categorias ajustadas.",
+        "why": "o agente recomenda pelo foco e pelos valores e acha as notas pelas pastas; o detalhe dos pesos é do plugin (a ordem já vem pronta em `dfm_mission_state`) e não cabe no contexto de um modelo pequeno.",
+        "io": "as definições e o contexto → um objeto novo, de cópias (mudar o resultado não muda as definições).",
+        "errors": "nada lança; o que a leitura não preencheu já vem com o padrão; nenhuma chave da ponte (o token) mora nas definições.",
+        "proof": "tests/engine/definicoesParaOAgente.test.ts."
+      }
+    },
+    {
       "name": "parseDfmBlock",
       "path": "dfmBlocks.ts",
       "line": 111,
@@ -3493,7 +3513,7 @@
     {
       "name": "createCorrelationId",
       "path": "dshOperatorCore.ts",
-      "line": 64,
+      "line": 66,
       "module": "liga.operador",
       "summary": "",
       "card": {}
@@ -3501,7 +3521,7 @@
     {
       "name": "asRecord",
       "path": "dshOperatorCore.ts",
-      "line": 71,
+      "line": 73,
       "module": "liga.operador",
       "summary": "",
       "card": {}
@@ -3509,7 +3529,7 @@
     {
       "name": "validateTaskCreate",
       "path": "dshOperatorCore.ts",
-      "line": 208,
+      "line": 210,
       "module": "liga.operador",
       "summary": "",
       "card": {}
@@ -3517,7 +3537,7 @@
     {
       "name": "propostaDaCriacao",
       "path": "dshOperatorCore.ts",
-      "line": 269,
+      "line": 271,
       "module": "liga.operador",
       "summary": "o pedido de criar uma tarefa pela ponte (`/v1/tasks/create`) como a proposta `criar_tarefa` da fila (02/11, um jeito por função): o título, o pai (a SMART ou o projeto), a semana e o porquê.",
       "card": {
@@ -3531,7 +3551,7 @@
     {
       "name": "validateTaskUpdate",
       "path": "dshOperatorCore.ts",
-      "line": 285,
+      "line": 287,
       "module": "liga.operador",
       "summary": "",
       "card": {}
@@ -3539,7 +3559,7 @@
     {
       "name": "safeMarkdownPath",
       "path": "dshOperatorCore.ts",
-      "line": 329,
+      "line": 331,
       "module": "liga.operador",
       "summary": "",
       "card": {}
@@ -3547,7 +3567,7 @@
     {
       "name": "DshOperatorCore.setStartedAt",
       "path": "dshOperatorCore.ts",
-      "line": 347,
+      "line": 349,
       "module": "liga.operador",
       "summary": "",
       "card": {}
@@ -3555,7 +3575,7 @@
     {
       "name": "DshOperatorCore.dispatch",
       "path": "dshOperatorCore.ts",
-      "line": 390,
+      "line": 392,
       "module": "liga.operador",
       "summary": "",
       "card": {}
@@ -3563,7 +3583,7 @@
     {
       "name": "DshOperatorCore.createApprovedTask",
       "path": "dshOperatorCore.ts",
-      "line": 631,
+      "line": 665,
       "module": "liga.operador",
       "summary": "A criação que o operador aprovou na hora (o celular: cada chamada do agente pede o sim dele antes de gravar). Fora da ponte HTTP: lá, criar uma tarefa é propor (`/v1/tasks/create` → a fila das propostas).",
       "card": {}
@@ -7757,7 +7777,7 @@
     {
       "name": "conferirProposta",
       "path": "propostasDoAgente.ts",
-      "line": 144,
+      "line": 156,
       "module": "compoe.agente",
       "summary": "confere o pedido do agente contra o modelo da Missão e devolve a proposta (sem `id` nem `criada`): a tarefa e o alvo pelo caminho ou pelo nome, o texto do gesto pela função do arrasto (`intencaoDeSoltar`), e o problema dela vira recusa na hora.",
       "card": {
@@ -7770,7 +7790,7 @@
     {
       "name": "pedidoDoAceite",
       "path": "propostasDoAgente.ts",
-      "line": 186,
+      "line": 232,
       "module": "compoe.agente",
       "summary": "o que aceitar a proposta grava agora, conferido de novo sobre o modelo de agora (o cofre pode ter mudado desde que ela chegou): o gesto do arrasto (`intencaoDeSoltar`), ou o pedido do Novo (o título, o status de partida, a semana, o pai e a `origem` do agente; com a SMART, a herança dela fica com o Novo).",
       "card": {
@@ -7781,7 +7801,7 @@
     {
       "name": "itemDaProposta",
       "path": "propostasDoAgente.ts",
-      "line": 210,
+      "line": 262,
       "module": "compoe.agente",
       "summary": "o item da triagem de uma proposta (o grupo das propostas, com o texto e o porquê).",
       "card": {
@@ -7791,7 +7811,7 @@
     {
       "name": "lerFila",
       "path": "propostasDoAgente.ts",
-      "line": 219,
+      "line": 271,
       "module": "compoe.agente",
       "summary": "lê a fila do arquivo; o que não se lê, ou não tem a forma, fica de fora (nunca quebra).",
       "card": {
@@ -7801,7 +7821,7 @@
     {
       "name": "chaveDaRecusa",
       "path": "propostasDoAgente.ts",
-      "line": 233,
+      "line": 286,
       "module": "compoe.agente",
       "summary": "a chave da proposta da Árvore que ele recusou (o projeto e o título), para ela não voltar.",
       "card": {
@@ -7811,7 +7831,7 @@
     {
       "name": "lerRecusadas",
       "path": "propostasDoAgente.ts",
-      "line": 238,
+      "line": 291,
       "module": "compoe.agente",
       "summary": "as recusas da Árvore guardadas no arquivo da fila (o que não se lê fica de fora).",
       "card": {
@@ -7821,7 +7841,7 @@
     {
       "name": "FilaDePropostas.listar",
       "path": "propostasDoAgente.ts",
-      "line": 281,
+      "line": 340,
       "module": "compoe.agente",
       "summary": "a fila de agora (lida do arquivo na primeira vez).",
       "card": {
@@ -7831,7 +7851,7 @@
     {
       "name": "FilaDePropostas.itens",
       "path": "propostasDoAgente.ts",
-      "line": 291,
+      "line": 350,
       "module": "compoe.agente",
       "summary": "a fila já lida, sem esperar (a triagem a pede ao montar o modelo); vazia antes da primeira leitura.",
       "card": {
@@ -7841,7 +7861,7 @@
     {
       "name": "FilaDePropostas.propor",
       "path": "propostasDoAgente.ts",
-      "line": 304,
+      "line": 363,
       "module": "compoe.agente",
       "summary": "confere o pedido do agente e põe a proposta na fila (a triagem a mostra na versão seguinte).",
       "card": {
@@ -7852,7 +7872,7 @@
     {
       "name": "FilaDePropostas.proporDaArvore",
       "path": "propostasDoAgente.ts",
-      "line": 326,
+      "line": 387,
       "module": "compoe.agente",
       "summary": "põe na fila a tarefa de um nível desbloqueado da Árvore de Progressão (02/11/2026): o pai é o projeto da árvore, a semana a da linha (ou a de hoje), e os campos dela viajam até o aceite.",
       "card": {
@@ -7864,7 +7884,7 @@
     {
       "name": "FilaDePropostas.aceitar",
       "path": "propostasDoAgente.ts",
-      "line": 362,
+      "line": 466,
       "module": "compoe.agente",
       "summary": "aceita: grava pelo caminho de sempre (o gesto das setas ou o Novo, cada um com o Desfazer dele) e, se gravou, a proposta sai da fila.",
       "card": {
@@ -7875,7 +7895,7 @@
     {
       "name": "FilaDePropostas.recusar",
       "path": "propostasDoAgente.ts",
-      "line": 375,
+      "line": 481,
       "module": "compoe.agente",
       "summary": "recusa: a proposta sai da fila; o Desfazer a devolve (se a fila tem lugar).",
       "card": {
@@ -8750,7 +8770,7 @@
     {
       "name": "acrescentarNaSecao",
       "path": "secaoDaNota.ts",
-      "line": 44,
+      "line": 45,
       "module": "fn.protocolo",
       "summary": "acrescenta `linha` no fim da lista da seção `secao` (o título exato, como `## 🔄 Revisar`): logo depois do último item da lista da seção (ou da última linha recuada que o continua); sem lista, logo abaixo do título, com uma linha em branco entre os dois. A seção acaba no próximo título do mesmo nível ou de cima, ou na régua (`---`).",
       "card": {
@@ -8759,6 +8779,20 @@
         "io": "o texto da nota, o título da seção e a linha → o texto novo, ou o problema.",
         "errors": "a linha vazia não grava (`vazio`); a quebra de linha dentro dela vira espaço (uma linha só, nunca duas entradas); sem a seção, nada grava (`sem-secao`: a revisão não cria seção); a mesma linha já na seção não entra de novo (`igual`: rodar duas vezes grava uma); o título dentro do frontmatter não conta; o `\\r` do fim das linhas volta na linha nova.",
         "proof": "tests/engine/secaoDaNota.test.ts."
+      }
+    },
+    {
+      "name": "titulosDaNota",
+      "path": "secaoDaNota.ts",
+      "line": 94,
+      "module": "fn.protocolo",
+      "summary": "os títulos de seção do corpo da nota (`## 🌃 Fechamento da noite`), na ordem do texto, aparados.",
+      "card": {
+        "does": "os títulos de seção do corpo da nota (`## 🌃 Fechamento da noite`), na ordem do texto, aparados.",
+        "why": "a proposta de uma linha numa nota (05/11, o Dk pessoal): a seção que não existe recusa, e a recusa diz quais seções a nota tem, para o agente corrigir com o título exato; a seção se acha pela mesma regra (`limitesDaSecao`), então o título que esta lista dá é um que `acrescentarNaSecao` acha.",
+        "io": "o texto da nota → os títulos (vazio sem título).",
+        "errors": "o título dentro do frontmatter ou de um bloco de código não conta; o `\\r` do fim sai.",
+        "proof": "tests/engine/secaoDaNota.test.ts (\"os títulos da nota\")."
       }
     },
     {

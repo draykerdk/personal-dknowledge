@@ -55,5 +55,12 @@ export const MISSION_STATE_MAX_ITEMS = 40;
  * O que o agente pode propor (`dfm_propose`). Dono: `ACOES_DA_PROPOSTA` em
  * `src/engine/propostasDoAgente.ts`; o tamanho do porquê, `PORQUE_MAXIMO` no mesmo arquivo.
  */
-export const PROPOSAL_ACTIONS = ["ligar_smart", "ligar_projeto", "semana", "dia", "criar_tarefa"];
+export const PROPOSAL_ACTIONS = ["ligar_smart", "ligar_projeto", "semana", "dia", "criar_tarefa", "linha"];
 export const PROPOSAL_REASON_MAX = 200;
+
+/**
+ * A proposta de uma linha numa nota (`dfm_line_propose`, a ação `linha`, 05/11/2026): os tetos da linha e do
+ * título da seção. Dono: `LINHA_MAXIMA` e `SECAO_MAXIMA` em `src/engine/propostasDoAgente.ts`.
+ */
+export const PROPOSAL_LINE_MAX = 500;
+export const PROPOSAL_SECTION_MAX = 200;

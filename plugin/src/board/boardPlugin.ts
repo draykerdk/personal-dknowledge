@@ -521,6 +521,13 @@ export class MissionBoard {
             modelo: () => this.missao.modelo(),
             mover: (caminho, destino, avisar) => this.gravacoes.mover(caminho, destino, avisar),
             criar: (valores, smart, avisar) => this.novo.tarefa(valores, smart, avisar),
+            // A linha aceita (05/11, a Day ou a Week): a nota pelo cofre; o texto novo vem de `acrescentarNaSecao`.
+            lerNota: async caminho => { const f = plugin.app.vault.getAbstractFileByPath(caminho); return f instanceof TFile ? plugin.app.vault.read(f) : null; },
+            gravarNota: async (caminho, texto) => {
+                const f = plugin.app.vault.getAbstractFileByPath(caminho);
+                if (!(f instanceof TFile)) throw new Error(`a nota ${caminho} não está no cofre`);
+                await plugin.app.vault.modify(f, texto);
+            },
             registrarDesfazer: (rotulo, desfazer, avisar) => this.desfazer.registrar({ rotulo, desfazer }, avisar),
             aoMudar: () => this.missao.agendar(),
             agora: () => new Date().toISOString(),

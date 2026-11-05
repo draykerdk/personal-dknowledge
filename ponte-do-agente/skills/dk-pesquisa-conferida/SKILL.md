@@ -5,7 +5,7 @@ description: Faz uma pesquisa para a pessoa e a entrega conferida - cada afirma�
 
 # A pesquisa conferida
 
-Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
+Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou; no modo Dk pessoal, elas já vêm na conversa).
 
 Pesquisa de agente erra: inventa, mistura datas, toma ausência por fato. Esta skill entrega a pesquisa com a conferência junto.
 

@@ -5,7 +5,7 @@ description: O estado agora pela Missão - o que está em jogo hoje e na semana,
 
 # O estado agora
 
-Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
+Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou; no modo Dk pessoal, elas já vêm na conversa).
 
 ## Gatilho
 
@@ -21,14 +21,14 @@ Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
    - **Agora:** o item 1 e o `porque` dele.
    - **Hoje (ou na semana):** os itens 2 e 3, um por linha, só o título.
    - **Sinais:** os sinais do nó, se houver (um fato por linha, sem cobrança).
-   - **Triagem:** quantas propostas e entradas esperam, se houver.
+   - **Triagem:** quantas propostas e entradas esperam, se houver. Se a pessoa perguntar quais, `dfm_proposals_list`.
    - **Próximo passo:** uma ação física pequena do item 1 (o "próximo passo" do nó, se houver).
 6. Se o nó tiver um protocolo com `pode_abrir: true` que serve ao passo, ofereça abrir ("Quer que eu abra …?"). Só abra (`dfm_protocol_run`) com o sim.
-7. Se a pessoa disser que já fez um item, siga a skill `dk-fechar-o-dia`, passo 5 (concluir só com o que ela disse).
+7. Se a pessoa disser que já fez um item, siga a skill `dk-fechar-o-dia`, passo 8 (concluir só com o que ela disse).
 
 ## Ferramentas
 
-`dfm_mission_state`, `dfm_node`, `dfm_protocol_run` (com o sim). Para o panorama dos projetos, `dfm_operational_context`.
+`dfm_mission_state`, `dfm_node`, `dfm_protocol_run` (com o sim), `dfm_proposals_list` (o que espera na triagem). Para o panorama dos projetos, `dfm_operational_context`.
 
 ## Nunca
 

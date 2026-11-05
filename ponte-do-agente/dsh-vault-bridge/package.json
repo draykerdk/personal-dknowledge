@@ -1,6 +1,6 @@
 {
   "name": "@dfm/dsh-vault-bridge",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "private": true,
   "type": "module",
   "description": "Ponte nativa entre Obsidian/DFM e as ferramentas da sessão DSH.",

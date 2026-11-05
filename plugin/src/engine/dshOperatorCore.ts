@@ -29,6 +29,8 @@ import { ORIGEM_DO_AGENTE, RecusaDaProposta, type FilaDePropostas } from './prop
 import { noParaOAgente } from './noParaOAgente';
 import type { LeitorDoRamo, LidoDosProtocolos } from '../missao/tipos';
 import { ehSemana } from './periodo';
+import { definicoesDe, fusoDoSistema } from '../definicoes';
+import { definicoesParaOAgente } from './definicoesParaOAgente';
 
 export { PAPEIS_DA_PONTE, protocolosDaPonte };
 
@@ -400,7 +402,8 @@ export class DshOperatorCore {
             case '/v1/mission/query': return this.queryMission(body);
             case '/v1/mission/state': return this.missionState(body);
             case '/v1/proposals/create': return this.enqueueMutation(() => this.propose(body, correlationId));
-            case '/v1/proposals/list': return this.listProposals();
+            case '/v1/proposals/list': return this.listProposals(body);
+            case '/v1/definitions/query': return this.queryDefinitions(body);
             case '/v1/node/query': return this.queryNode(body);
             case '/v1/protocols/run': return this.runProtocol(body, correlationId);
             case '/v1/notices/show': return this.showNotice(body, correlationId);
@@ -546,10 +549,41 @@ export class DshOperatorCore {
         return { ...no };
     }
 
-    /** As propostas que esperam o operador, em forma curta. Só lê. */
-    private async listProposals(): Promise<JsonRecord> {
+    /**
+     * As propostas que esperam o operador, em forma curta: o que aceitar faz, o porquê, de onde veio e o que
+     * muda (a tarefa, ou a nota e a seção da linha). Só lê.
+     * Erro e ataque: campo no pedido recusa (a lista não tem filtro); sem a Missão, `missao_unavailable`.
+     */
+    private async listProposals(raw: unknown): Promise<JsonRecord> {
+        const body = asRecord(raw);
+        const extra = Object.keys(body)[0];
+        if (extra !== undefined) throw new OperatorBridgeError('invalid_input', `Campo não permitido: ${extra}.`);
         const lista = await this.filaDePropostas().listar();
-        return { total: lista.length, propostas: lista.map(p => ({ id: p.id, acao: p.acao, titulo: p.titulo, texto: p.texto, criada: p.criada })) };
+        return {
+            total: lista.length,
+            propostas: lista.map(p => ({
+                id: p.id, acao: p.acao, titulo: p.titulo, texto: p.texto, porque: p.porque, criada: p.criada,
+                origem: p.origem ?? ORIGEM_DO_AGENTE,
+                ...(p.tarefa ? { tarefa: p.tarefa } : {}),
+                ...(p.acao === 'linha' ? { nota: p.nota, secao: p.secao } : {}),
+            })),
+            onde: 'Esperam na triagem da Missão (Propostas): só o operador aceita (Y) ou recusa (X).',
+        };
+    }
+
+    /**
+     * As definições do sistema para o agente (05/11): as que o plugin usa (`definicoesDe`: os padrões, as camadas
+     * de partida dos módulos e o bloco salvo), na forma curta (`definicoesParaOAgente`). Só lê.
+     * Erro e ataque: campo no pedido recusa; nada da ponte (o token, a porta real em uso) sai daqui além do que
+     * as definições dizem.
+     */
+    private async queryDefinitions(raw: unknown): Promise<JsonRecord> {
+        const body = asRecord(raw);
+        const extra = Object.keys(body)[0];
+        if (extra !== undefined) throw new OperatorBridgeError('invalid_input', `Campo não permitido: ${extra}.`);
+        const definicoes = definicoesDe(this.plugin);
+        const salvo = !!(this.plugin as any).settings?.definicoes && typeof (this.plugin as any).settings.definicoes === 'object';
+        return definicoesParaOAgente(definicoes, { fusoEfetivo: fusoDoSistema(definicoes), salvo });
     }
 
     /** Tetos nomeados da projeção; chave desconhecida falha em vez de ser ignorada. */

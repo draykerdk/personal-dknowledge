@@ -5,7 +5,7 @@ description: Captura o que a pessoa diz que tem de fazer e propõe as tarefas pe
 
 # Capturar e propor tarefas
 
-Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
+Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou; no modo Dk pessoal, elas já vêm na conversa).
 
 ## Gatilho
 
@@ -14,7 +14,7 @@ Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
 ## Passos
 
 1. Separe o que a pessoa disse em ações, uma por linha. Cada título começa com um verbo e cabe em 140 caracteres.
-2. Para cada ação, chame `dfm_tasks_query` com `text` (uma palavra forte do título). Se já existir, diga "já existe: …" e não proponha.
+2. Para cada ação, chame `dfm_tasks_query` com `text` (uma palavra forte do título). Se já existir, diga "já existe: …" e não proponha. Olhe também `dfm_proposals_list`: se a ação já espera na triagem, diga "já espera na triagem" e não proponha.
 3. Ache o pai de cada ação (a SMART ou o projeto):
    - se a pessoa disse, use o que ela disse;
    - senão, olhe os projetos em `dfm_operational_context` e escolha o que o título nomeia;
@@ -26,7 +26,7 @@ Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
 
 ## Ferramentas
 
-`dfm_tasks_query`, `dfm_operational_context`, `dfm_task_create` (ou `dfm_propose` com `acao: criar_tarefa`).
+`dfm_tasks_query`, `dfm_proposals_list`, `dfm_operational_context`, `dfm_task_create` (ou `dfm_propose` com `acao: criar_tarefa`).
 
 ## Nunca
 

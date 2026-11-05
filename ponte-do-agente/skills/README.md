@@ -23,7 +23,7 @@ Cada skill é uma pasta `<nome>/SKILL.md`, com `name` e `description` no frontma
 
 ## As ferramentas que elas usam
 
-Só as da ponte (ver [../README.md](../README.md)) e a leitura de arquivos do cofre. Leem: `dfm_mission_state`, `dfm_node`, `dfm_operational_context`, `dfm_weekly_context`, `dfm_tasks_query`, `dfm_context_note`, `dfm_working_state`, `dfm_mission_query`. Propõem na triagem: `dfm_propose` e `dfm_task_create`. Abrem na tela: `dfm_note_open`, `dfm_protocol_run`, `dfm_notice`. Gravam, e só com o seu pedido na conversa: `dfm_task_update` e `dfm_task_complete`.
+Só as da ponte (ver [../README.md](../README.md)) e a leitura de arquivos do cofre. Leem: `dfm_mission_state`, `dfm_node`, `dfm_operational_context`, `dfm_weekly_context`, `dfm_tasks_query`, `dfm_context_note`, `dfm_working_state`, `dfm_mission_query`, `dfm_proposals_list` (as propostas que esperam) e `dfm_definitions` (as definições do sistema). Propõem na triagem: `dfm_propose`, `dfm_task_create` e `dfm_line_propose` (uma linha numa seção da nota do dia ou da semana: espera em Propostas, e o seu Y a grava no fim da lista da seção, com Desfazer). Abrem na tela: `dfm_note_open`, `dfm_protocol_run`, `dfm_notice`. Gravam, e só com o seu pedido na conversa: `dfm_task_update` e `dfm_task_complete`.
 
 ## Como ligar
 
@@ -46,4 +46,4 @@ done
 
 Depois, ponha a sua camada pessoal: copie `dk-pessoal/camada-pessoal.exemplo.md` para `dk-pessoal/camada-pessoal.md` na pasta que o agente lê, e preencha.
 
-Numa sessão nova, peça "carregue a skill dk-pessoal" ou pergunte "o que faço agora?".
+Numa sessão nova, peça "carregue a skill dk-pessoal" ou pergunte "o que faço agora?". Para as instruções-base virem em toda sessão, sem pedir, use o modo Dk pessoal: [`../modo-dk-pessoal/`](../modo-dk-pessoal/README.md).

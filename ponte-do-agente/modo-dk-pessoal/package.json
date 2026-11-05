@@ -1,0 +1,16 @@
+{
+  "name": "@dfm/dsh-dk-pessoal-preset",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "O modo Dk pessoal do DSH: as instruções-base do Dk pessoal em toda sessão, só leitura de arquivos, a ponte do cofre para propor.",
+  "exports": {
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

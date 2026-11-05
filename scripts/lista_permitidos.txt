@@ -152,6 +152,12 @@ nunca 200 - FUNCTIONS/Skills/Dk Pessoal/*/camada-pessoal.md
 proprio ponte-do-agente/skills/README.md
 proprio ponte-do-agente/skills/dk-pessoal/camada-pessoal.exemplo.md
 
+# ── O modo Dk pessoal do DSH (o preset, 05/11/2026) ──────────────────────────────────────
+# um bundle do DSH que declara o modo: a persona é gerada do corpo da skill `dk-pessoal` (a
+# universal), a ferramenta de arquivos é só de leitura e não há shell. Nada da pessoa: o gerador
+# acha a skill no cofre ou em ponte-do-agente/skills.
+copiar 200 - FUNCTIONS/Plugins/native-dsh/dfm-dk-pessoal-preset/**/* -> ponte-do-agente/modo-dk-pessoal
+
 # ── A bancada de juízes e os scripts das notas-modelo ────────────────────────────────────
 copiar 200 - FUNCTIONS/Scripts/JUDGES.md -> cofre-modelo/200 - FUNCTIONS/Scripts
 copiar 200 - FUNCTIONS/Scripts/README.md -> cofre-modelo/200 - FUNCTIONS/Scripts

@@ -1,7 +1,8 @@
 /**
  * As propostas do agente: o agente propõe (ligar uma tarefa a uma SMART ou a um projeto, pôr na semana,
- * agendar num dia, criar uma ação), a proposta cai na triagem da Missão, e ele aceita com uma tecla; a
- * gravação é a das setas e do Ligar (`intencaoDeSoltar` e as gravações do quadro), com o Desfazer.
+ * agendar num dia, criar uma ação, escrever uma linha na Day ou na Week), a proposta cai na triagem da
+ * Missão, e ele aceita com uma tecla; a gravação é a das setas e do Ligar (`intencaoDeSoltar` e as gravações
+ * do quadro), a do Novo, ou a linha a mais na seção (`acrescentarNaSecao`, a do `appendToSection`), com o Desfazer.
  *
  * Por quê: a proposta do agente pessoal (02/11/2026, integração 2), aprovada: o agente propõe, o
  * sistema confere e grava pelos caminhos que já existem, com Desfazer. A ponte nunca grava direto: a
@@ -15,11 +16,12 @@ import { fold } from '../project/projectCanvasModel';
 import { intencaoDeSoltar } from '../missao/intencoes';
 import { chaveDeHoje } from '../missao/tempo';
 import { ehDia } from './dia';
+import { acrescentarNaSecao, titulosDaNota } from './secaoDaNota';
 import type { Avisar, Destino, ItemDaTriagem, MissaoModelo, ResultadoDaGravacao, ResultadoDoDesfazer } from '../missao/tipos';
 import { SEMANA } from './periodo';
 
 /** O que o agente pode propor (a escolha fechada da tool). */
-export const ACOES_DA_PROPOSTA = ['ligar_smart', 'ligar_projeto', 'semana', 'dia', 'criar_tarefa'] as const;
+export const ACOES_DA_PROPOSTA = ['ligar_smart', 'ligar_projeto', 'semana', 'dia', 'criar_tarefa', 'linha'] as const;
 export type AcaoDaProposta = typeof ACOES_DA_PROPOSTA[number];
 
 /**
@@ -37,18 +39,28 @@ export const ARQUIVO_DAS_PROPOSTAS = '.dfm-dsh-propostas.json';
 export const MAXIMO_DE_PROPOSTAS = 20;
 /** O tamanho do porquê do agente (uma linha que ele lê na triagem). */
 export const PORQUE_MAXIMO = 200;
+/** O tamanho da linha que o agente propõe escrever numa nota (`linha`): uma linha, não um texto. */
+export const LINHA_MAXIMA = 500;
+/** O tamanho do título da seção da linha (`## 🌃 Fechamento da noite`). */
+export const SECAO_MAXIMA = 200;
 /** O grupo da triagem onde as propostas esperam. */
 export const GRUPO_DAS_PROPOSTAS = 'propostas';
 
 export interface PropostaDoAgente {
     id: string;
     acao: AcaoDaProposta;
-    /** O caminho da TaskNote que muda; `null` em `criar_tarefa`. */
+    /** O caminho da TaskNote que muda; `null` em `criar_tarefa` e em `linha`. */
     tarefa: string | null;
     /** O id do nó alvo na Missão: `s:` (SMART), `p:` (projeto), `d:AAAA-MM-DD`, `w:AAAA-Www`. */
     alvo: string;
-    /** O título da tarefa que muda, ou da que nasce. */
+    /** O título da tarefa que muda, ou da que nasce; em `linha`, a própria linha. */
     titulo: string;
+    /** Só `linha` (05/11): a nota do dia ou da semana onde ela entra (o caminho, pela Missão). */
+    nota?: string;
+    /** Só `linha`: o título exato da seção (`## 🌃 Fechamento da noite`). */
+    secao?: string;
+    /** Só `linha`: o texto que entra no fim da lista da seção. */
+    linha?: string;
     /** A semana da tarefa que nasce (`criar_tarefa`). */
     semana?: string;
     /** O que aceitar faz, em palavras (o texto do gesto: "Ligar à SMART X"). */
@@ -142,12 +154,14 @@ function paiDe(m: MissaoModelo, valor: string): { id: string; nome: string; smar
  * Prova: tests/engine/propostasDoAgente.test.ts.
  */
 export function conferirProposta(m: MissaoModelo, raw: Record<string, unknown>, hoje: string): Omit<PropostaDoAgente, 'id' | 'criada'> {
-    const permitidos = new Set(['acao', 'tarefa', 'valor', 'titulo', 'semana', 'porque']);
+    const permitidos = new Set(['acao', 'tarefa', 'valor', 'titulo', 'semana', 'porque', 'secao', 'linha']);
     for (const k of Object.keys(raw)) if (!permitidos.has(k)) recusa('invalid_input', `Campo não permitido: ${k}.`);
     const acao = texto(raw.acao, 'acao', 20) as AcaoDaProposta;
     if (!(ACOES_DA_PROPOSTA as readonly string[]).includes(acao)) recusa('invalid_input', `acao deve ser uma de: ${ACOES_DA_PROPOSTA.join(', ')}.`);
     const porque = texto(raw.porque, 'porque', PORQUE_MAXIMO);
     const valor = texto(raw.valor, 'valor', 300);
+    if (acao === 'linha') return conferirLinha(m, raw, valor, porque);
+    if (raw.secao !== undefined || raw.linha !== undefined) recusa('invalid_input', 'secao e linha são só da ação linha.');
     if (acao === 'criar_tarefa') {
         if (raw.tarefa !== undefined) recusa('invalid_input', 'criar_tarefa não recebe tarefa: o título vai em titulo.');
         const titulo = texto(raw.titulo, 'titulo', 140);
@@ -171,10 +185,42 @@ export function conferirProposta(m: MissaoModelo, raw: Record<string, unknown>, 
     return { acao, tarefa: m.indice.porId.get(tarefa.id)!.caminho, alvo, titulo: tarefa.titulo, texto: i.texto, porque };
 }
 
-/** O que aceitar uma proposta grava: um gesto da tabela das setas, ou a ação nova pelo Novo. */
+/**
+ * O que faz: confere a proposta de uma linha numa nota (05/11, o Dk pessoal): a nota é a do dia (`valor` =
+ * AAAA-MM-DD) ou a da semana (AAAA-Www), achada pela Missão, nunca um caminho que o agente manda; a seção é
+ * um título de Markdown; a linha é uma linha só. A seção que a nota tem confere a fila, que lê a nota.
+ * Por quê: o fechamento do dia propunha o texto só no chat; a linha passa a esperar na triagem, como as outras
+ * propostas, e só se grava com o sim dele (um jeito por função: o mesmo `/v1/proposals/create`).
+ * Entra → sai: o modelo, o pedido cru, o valor e o porquê já lidos → a proposta (sem `id` nem `criada`).
+ * Erro e ataque: tarefa, título ou semana no pedido, data fora da forma, o dia ou a semana sem nota, a seção
+ * sem `#`, a linha vazia ou longa: tudo recusa, com o porquê. Nenhuma outra nota é alcançável: o caminho vem
+ * do modelo da Missão pelo id do período.
+ * Prova: tests/engine/propostasDoAgente.test.ts ("a linha numa nota").
+ */
+function conferirLinha(m: MissaoModelo, raw: Record<string, unknown>, valor: string, porque: string): Omit<PropostaDoAgente, 'id' | 'criada'> {
+    if (raw.tarefa !== undefined || raw.titulo !== undefined || raw.semana !== undefined) {
+        recusa('invalid_input', 'linha não recebe tarefa, titulo nem semana: o dia ou a semana vão em valor, a seção em secao e o texto em linha.');
+    }
+    const dia = ehDia(valor) && !Number.isNaN(Date.parse(`${valor}T00:00:00Z`));
+    if (!dia && !SEMANA.test(valor)) recusa('invalid_input', 'valor deve ser o dia (AAAA-MM-DD) ou a semana (AAAA-Www) da nota.');
+    const alvo = dia ? `d:${valor}` : `w:${valor}`;
+    const nota = m.arquivos(alvo).nota;
+    if (!nota) recusa('proposal_target_not_found', `Não há nota ${dia ? 'do dia' : 'da semana'} ${valor}: a linha só entra numa nota que já existe.`);
+    const secao = texto(raw.secao, 'secao', SECAO_MAXIMA);
+    if (!/^#{1,6}\s+\S/.test(secao)) recusa('invalid_input', 'secao é o título exato da seção, com os #, como "## ✍️ Diário".');
+    const linha = texto(raw.linha, 'linha', LINHA_MAXIMA);
+    const onde = m.noDaNota(nota!)?.titulo ?? valor;
+    return {
+        acao: 'linha', tarefa: null, nota: nota!, alvo, titulo: linha, secao, linha, porque,
+        texto: `Escrever em ${onde}, ${secao.replace(/^#+\s*/, '')}: "${linha}"`,
+    };
+}
+
+/** O que aceitar uma proposta grava: um gesto da tabela das setas, a ação nova pelo Novo, ou a linha na nota. */
 export type PedidoDoAceite =
     | { via: 'mover'; caminho: string; destino: Destino; texto: string }
     | { via: 'criar'; valores: Record<string, unknown>; smart: string | null; texto: string }
+    | { via: 'linha'; caminho: string; secao: string; linha: string; texto: string }
     | { problema: string };
 
 /**
@@ -184,6 +230,12 @@ export type PedidoDoAceite =
  * Erro e ataque: a tarefa que sumiu, o alvo que fechou, o título que alguém já criou: o problema, em palavras.
  */
 export function pedidoDoAceite(m: MissaoModelo, p: PropostaDoAgente): PedidoDoAceite {
+    if (p.acao === 'linha') {
+        // A nota de agora do dia ou da semana (a Missão a acha de novo); a seção e a linha, a fila confere na nota.
+        const nota = m.arquivos(p.alvo).nota;
+        if (!nota || !p.secao || !p.linha) return { problema: 'a nota do dia ou da semana não está mais no cofre' };
+        return { via: 'linha', caminho: nota, secao: p.secao, linha: p.linha, texto: p.texto };
+    }
     if (p.acao === 'criar_tarefa') {
         if (m.indice.vivas.some(t => t.aberta && fold(t.titulo) === fold(p.titulo))) return { problema: `já existe uma tarefa aberta chamada "${p.titulo}"` };
         const smart = m.indice.porId.get(p.alvo);
@@ -209,7 +261,7 @@ export function pedidoDoAceite(m: MissaoModelo, p: PropostaDoAgente): PedidoDoAc
 /** O que faz: o item da triagem de uma proposta (o grupo das propostas, com o texto e o porquê). */
 export function itemDaProposta(p: PropostaDoAgente): ItemDaTriagem {
     return {
-        id: `a:${p.id}`, tipo: 'proposta', titulo: p.titulo, caminho: p.tarefa ?? '',
+        id: `a:${p.id}`, tipo: 'proposta', titulo: p.titulo, caminho: p.tarefa ?? p.nota ?? '',
         grupo: GRUPO_DAS_PROPOSTAS as ItemDaTriagem['grupo'], marcas: [],
         proposta: { id: p.id, texto: p.texto, porque: p.porque },
     };
@@ -222,7 +274,8 @@ export function lerFila(textoDoArquivo: string | null): PropostaDoAgente[] {
         const v = JSON.parse(textoDoArquivo);
         const lista = Array.isArray(v?.propostas) ? v.propostas : [];
         return lista.filter((p: any) => p && typeof p.id === 'string' && (ACOES_DA_PROPOSTA as readonly string[]).includes(p.acao)
-            && typeof p.alvo === 'string' && typeof p.titulo === 'string' && typeof p.texto === 'string' && typeof p.porque === 'string')
+            && typeof p.alvo === 'string' && typeof p.titulo === 'string' && typeof p.texto === 'string' && typeof p.porque === 'string'
+            && (p.acao !== 'linha' || (typeof p.nota === 'string' && typeof p.secao === 'string' && typeof p.linha === 'string')))
             .slice(-MAXIMO_DE_PROPOSTAS);
     } catch {
         return [];
@@ -255,6 +308,12 @@ export interface DepsDasPropostas {
     mover(caminho: string, destino: Destino, avisar?: Avisar): Promise<ResultadoDaGravacao>;
     /** A ação nova pelo Novo (`board.novo.tarefa`), com a herança da SMART e o Desfazer. */
     criar(valores: Record<string, unknown>, smart: string | null, avisar?: Avisar): Promise<ResultadoDaGravacao>;
+    /**
+     * Lê uma nota do cofre pelo caminho (`null` = não existe). Só a linha a usa: sem ela, a fila recusa `linha`.
+     */
+    lerNota?(caminho: string): Promise<string | null>;
+    /** Grava o texto inteiro de uma nota que existe (a linha a mais, ou o Desfazer dela). */
+    gravarNota?(caminho: string, texto: string): Promise<void>;
     /** Registra na pilha única do Desfazer (o recusar volta a proposta). */
     registrarDesfazer(rotulo: string, desfazer: () => Promise<ResultadoDoDesfazer>, avisar?: Avisar): void;
     /** A Missão passa à versão seguinte (a triagem mostra a fila nova). */
@@ -305,8 +364,10 @@ export class FilaDePropostas {
         const fila = await this.listar();
         const m = await this.deps.modelo();
         const nova = conferirProposta(m, raw, m.hoje);
-        const igual = fila.find(p => p.acao === nova.acao && p.tarefa === nova.tarefa && p.alvo === nova.alvo && fold(p.titulo) === fold(nova.titulo));
+        const igual = fila.find(p => p.acao === nova.acao && p.tarefa === nova.tarefa && p.alvo === nova.alvo && fold(p.titulo) === fold(nova.titulo)
+            && (p.secao ?? '') === (nova.secao ?? ''));
         if (igual) return { proposta: igual, repetida: true, pendentes: fila.length };
+        if (nova.acao === 'linha') await this.conferirNaNota(nova);
         if (fila.length >= MAXIMO_DE_PROPOSTAS) recusa('proposals_full', `A triagem já tem ${MAXIMO_DE_PROPOSTAS} propostas esperando o operador; espere ele decidir.`);
         const agora = this.deps.agora();
         const proposta: PropostaDoAgente = { ...nova, id: `${agora.replace(/\D/g, '').slice(0, 14)}-${++this.seq}`, criada: agora };
@@ -345,6 +406,49 @@ export class FilaDePropostas {
         return true;
     }
 
+    /**
+     * O que faz: confere a linha contra a nota de agora: a nota existe, a seção está nela e a linha ainda não.
+     * Erro e ataque: sem a leitura das notas, a seção que falta (a recusa lista as que a nota tem) e a linha
+     * repetida recusam; nada grava.
+     */
+    private async conferirNaNota(p: Omit<PropostaDoAgente, 'id' | 'criada'>): Promise<void> {
+        if (!this.deps.lerNota || !this.deps.gravarNota) recusa('proposal_invalid', 'Esta Missão não escreve linhas em notas.');
+        const texto = await this.deps.lerNota!(p.nota!);
+        if (texto === null) recusa('proposal_target_not_found', `A nota ${p.nota} não está no cofre.`);
+        const r = acrescentarNaSecao(texto!, p.secao!, p.linha!);
+        if ('problema' in r && r.problema === 'sem-secao') {
+            const titulos = titulosDaNota(texto!);
+            recusa('proposal_invalid', `A nota não tem a seção "${p.secao}". ${titulos.length ? `As seções dela: ${titulos.join(' · ')}` : 'Ela não tem seções.'}`);
+        }
+        if ('problema' in r && r.problema === 'igual') recusa('proposal_invalid', 'A linha já está nesta seção da nota.');
+        if ('problema' in r) recusa('invalid_input', 'linha é obrigatória.');
+    }
+
+    /**
+     * O que faz: grava a linha aceita no fim da lista da seção (`acrescentarNaSecao`) e registra o Desfazer, que
+     * volta o texto de antes só se a nota não mudou depois.
+     * Erro e ataque: a nota que sumiu, a seção que saiu e a linha que alguém já escreveu não gravam (a proposta
+     * fica, o aviso diz o problema); o Desfazer nunca apaga o que ele escreveu depois.
+     */
+    private async gravarLinha(p: { caminho: string; secao: string; linha: string; texto: string }, avisar?: Avisar): Promise<ResultadoDaGravacao> {
+        const { lerNota, gravarNota } = this.deps;
+        if (!lerNota || !gravarNota) return this.falha('Não aceitou: esta Missão não escreve linhas em notas', avisar);
+        const antes = await lerNota(p.caminho);
+        if (antes === null) return this.falha('Não aceitou: a nota não está mais no cofre', avisar);
+        const r = acrescentarNaSecao(antes, p.secao, p.linha);
+        if ('problema' in r) {
+            return this.falha(`Não aceitou: ${r.problema === 'sem-secao' ? `a nota não tem mais a seção ${p.secao}` : r.problema === 'igual' ? 'a linha já está na seção' : 'a linha está vazia'}`, avisar);
+        }
+        await gravarNota(p.caminho, r.texto);
+        this.deps.registrarDesfazer(p.texto, async () => {
+            const agora = await lerNota(p.caminho);
+            if (agora !== r.texto) return { feito: false, texto: 'A nota mudou depois da linha: desfaça à mão' };
+            await gravarNota(p.caminho, antes);
+            return { feito: true, texto: `Desfeito: ${p.texto}` };
+        }, avisar);
+        return { ok: true, texto: p.texto };
+    }
+
     private async tirar(id: string): Promise<PropostaDoAgente | null> {
         const fila = await this.listar();
         const p = fila.find(x => x.id === id) ?? null;
@@ -366,7 +470,9 @@ export class FilaDePropostas {
         if ('problema' in pedido) return this.falha(`Não aceitou: ${pedido.problema}`, avisar);
         const r = pedido.via === 'mover'
             ? await this.deps.mover(pedido.caminho, pedido.destino, avisar)
-            : await this.deps.criar(pedido.valores, pedido.smart, avisar);
+            : pedido.via === 'linha'
+                ? await this.gravarLinha(pedido, avisar)
+                : await this.deps.criar(pedido.valores, pedido.smart, avisar);
         if (r.ok) await this.tirar(id);
         return r;
     }

@@ -5,7 +5,7 @@ description: Dá uma recomendação para a pessoa a partir do contexto dela (foc
 
 # Recomendar com o porquê
 
-Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
+Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou; no modo Dk pessoal, elas já vêm na conversa).
 
 ## Gatilho
 
@@ -17,7 +17,7 @@ Regras: as da skill `dk-pessoal` (carregue-a antes, se ainda não carregou).
 2. Junte o contexto, só o que pesa nesta escolha:
    - o foco do trimestre (`dfm_operational_context`);
    - o que está em jogo hoje ou na semana (`dfm_mission_state`);
-   - os valores e o ritmo (a camada pessoal);
+   - os valores e o ritmo (a camada pessoal; os valores e o foco também vêm em `dfm_definitions`);
    - os fatos de fora, pela skill `dk-pesquisa-conferida`, se a escolha depender deles.
 3. Escolha uma opção. Diga numa linha: "Recomendo A."
 4. Dê o porquê em até 3 linhas, cada uma ligada a uma fonte do passo 2 ("serve ao foco do trimestre: …").
@@ -33,7 +33,7 @@ Recomendar um encontro, um evento ou alguém para conhecer: diga quem, por quê 
 
 ## Ferramentas
 
-`dfm_operational_context`, `dfm_mission_state`, `dfm_node` (para o detalhe de um item), a camada pessoal, `dk-pesquisa-conferida`.
+`dfm_operational_context`, `dfm_mission_state`, `dfm_node` (para o detalhe de um item), `dfm_definitions`, a camada pessoal, `dk-pesquisa-conferida`.
 
 ## Nunca
 

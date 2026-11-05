@@ -275,13 +275,14 @@
       "paths": [
         "estadoDaMissao.ts",
         "propostasDoAgente.ts",
-        "noParaOAgente.ts"
+        "noParaOAgente.ts",
+        "definicoesParaOAgente.ts"
       ],
       "role": "module",
-      "does": "Compõe o que o agente do sistema lê da Missão e o que ele propõe a ela, já digerido: o estado e a ordem de um período com o porquê dos pesos (estadoDaMissao), o nó com o ramo, os sinais, os protocolos com o porquê e as situações do P13 (noParaOAgente), e a fila das propostas, conferidas pela função do arrasto e aceitas na triagem pelas gravações do quadro (propostasDoAgente, com os efeitos pela borda).",
+      "does": "Compõe o que o agente do sistema lê da Missão e o que ele propõe a ela, já digerido: o estado e a ordem de um período com o porquê dos pesos (estadoDaMissao), o nó com o ramo, os sinais, os protocolos com o porquê e as situações do P13 (noParaOAgente), a fila das propostas, conferidas pela função do arrasto e aceitas na triagem pelas gravações do quadro ou pela linha a mais na seção da Day e da Week (propostasDoAgente, com os efeitos pela borda), e as definições do sistema na forma curta (definicoesParaOAgente).",
       "why": "Camada 6: a projeção é pura e recebe o modelo da Missão já montado; o operador (camada 9) a chama pela rota, e o agente escolhe da lista em vez de interpretar notas (a proposta do Dk pessoal, 02/11/2026).",
       "proof": [
-        "cd ../.. && npx vitest run tests/engine/estadoDaMissao.test.ts tests/engine/propostasDoAgente.test.ts tests/engine/noParaOAgente.test.ts"
+        "cd ../.. && npx vitest run tests/engine/estadoDaMissao.test.ts tests/engine/propostasDoAgente.test.ts tests/engine/noParaOAgente.test.ts tests/engine/definicoesParaOAgente.test.ts"
       ]
     },
     {
@@ -1126,7 +1127,7 @@
     {
       "from": "liga.operador",
       "to": "compoe.agente",
-      "carries": "estadoDoPeriodo, ITENS_DO_ESTADO, noParaOAgente, PERIODOS_DO_ESTADO, RecusaDaProposta; tipos: FilaDePropostas, PeriodoDoEstado"
+      "carries": "definicoesParaOAgente, estadoDoPeriodo, ITENS_DO_ESTADO, noParaOAgente, ORIGEM_DO_AGENTE, PERIODOS_DO_ESTADO, RecusaDaProposta; tipos: FilaDePropostas, PeriodoDoEstado"
     },
     {
       "from": "liga.operador",
@@ -1197,6 +1198,21 @@
       "from": "fn.protocolo",
       "to": "ext.ui",
       "carries": "blocoComMudanca, editarLista, editarTexto, SEPARADOR; tipos: Edicao (as respostas da inicialização pela mesma edição da aba, puras)"
+    },
+    {
+      "from": "compoe.agente",
+      "to": "fn.protocolo",
+      "carries": "acrescentarNaSecao, titulosDaNota"
+    },
+    {
+      "from": "compoe.agente",
+      "to": "ext.definicoes",
+      "carries": "tipos: Definicoes"
+    },
+    {
+      "from": "liga.operador",
+      "to": "ext.definicoes",
+      "carries": "definicoesDe, fusoDoSistema"
     }
   ]
 }
