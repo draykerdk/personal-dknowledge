@@ -1,0 +1,584 @@
+{
+  "dfm": 1,
+  "system": "board",
+  "purpose": "O quadro e o painel do Mission Control do dfm-system (`src/board`): o bloco ```dfm-widget``` desenhado dentro do Markdown (num nó de canvas ou numa nota), o painel com as páginas de cartões que a Missão não faz, a página Protocolos, os menus e as barras do DFM no canvas, e a conclusão de uma tarefa. É a maior parte do que sobrou do sistema antigo depois da aposentadoria de 02–03/11/2026. Este mapa declara os módulos em três espécies (as funções, a vista, os que ligam) e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "default_grade": "G1",
+  "effects": [
+    "app.vault.*",
+    "app.metadataCache.*",
+    "app.workspace.*",
+    "this.app.*",
+    "new Notice"
+  ],
+  "modules": [
+    {
+      "id": "base",
+      "paths": [
+        "boardSpec.ts",
+        "queryPresets.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O chão: o contrato de autoria do quadro (o bloco ```dfm-widget```, os tipos de widget e o leitor do bloco; boardSpec) e os modelos prontos de consulta (queryPresets, dado puro).",
+      "why": "O bloco é o mesmo em nó de canvas e em nota; tudo no quadro parte deste contrato e ele de nada do quadro.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/board.test.ts tests/board/missaoAtalho.test.ts tests/board/panelLayout.test.ts tests/board/queryModel.test.ts tests/missao/ramoPrincipal.test.ts"
+      ]
+    },
+    {
+      "id": "fn.quadro",
+      "paths": [
+        "boardModel.ts",
+        "boardEdit.ts",
+        "queryModel.ts",
+        "canvasToolbarModel.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Do snapshot do Mission Control ao que cada widget mostra (boardModel), a consulta das TaskNotes pelo que o canvas é (queryModel), as operações sobre o texto de widget e as posições de nó (boardEdit) e os botões do DFM na barra de seleção do canvas (canvasToolbarModel).",
+      "why": "Nada se recalcula que o snapshot já saiba; o que o widget mostra é testável sem o Obsidian e sem DOM.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/board.test.ts tests/board/boardEdit.test.ts tests/board/canvasToolbarModel.test.ts tests/board/missaoAtalho.test.ts tests/board/queryModel.test.ts tests/canvas/taskGraph.test.ts tests/project/projectCanvasModel.test.ts"
+      ]
+    },
+    {
+      "id": "fn.painel",
+      "paths": [
+        "panelLayout.ts",
+        "panelNav.ts",
+        "panelRegroup.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O layout do painel (as páginas de cartões numa grade de 12 colunas; panelLayout), a navegação pelas duas hierarquias do DFM, o tempo e as áreas (panelNav), e os dois ajudantes que recolhem o que a Missão já mostra e põem as páginas em cinco (panelRegroup).",
+      "why": "O painel guarda o layout no salvamento; mudar e conferir o layout não pode depender da vista.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/hostedPanels.test.ts tests/board/panelLayout.test.ts tests/board/panelNav.test.ts tests/board/panelRegroup.test.ts tests/contracts/gamificacaoArquivada.test.ts tests/engine/trimestrePadrao.test.ts tests/missao/linhagem.test.ts tests/missao/refinos.test.ts"
+      ]
+    },
+    {
+      "id": "fn.conclusao",
+      "paths": [
+        "taskCompletion.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Por onde passa o fim de uma tarefa (concluir ou cancelar): pelo TaskNotes quando ele está ligado, com o arquivamento dele, ou pelo campo; a hora do fim e o registro do bloco.",
+      "why": "Uma regra só da conclusão para o quadro, o canvas, a Missão, o vigia e o agora; só decide, quem executa é quem chama.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskCompletion.test.ts tests/engine/diaNosLeitores.test.ts tests/engine/metadataWatcher.test.ts tests/ui/completionModals.test.ts"
+      ]
+    },
+    {
+      "id": "fn.protocolos",
+      "paths": [
+        "protocolModel.ts",
+        "routerTreeModel.ts",
+        "jsonKeyEdit.ts",
+        "protocolJobs.ts"
+      ],
+      "role": "functions",
+      "does": "Funções da página Protocolos: do catálogo ao que cada módulo mostra (a saúde, o uso, as versões em paralelo, os avisos; protocolModel), a árvore dos routers como o 🧭 a percorre (routerTreeModel), a troca de uma chave de primeiro nível num JSON sem reformatar (jsonKeyEdit) e os dois scripts fixos da página e a leitura do que eles devolvem (protocolJobs).",
+      "why": "Tudo aqui conta ferramentas, nunca a pessoa; a conta é testável sem o Obsidian, e quem roda e grava é a liga.protocolos.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/jsonKeyEdit.test.ts tests/board/protocolJobs.test.ts tests/board/protocolModel.test.ts tests/board/routerTreeModel.test.ts tests/contracts/protocolosComFase.test.ts"
+      ]
+    },
+    {
+      "id": "vista.quadro",
+      "paths": [
+        "boardRender.ts",
+        "protocolRender.ts"
+      ],
+      "role": "module",
+      "does": "Vista. Desenha os widgets do quadro (boardRender) e os módulos da página Protocolos (protocolRender) com o modelo pronto, só com DOM padrão e classes; a aparência mora em `styles.css`.",
+      "why": "O desenho recebe o modelo pronto das funções e não conta nada.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/missaoAtalho.test.ts tests/ui/missionNoPercent.test.ts"
+      ]
+    },
+    {
+      "id": "liga.store",
+      "paths": [
+        "boardStore.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Uma leitura do vault para todos os widgets abertos: pede o snapshot ao MissionControl e avisa quem assinou quando há um novo.",
+      "why": "Dez widgets num canvas não leem o vault dez vezes.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/boardStore.test.ts"
+      ]
+    },
+    {
+      "id": "liga.canvas",
+      "paths": [
+        "boardCanvasMenus.ts",
+        "canvasToolbar.ts",
+        "taskMenus.ts"
+      ],
+      "role": "module",
+      "does": "Liga. O DFM dentro da interface do próprio canvas: as opções nos menus nativos do nó e da seleção (boardCanvasMenus), o grupo DFM nas duas barras do canvas (canvasToolbar) e o submenu DFM do clique-direito de uma tarefa (taskMenus: agendar, pôr na semana, status, Comando do Dia, abrir o canvas).",
+      "why": "Os eventos e os menus do Obsidian ficam num lugar só, e cada opção chama a função ou o quadro que já faz.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskMenus.test.ts"
+      ]
+    },
+    {
+      "id": "liga.protocolos",
+      "paths": [
+        "protocolActions.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Os fios da página Protocolos: ▶️ roda o protocolo pelo caminho de sempre, a fase e o objetivo vão para o JSON do protocolo, e os dois scripts rodam no desktop.",
+      "why": "O efeito (rodar, gravar, executar) fica fora das funções e da vista.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/boardStylesGuard.test.ts"
+      ]
+    },
+    {
+      "id": "liga.painel",
+      "paths": [
+        "boardPanel.ts",
+        "hostedPanels.ts",
+        "triageModal.ts"
+      ],
+      "role": "module",
+      "does": "Liga. O painel do Mission Control: as páginas de cartões (boardPanel), as visões do console antigo que ficam, hospedadas nos cartões (hostedPanels), e a triagem das ações sem vínculo, uma por vez (triageModal).",
+      "why": "O painel guarda o que a Missão não faz; a vista do painel e os cartões hospedados ficam num lugar só até a Missão cobrir o uso.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/hostedPanels.test.ts"
+      ]
+    },
+    {
+      "id": "liga.plugin",
+      "paths": [
+        "boardPlugin.ts"
+      ],
+      "role": "module",
+      "does": "Liga. O MissionBoard: liga o quadro ao Obsidian (o bloco ```dfm-widget```, os comandos, o ribbon), grava as tarefas pela conclusão de sempre e serve a Missão, o canvas e o painel.",
+      "why": "O desenho acontece dentro do Markdown que o Obsidian renderiza; o quadro é o ponto único por onde as gravações de tarefa passam.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskCompletion.test.ts tests/missao/portas.test.ts tests/ui/portasAposentadas.test.ts"
+      ]
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "does": "Fora desta pasta: a camada de canvas (`src/canvas`), com o mapa dela: os ids e a zona gerida, as setas que gravam campos, a cor e o cartão da tarefa.",
+      "why": "Quem desenha num canvas usa a mesma zona gerida e a mesma tabela das setas."
+    },
+    {
+      "id": "ext.child_process",
+      "role": "external",
+      "does": "O child_process do Node, só como tipo (o `require` roda na hora, no desktop).",
+      "why": "Os scripts da bancada e dos juízes rodam no desktop pelo `exec`; no celular, o caminho não existe."
+    },
+    {
+      "id": "ext.definicoes",
+      "role": "external",
+      "does": "Fora desta pasta: as definições do sistema (`src/definicoes.ts`), o leitor puro do bloco `definicoes` do salvamento.",
+      "why": "As pastas, as áreas e os valores vêm das definições, não de um nome no código."
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia."
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "does": "Fora desta pasta: o plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; nada aqui importa o main em execução."
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "does": "Fora desta pasta: a Missão (`src/missao`), com o mapa e o guarda dela: o estado da tela, as intenções, os gestos, as gravações e os hospedeiros.",
+      "why": "O sistema antigo abre e grava pela Missão o que ela já faz, em vez de manter a cópia."
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo."
+    },
+    {
+      "id": "ext.project",
+      "role": "external",
+      "does": "Fora desta pasta: os canvas de projeto (`src/project`), com o mapa deles: o caminho, o modelo e o gerente do canvas de um projeto.",
+      "why": "O projeto tem uma árvore só (SMART, ações, progresso), lida do mesmo modelo."
+    },
+    {
+      "id": "ext.tasks",
+      "role": "external",
+      "does": "Fora desta pasta: o registro e o índice das TaskNotes (`src/tasks`).",
+      "why": "A tarefa tem um formato só no plugin."
+    },
+    {
+      "id": "ext.temporal",
+      "role": "external",
+      "does": "Fora desta pasta: as notas de período (`src/temporal`), com o mapa delas: o reparo da Week e do trimestre criados crus e a leitura das notas de período.",
+      "why": "A nota do trimestre e a da semana são lidas por um lugar só."
+    },
+    {
+      "id": "ext.ui",
+      "role": "external",
+      "does": "Fora desta pasta: a interface antiga do plugin (`src/ui`), com o mapa dela: os modais, os seletores, a dica, as telas da conclusão e os painéis hospedados.",
+      "why": "O que esta pasta desenha usa os componentes que a interface já tem."
+    }
+  ],
+  "connections": [
+    {
+      "from": "base",
+      "to": "ext.missao",
+      "carries": "RAMO_DE_PARTIDA"
+    },
+    {
+      "from": "fn.quadro",
+      "to": "base",
+      "carries": "fold, parseWidgetSpec, widgetBlock; tipos: BoardTaskFilter, BoardWidgetSpec, QueryGroup"
+    },
+    {
+      "from": "fn.quadro",
+      "to": "ext.engine",
+      "carries": "CADENCE_LABEL, diaMais, ehTrimestre, isHighImpact, periodOfWeeks, quarterPeriod, segundaDaSemana, showGrammar, workHorizon; tipos: GrammarUnit, MissionSnapshot, MissionTask, ShownGrammar"
+    },
+    {
+      "from": "fn.quadro",
+      "to": "ext.missao",
+      "carries": "PORTAS, RAMO_DE_PARTIDA, idDoProjeto, portaDoPeriodo; tipos: EstadoDaMissao"
+    },
+    {
+      "from": "fn.quadro",
+      "to": "ext.project",
+      "carries": "TERMINAL, progressText; tipos: ProjectProgress"
+    },
+    {
+      "from": "fn.quadro",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "fn.painel",
+      "to": "base",
+      "carries": "BOARD_CATALOG; tipos: BoardWidgetSpec"
+    },
+    {
+      "from": "fn.painel",
+      "to": "ext.engine",
+      "carries": "CLOSED_STAGES, ehSemana, inGrid, quarterPeriod, weekGrammar"
+    },
+    {
+      "from": "fn.painel",
+      "to": "ext.project",
+      "carries": "TERMINAL, fold, linkTarget, progressText, projectProgress"
+    },
+    {
+      "from": "fn.painel",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "fn.conclusao",
+      "to": "ext.engine",
+      "carries": "NOW_TIME_OPTIONS, TASK_CONTEXTS, addMinutes, ehDia, partesDoDia; tipos: BlockRecord, Papel, TaskUnit"
+    },
+    {
+      "from": "fn.protocolos",
+      "to": "ext.engine",
+      "carries": "USO_RECENTE_DIAS, isNavigationOption, parseBenchReport, protocolGroup, rankOptions, rankableTargets, stepTargets, windowStart; tipos: DomainChoice, ProtocolCatalogInput"
+    },
+    {
+      "from": "fn.protocolos",
+      "to": "fn.quadro",
+      "carries": "tipos: Tone"
+    },
+    {
+      "from": "fn.protocolos",
+      "to": "vista.quadro",
+      "carries": "tipos: ProtocolJobState"
+    },
+    {
+      "from": "vista.quadro",
+      "to": "base",
+      "carries": "BOARD_CATALOG; tipos: BoardWidgetSpec, ProtocolWidgetKind"
+    },
+    {
+      "from": "vista.quadro",
+      "to": "ext.engine",
+      "carries": "USO_RECENTE_DIAS; tipos: MissionSnapshot, ProtocolCatalogInput"
+    },
+    {
+      "from": "vista.quadro",
+      "to": "ext.missao",
+      "carries": "RAMO_DE_PARTIDA"
+    },
+    {
+      "from": "vista.quadro",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "vista.quadro",
+      "to": "fn.protocolos",
+      "carries": "EMPTY_FILTER, FASES_USO, FASE_LABEL, FASE_TONE, buildProtocolPanel, filterRows, hasWarning, healthTiles, parallelPairs, pathToProtocol, usageModel, warningGroups; tipos: CatalogFilter, CatalogFlag, CatalogRow, FaseKey, OptionLink, ProtocolPanelModel, RouterQuestion"
+    },
+    {
+      "from": "vista.quadro",
+      "to": "fn.quadro",
+      "carries": "FILTER_EMPTY, FILTER_TITLES, atalhoDaMissao, habitsModel, healthLabel, matrixModel, numbersModel, projectModel, projectsModel, shortDate, tasksModel; tipos: AtalhoDaMissao, HabitRow, ProjectFactsInput, QueryResult, TaskItem, Tone"
+    },
+    {
+      "from": "liga.store",
+      "to": "ext.engine",
+      "carries": "tipos: MissionSnapshot"
+    },
+    {
+      "from": "liga.store",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.store",
+      "to": "ext.obsidian",
+      "carries": "TFile; tipos: EventRef"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "base",
+      "carries": "BOARD_CATALOG, QUERY_PRESETS, TASK_FILTERS; tipos: BoardTaskFilter, BoardWidgetSpec, QueryGroup, QueryPrazo, QueryScopeKind, QueryShow"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.canvas",
+      "carries": "DO_NOW_PAPEL, doNowVariables, wantsNewTab"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.engine",
+      "carries": "DIA, currentQuarter, shortWeek; tipos: Papel, PortfolioProject"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.missao",
+      "carries": "opcoesDoEstado, portaDoPeriodo"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.obsidian",
+      "carries": "Menu, Modal, Notice, Setting, TFile, getAllTags, setIcon, setTooltip; tipos: App, MenuItem, WorkspaceLeaf"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.project",
+      "carries": "TERMINAL, fold"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "ext.ui",
+      "carries": "askCompletionWhen"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "fn.conclusao",
+      "carries": "statusWriter"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "fn.quadro",
+      "carries": "arrangeInGrid, patchWidgetText, projectNames, readWidgetText, selectionActions; tipos: SelectedItem, SelectionAction"
+    },
+    {
+      "from": "liga.canvas",
+      "to": "liga.plugin",
+      "carries": "tipos: MissionBoard"
+    },
+    {
+      "from": "liga.protocolos",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.protocolos",
+      "to": "ext.obsidian",
+      "carries": "Menu, Modal, Notice, Platform, TFile, setIcon; tipos: App"
+    },
+    {
+      "from": "liga.protocolos",
+      "to": "fn.protocolos",
+      "carries": "BENCH_SCRIPT, FASE_LABEL, PROTOCOL_INVENTORY, ROUTER_MAP_CANVAS, ROUTER_MAP_SCRIPT, benchJob, faseChoices, faseKey, idleJob, mapJob, objetivoProblem, scriptCommand, setTopLevelKey; tipos: FaseUso"
+    },
+    {
+      "from": "liga.protocolos",
+      "to": "liga.plugin",
+      "carries": "tipos: MissionBoard"
+    },
+    {
+      "from": "liga.protocolos",
+      "to": "vista.quadro",
+      "carries": "redrawProtocolWidgets; tipos: ProtocolJobState, ProtocolPanelActions"
+    },
+    {
+      "from": "liga.painel",
+      "to": "base",
+      "carries": "BOARD_CATALOG, QUERY_PRESETS"
+    },
+    {
+      "from": "liga.painel",
+      "to": "ext.engine",
+      "carries": "buildSkillInvocation, getDfmDshSkill; tipos: MissionSnapshot"
+    },
+    {
+      "from": "liga.painel",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.painel",
+      "to": "ext.missao",
+      "carries": "CHAVE_DA_PAGINA, estadoGuardado, estadoParaGuardar, migrarChaveDoRamo, montarNoLugar, portaDoPeriodo; tipos: MissaoNoLugar"
+    },
+    {
+      "from": "liga.painel",
+      "to": "ext.obsidian",
+      "carries": "FuzzySuggestModal, ItemView, Menu, Modal, Notice, Setting, setIcon; tipos: App, WorkspaceLeaf"
+    },
+    {
+      "from": "liga.painel",
+      "to": "ext.project",
+      "carries": "TERMINAL, fold"
+    },
+    {
+      "from": "liga.painel",
+      "to": "ext.ui",
+      "carries": "MissionDshAction, MissionFocusModal, MissionPanelContext, MissionPromptModal, dica, emptyBenchState, emptyPortfolioState, openVaultLink, renderAreas, renderBench, renderCanvasTools, renderCanvases, renderFunnel, renderHabits, renderIntegrity, renderKanban, renderMatrix, renderOperatorCard, renderPortfolioActions, renderPortfolioBoard, renderPortfolioCompliance, renderProjects, renderProtocols, renderTrees, renderWaiting"
+    },
+    {
+      "from": "liga.painel",
+      "to": "fn.painel",
+      "carries": "GRID_COLUMNS, LEGACY_PANELS, MIN_H, abaPelaTecla, addCard, addPage, agruparEmCinco, buildNav, cardLabel, cartoesParaRecolher, defaultPanelLayout, layoutParaGravar, moveCard, movePage, navRecolhida, packMasonry, panelLayoutOnOpen, podeRedesenharCartao, precisaGravar, recolher, reconcilePanelLayout, removeCard, removePage, renamePage, reorderPage, resizeCard, spanAt6, updateCard; tipos: Agrupamento, CardSource, CartaoParaRecolher, NavModel, Orphan, PanelCard, PanelLayoutState, ProjectNav"
+    },
+    {
+      "from": "liga.painel",
+      "to": "fn.quadro",
+      "carries": "evaluateQuery; tipos: QueryScope"
+    },
+    {
+      "from": "liga.painel",
+      "to": "liga.plugin",
+      "carries": "tipos: MissionBoard"
+    },
+    {
+      "from": "liga.painel",
+      "to": "vista.quadro",
+      "carries": "renderBoardWidget, renderConsulta; tipos: BoardActions"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "base",
+      "carries": "BOARD_CATALOG, TASK_FILTERS, parseWidgetSpec, widgetBlock; tipos: BoardCatalogEntry, BoardTaskFilter, BoardWidgetSpec"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.canvas",
+      "carries": "DO_NOW_PAPEL, TaskCards, doNowVariables, scoresByPath; tipos: LinkTask"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.definicoes",
+      "carries": "definicoesDe"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.engine",
+      "carries": "ARQUIVO_DAS_PROPOSTAS, FilaDePropostas, buildTaskRelations, createTaskViaApi, currentQuarter, dayOverText, focoDoTrimestre, isoWeekOf, linkNames, openTaskForm, parseHabit, planWeekStart, plannedWeekOf, prefillFromFrontmatter, quarterWeeks, renderTemplateTokens, resolveClick, reviewPatch, temporadaFrom; tipos: HabitReviewChoice, Papel, TokenClock"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.missao",
+      "carries": "GravacoesDaMissao, GravacoesDaTriagem, GravacoesDoNovo, MissaoService, MissaoView, PORTAS, PilhaDoDesfazer, VIEW_TYPE_DFM_MISSAO, caminhoImporta, ensureFolder, hojeLocal, idDoProjeto, ligacoesNoCache, montarNoLugar, notaDoMolde, portaDoPeriodo, protocolosNoCofre, registrarFeito, statusAoGanharLugar; tipos: Avisar, DepsDaGravacao, DepsDaTriagem, DepsDoNovo, EstadoDaMissao, MissaoNoLugar, MotorDaGaveta, OpcoesDoLugar, PassoDoProtocolo, PedidoDaNotaNova, PortaDoPeriodo, RegistroDoFeito, ResultadoDaGravacao, ResultadoDoRegistro"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.obsidian",
+      "carries": "App, FuzzySuggestModal, Keymap, MarkdownRenderChild, Menu, Notice, TFile, getFrontMatterInfo, normalizePath, parseYaml, stringifyYaml; tipos: MarkdownPostProcessorContext, PaneType"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.project",
+      "carries": "fold, linkTarget; tipos: ProjectCanvasManager"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.tasks",
+      "carries": "TaskIndex, listOf; tipos: TaskRecord"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.temporal",
+      "carries": "PeriodNotes"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "ext.ui",
+      "carries": "askCompletionWhen, capturarNaCaixa; tipos: ResultadoDaCaptura"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "fn.conclusao",
+      "carries": "completionRoute, isArchivedTask, markCompletionAnswer, markCompletionNoticed, releaseOffer, reopenRoute, takeCompletionAnswer, withoutArchiveNotice; tipos: CompletionWhen"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "fn.painel",
+      "carries": "departmentsInFocus, indexCandidates; tipos: NavInput"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "fn.quadro",
+      "carries": "atalhoDaMissao, evaluateQuery, projectNames; tipos: AtalhoDaMissao, QueryScope"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "liga.canvas",
+      "carries": "BoardCanvasMenus, CanvasToolbar, TaskMenus"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "liga.painel",
+      "carries": "BoardPanelView, VIEW_TYPE_DFM_BOARD_PANEL"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "liga.protocolos",
+      "carries": "ProtocolTools"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "liga.store",
+      "carries": "BoardStore"
+    },
+    {
+      "from": "liga.plugin",
+      "to": "vista.quadro",
+      "carries": "renderBoardError, renderBoardWidget, renderConsulta, renderMissaoAtalho; tipos: BoardActions"
+    },
+    {
+      "from": "liga.protocolos",
+      "to": "ext.child_process",
+      "carries": "tipos: typeof import('child_process')"
+    }
+  ]
+}

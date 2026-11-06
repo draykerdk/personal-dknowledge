@@ -1,11 +1,7 @@
 {
   "id": "projetos",
   "titulo": "Projetos",
-  "descricao": "Áreas, projetos centrais e auxiliares, metas SMART, tarefas e dependências por semana e trimestre.",
-  "escalas": [
-    "semana",
-    "trimestre"
-  ],
+  "descricao": "Áreas, projetos centrais e auxiliares, metas SMART, tarefas e dependências no dia, na semana, no trimestre e no ano, as mesmas escalas dos outros ramos. A frente: o projeto e o departamento levam ao ramo Criação pelo \"Ver no ramo Criação\" do painel (o mesmo nó, com o painel aberto lá, onde a frente conta as peças da semana), e o \"+ Roteiro\" do nó cria a peça com a frente já respondida. O cartão do projeto que é frente conta as peças da linha (\"feitas · do plano · faltam\"), pelas coleções da Criação lidas por referência (as peças, os desdobramentos e as frentes moram só no ramo Criação).",
   "centro": {
     "fonte": "projetos",
     "rotulo": {
@@ -38,7 +34,14 @@
       "fonte": "projetos",
       "largura": "minmax(134px,1fr)",
       "celular": 0.58,
-      "painel": "estrutura"
+      "painel": "estrutura",
+      "amplia": {
+        "ramo": "criacao",
+        "tipos": [
+          "projeto",
+          "departamento"
+        ]
+      }
     },
     {
       "id": "smart",
@@ -47,7 +50,13 @@
       "fonte": "smarts",
       "largura": "minmax(142px,1.05fr)",
       "celular": 1,
-      "painel": "smart"
+      "painel": "smart",
+      "vazio": {
+        "texto": "sem SMART",
+        "novos": [
+          "smart"
+        ]
+      }
     },
     {
       "id": "tarefas",
@@ -228,6 +237,21 @@
         "tipo": "funcao",
         "rotulo": "Função",
         "titulo": "Nova função"
+      },
+      {
+        "tipo": "roteiro_video",
+        "rotulo": "Roteiro",
+        "titulo": "Novo roteiro"
+      },
+      {
+        "tipo": "cartao",
+        "rotulo": "Cartão",
+        "titulo": "Novo cartão"
+      },
+      {
+        "tipo": "peca_logica",
+        "rotulo": "Peça lógica",
+        "titulo": "Nova peça lógica"
       }
     ],
     "no": {
@@ -320,5 +344,19 @@
         }
       }
     ]
-  }
+  },
+  "colecoes": [
+    {
+      "id": "pecas",
+      "de": "criacao"
+    },
+    {
+      "id": "desdobramentos",
+      "de": "criacao"
+    },
+    {
+      "id": "frentes",
+      "de": "criacao"
+    }
+  ]
 }

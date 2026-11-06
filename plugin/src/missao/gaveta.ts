@@ -12,7 +12,7 @@
  * pelo `ProtocoloDaGaveta` que o lugar dá.
  *
  * Nenhum nome de protocolo, de passo nem de ramo mora aqui: o protocolo vem do botão do ramo,
- * os passos do JSON dele, e os do topo do 📨 da tabela dos botões do ciclo (`BOTOES_DO_CICLO`).
+ * os passos do JSON dele, e os do topo do 📅 da tabela dos botões do ciclo (`BOTOES_DO_CICLO`).
  *
  * Módulo puro: sem Obsidian e sem DOM. Prova: tests/missao/gaveta.test.ts.
  */
@@ -82,6 +82,20 @@ export interface PedidoDoCiclo {
 
 
 /**
+ * O que faz: o protocolo só roda passo a passo: algum passo dele se decide na hora, pelo motor, e não cabe num campo
+ * do formulário (o passo `fila` do 🗣️ Inglês de hoje: a próxima frase da fila do dia, com o `diga` que o passo
+ * seguinte mostra).
+ * Por quê: 06/11, a conferência de ponta a ponta: aberto pelo painel do módulo, o 🗣️ abria a gaveta com o campo da
+ * fila vazio, sem o `diga` nem a frase; só o "Abrir no protocolo" funcionava.
+ * Entra → sai: o JSON do protocolo → se ele foge da gaveta.
+ * Erro e ataque: o JSON sem passos fica na gaveta, como sempre.
+ * Prova: tests/missao/gaveta.test.ts ("só passo a passo").
+ */
+export function soPassoAPasso(def: any): boolean {
+    return Array.isArray(def?.steps) && def.steps.some((s: any) => s && typeof s === 'object' && s.fila);
+}
+
+/**
  * O que faz: o pedido de um botão do ciclo: o protocolo dele; o dia da rodada (o `_context_date`
  * que o ramo dá, senão hoje), a semana e o trimestre que ele fixa (`_target_week_pin`,
  * `_target_quarter_pin`), as outras variáveis como respostas; o modo e os passos do topo, pela
@@ -90,7 +104,7 @@ export interface PedidoDoCiclo {
  * planeja, o do fim revisa).
  * Por quê: §5.3, 6, "as datas vão sempre explícitas" (a nota ativa é o painel); o passo a passo
  * de hoje roda com as variáveis do ramo, e o dia que ela não diz é o de hoje, o mesmo em que o
- * modal rodaria; §5.5, o 📨 abre o 📅 com os líderes no topo.
+ * modal rodaria; §5.5, o 📅 abre com os líderes no topo (os do 📨, desde 05/11).
  * Entra → sai: o botão do período (com os valores resolvidos) e hoje → o pedido, ou `null`
  * (sem protocolo, ou o dia fora do formato).
  * Erro e ataque: o `_context_date` vazio (a prateleira) cai em hoje; o pino fora do formato vai
@@ -280,7 +294,7 @@ export function conferirGaveta(p: Pick<ProtocoloDaGaveta, 'def' | 'contexto'>, v
  * que ficou sem resposta ou para o modal.
  * Entra → sai: o protocolo, a vista, as respostas das notas criadas e as datas → a rodada.
  * Prova: tests/missao/gaveta.test.ts e tests/missao/componenteGaveta.test.ts (a gaveta grava o
- * mesmo que o passo a passo, nos seis do ciclo e no 📨).
+ * mesmo que o passo a passo, nos seis do ciclo, com o topo do 📅).
  */
 export function rodadaDaGaveta(p: Pick<ProtocoloDaGaveta, 'def' | 'contexto'>, vista: VistaDaGaveta, criadas: Record<string, unknown>, datas: DatasDaRodada): RodadaDoFormulario {
     return rodadaDoFormulario(p.def, { ...vista.respostas, ...(criadas ?? {}) }, datas, p.contexto);
@@ -306,7 +320,32 @@ export function rotuloDoPasso(step: any): string {
     return primeira.replace(/^OPCIONAL\s*[:—–-]\s*/i, '').trim() || String(step?.id ?? '');
 }
 
-/** O que faz: quantos campos do resto têm valor e quantos deles vieram de uma sugestão (o resumo da parte recolhida do 📨). */
+/**
+ * O que faz: a descrição do protocolo em duas partes: a primeira frase (a que a gaveta mostra) e o resto (o
+ * histórico, recolhido).
+ * Por quê: a percorrida de 06/11: o 📹 abria com oito linhas de histórico antes do primeiro campo.
+ * Entra → sai: o texto → `{ primeira, resto }`; sem ponto que feche a frase, tudo é a primeira.
+ * Erro e ataque: a abreviação seguida de minúscula ("ex.: a", "p. ex.") não corta; espaços sobrando saem.
+ * Prova: tests/missao/gaveta.test.ts ("a descrição recolhida").
+ */
+export function primeiraFrase(texto: string): { primeira: string; resto: string } {
+    const t = String(texto ?? '').trim();
+    const m = /^([\s\S]+?[.!?])\s+(?=[A-ZÀ-ÖØ-Þ0-9"“(«])/.exec(t);
+    return m ? { primeira: m[1].trim(), resto: t.slice(m[0].length).trim() } : { primeira: t, resto: '' };
+}
+
+/**
+ * O que faz: os campos que o nó já responde, quando a gaveta abre pelo protocolo de um nó: o que o botão deu
+ * (`doBotao`) e o operador não mexeu. A gaveta não os desenha; o nó é o contexto, e a linha "Do nó" os nomeia.
+ * Por quê: a percorrida de 06/11: o 📹 aberto pela peça perguntava a peça de novo, e o 🔎 da pesquisa, a tarefa.
+ * Entra → sai: a vista → os campos respondidos pelo nó, na ordem do protocolo.
+ * Prova: tests/missao/gaveta.test.ts ("o gesto curto do nó").
+ */
+export function respondidosPeloNo(vista: VistaDaGaveta): CampoNaGaveta[] {
+    return [...vista.topo, ...vista.resto].filter(c => c.doBotao && naoVazio(c.valor));
+}
+
+/** O que faz: quantos campos do resto têm valor e quantos deles vieram de uma sugestão (o resumo da parte recolhida do 📅). */
 export function resumoDoResto(vista: VistaDaGaveta): { campos: number; preenchidos: number; sugeridos: number } {
     return {
         campos: vista.resto.length,

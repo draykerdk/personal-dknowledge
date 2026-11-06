@@ -48,7 +48,7 @@ export const ABSORVIDOS: ReadonlyArray<{ chave: string; rotulo: string; naMissao
     { chave: 'p:plan', rotulo: 'Plano da semana', naMissao: 'a escala da semana' },
     { chave: 'p:timeline', rotulo: 'Linha do tempo', naMissao: 'as escalas da semana e do trimestre' },
     { chave: 'p:radar', rotulo: 'Radar do trimestre', naMissao: 'a escala do trimestre' },
-    { chave: 'p:week', rotulo: 'Semana (ciclo)', naMissao: 'a semana no centro e no painel do nó, com 🌳 planejar, 📨 conversa e 📅 revisar' },
+    { chave: 'p:week', rotulo: 'Semana (ciclo)', naMissao: 'a semana no centro e no painel do nó, com 🌳 planejar e 📅 revisar' },
     { chave: 'p:quarter', rotulo: 'Trimestre (ciclo)', naMissao: 'o trimestre no centro e no painel do nó, com 🧭 planejar e 🔄 revisar' },
 ];
 

@@ -1,7 +1,7 @@
 /**
  * As gravações do Novo (P8): a tarefa pela API do TaskNotes com o `type` e a herança da SMART
  * lida na hora; o Desfazer que manda a nota para a lixeira do sistema só se ela está como
- * nasceu; e o formulário nativo, com o `type` e a herança depois que ele salva.
+ * nasceu; e o formulário nativo, com a herança e a forma única do criador de tarefa depois que ele salva.
  */
 import { describe, expect, it, vi } from 'vitest';
 import { GravacoesDoNovo, type DepsDoNovo } from '../../src/missao/novoWrites';
@@ -71,14 +71,39 @@ describe('o Desfazer da criação', () => {
 });
 
 describe('o formulário nativo', () => {
-    it('abre preenchido e, salvo, ganha o type e a herança (só se ficou na SMART)', async () => {
-        const c = cofre();
+    // O que o formulário do TaskNotes grava ao salvar (o padrão do cofre: `inbox`, `normal`, a tag `task`, a data dele).
+    const DO_FORMULARIO = { status: 'inbox', priority: 'normal', dateCreated: '2026-11-06T10:00:00.000+07:00', dateModified: '2026-11-06T10:00:00.000+07:00', tags: ['task'] };
+
+    it('abre preenchido e, salvo, ganha a herança (só se ficou na SMART) e a forma única, numa gravação', async () => {
+        const c = cofre({ carimbo: () => '2026-11-06T11:00:00.000+07:00' });
         const r = await c.g.noTaskNotes({ title: 'Pelo formulário', projects: ['[[SMART z]]'] }, SMART.path);
         expect(r.ok).toBe(true);
         expect((c.deps.abrirFormulario as any).mock.calls[0][0]).toMatchObject({ title: 'Pelo formulário', projects: ['[[SMART z]]'], week: '2026-W44', impacto: 6 });
         const fn = (c.deps.atualizarTarefa as any).mock.calls[0][1];
-        expect(fn({ title: 'Pelo formulário', projects: ['[[SMART z]]'] })).toEqual({ type: 'task', week: '2026-W44', impacto: 6 });
-        expect(fn({ type: 'task', projects: ['[[Outro]]'] })).toBeNull();
+        expect(fn({ ...DO_FORMULARIO, projects: ['[[SMART z]]'] })).toEqual({ type: 'task', week: '2026-W44', impacto: 6 });
+        // Fora da SMART (trocada no formulário), só a forma única; a tarefa já na forma, nada.
+        expect(fn({ ...DO_FORMULARIO, projects: ['[[Outro]]'] })).toEqual({ type: 'task' });
+        expect(fn({ ...DO_FORMULARIO, type: 'task', projects: ['[[Outro]]'] })).toBeNull();
+    });
+
+    it('a forma única: a tag `task` na frente, as listas, o número, a chave vazia sai; o que a pessoa deu fica', async () => {
+        const c = cofre({ carimbo: () => '2026-11-06T11:00:00.000+07:00' });
+        await c.g.noTaskNotes({ title: 'Pelo formulário' }, null);
+        const fn = (c.deps.atualizarTarefa as any).mock.calls[0][1];
+        expect(fn({ status: 'in-progress', priority: 'high', tags: ['valor'], contexts: '💻 Computador', timeEstimate: '30', scheduled: '', projects: [] })).toEqual({
+            type: 'task', tags: ['task', 'valor'], contexts: ['💻 Computador'], timeEstimate: 30, scheduled: null, projects: null,
+            dateCreated: '2026-11-06T11:00:00.000+07:00',
+        });
+    });
+    it('herdou a semana da mãe: sai da entrada pela regra D1, no mesmo patch; o status escolhido no formulário fica (06/11)', async () => {
+        const aoGanharLugar = vi.fn((st: string) => (st === 'inbox' ? 'next-action' : null));
+        const c = cofre({ carimbo: () => '2026-11-06T11:00:00.000+07:00', aoGanharLugar });
+        await c.g.noTaskNotes({ title: 'Pelo formulário', projects: ['[[SMART z]]'] }, SMART.path);
+        const fn = (c.deps.atualizarTarefa as any).mock.calls[0][1];
+        expect(fn({ ...DO_FORMULARIO, projects: ['[[SMART z]]'] })).toEqual({ type: 'task', week: '2026-W44', impacto: 6, status: 'next-action' });
+        expect(fn({ ...DO_FORMULARIO, status: 'waiting-on', projects: ['[[SMART z]]'] })).toEqual({ type: 'task', week: '2026-W44', impacto: 6 });
+        // Sem semana nem dia (fora da SMART), a entrada fica.
+        expect(fn({ ...DO_FORMULARIO, projects: ['[[Outro]]'] })).toEqual({ type: 'task' });
     });
     it('fechado sem salvar, nada', async () => {
         const c = cofre({ abrirFormulario: async () => null });

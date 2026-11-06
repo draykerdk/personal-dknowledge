@@ -23,7 +23,6 @@ const DONO = 'engine/periodo.ts';
 const PERIODO_NA_REGEX = /-\(?W\(?(\?:)?(\\d|0\[1-9\])|-\(?Q\(?(\[1-4\]|\\d)|\\?\(W\\d\{2\}\\?\)|\|W\\d\{2\}|\|Q(\\d|\[1-4\])/;
 
 const FORMAS_PROPRIAS: Record<string, { linhas: number; porque: string }> = {
-    'canvas/edgeLinks.ts': { linhas: 1, porque: 'o id da célula da semana no canvas do trimestre (`dfm-qw-AAAA-Www`)' },
     'missao/conexoes.ts': { linhas: 1, porque: 'qualquer período no começo do nome (o dia, a semana ou o trimestre)' },
     'engine/cycleTemplate.ts': { linhas: 1, porque: 'o número no fim da chave do trimestre, sem conferir o ano' },
     'engine/missionPlan.ts': { linhas: 1, porque: 'a semana digitada com um dígito (`2026-W5`), conferida pelo ano' },

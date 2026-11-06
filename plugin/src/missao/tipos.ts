@@ -12,12 +12,14 @@
  */
 import type { DomainChoice } from '../engine/domainModel';
 import type { Colocacao, Escala, Janela, Recorte } from './tempo';
-import type { DomainField, DomainModel, DomainState, TIPOS_DE_SINAL } from '../engine/domainModel';
+import type { DomainField, DomainModel, DomainProtocol, DomainState, TIPOS_DE_SINAL } from '../engine/domainModel';
+import type { ItemDaFila } from '../engine/repeticao';
 import type { GrammarCounts } from '../engine/showGrammar';
 import type { ProjectRef } from '../canvas/edgeLinks';
 import type { TabelasDaMissao } from './estados';
 import type { TaskRecord } from '../tasks/taskRecord';
 import type { WeightReason } from '../engine/decisionWeights';
+import type { ContaDoGesto } from '../engine/usoDosGestos';
 
 /* ------------------------------------------------------------ o nó, as linhas e o modelo (vinham da borboleta) */
 
@@ -76,6 +78,33 @@ export interface MissaoNo {
     proxima?: string;
     /** No centro do dia: a ação do ▶️, ou o compromisso que o 🌙 deixou para hoje (`linhaDoComando`, 02/11); sem os dois, nada. */
     comando?: string;
+    /** No módulo de aprendizado (05/11): a linha do centro (a fila de hoje e o nível em curso); sem notas do tipo, nada. */
+    aprendizado?: string;
+    /**
+     * A contagem que uma coleção com `conta` do ramo dá a este nó pelo mesmo id (05/11, a frente de renda no Projetos: as
+     * peças da linha que apontam o projeto, "do plano · publicadas · faltam", pela mesma conta da coluna Frentes da
+     * Criação): o rótulo da coleção contada, a linha e a conta crua; sem coleção que o aponte, nada.
+     */
+    conta?: { rotulo: string; linha: string; contagens: GrammarCounts };
+}
+
+/** O nível em curso de um módulo de aprendizado: o rótulo, a linha na forma de mostrar, a conta crua e os usos de campo. */
+export interface NivelDoCentro { nivel: string; linha: string; contagens: GrammarCounts; usos: number }
+
+/**
+ * O centro de um módulo de aprendizado (05/11, `aprendizado.ts`): a fila do dia, o nível em curso, os outros níveis,
+ * as peças do nível e os protocolos do tipo.
+ */
+export interface CentroDoAprendizado {
+    /** A linha curta do cartão do módulo ("🗣️ hoje: 1 nova · 3 revisões · N1"). */
+    linhaDoCartao: string;
+    /** A fila do dia, em palavras, e os itens na ordem do gesto. */
+    linhaDaFila: string;
+    fila: ItemDaFila[];
+    nivel: NivelDoCentro | null;
+    niveis: Array<{ nivel: string; linha: string }>;
+    pecas: Array<{ caminho: string; nome: string }>;
+    protocolos: DomainProtocol[];
 }
 
 export interface Faixa { projeto: string | null; rotulo: string; ramo: number; nos: MissaoNo[] }
@@ -126,6 +155,11 @@ export interface LinhaAberta {
     trechos: MissaoNo[];
     /** Os nós de cada coleção do ramo que caem na linha (P10b, `colecoes.ts`). */
     colecoes: Record<string, MissaoNo[]>;
+    /**
+     * A visão vigente do 🔭, quando escrita (a coluna da visão de um ramo, como o Viagem, lê daqui: a parte da
+     * visão de longo prazo que o ramo mostra, e não uma nota à parte); sem visão, vazia.
+     */
+    visao: MissaoNo[];
 }
 
 export interface MarcaFechada { id: string; tipo: 'acao' | 'smart' | 'projeto' | 'trimestre'; estado?: MissaoNo['estado']; ramo: number }
@@ -291,6 +325,66 @@ export interface MissaoModelo {
      * inventário da aposentadoria, item 1); cada um `null` quando não há.
      */
     doDia?(dia: string): DoDia;
+    /**
+     * A trilha de uso (05/11): a acolhida de quem chega à tarde ou à noite, o gesto da semana e as dicas da
+     * primeira vez, pelos textos do arquivo da trilha e pelas definições; `null` sem o arquivo ou com tudo desligado.
+     */
+    trilha?: TrilhaDoModelo | null;
+    /** O centro do módulo de aprendizado de um projeto ou departamento (05/11); `null` = o módulo não tem notas do tipo. */
+    aprendizadoDoProjeto?(id: string): CentroDoAprendizado | null;
+    /**
+     * As opções e o valor inicial de um campo lista que vêm de outra nota (05/11, os destinos da peça pelos perfis e pela
+     * regra do canal dela, `opcoesDaOutraNota`): a nota pelo caminho e o frontmatter de agora; `null` = o campo não as
+     * declara, ou a outra nota não está nas coleções do ramo.
+     */
+    opcoesPelaOutraNota?(caminho: string, campos: Record<string, unknown>, campo: string): { opcoes: string[]; inicial: string[]; porque: string } | null;
+}
+
+/** Um gesto da trilha de uso, como o arquivo da trilha o declara (05/11). */
+export interface GestoDaTrilha {
+    id: string;
+    emoji: string;
+    titulo: string;
+    como: string;
+    para: string;
+    /** O link da seção do guia (`caminho#Seção`); vazio = sem link. */
+    guia: string;
+    contas: ContaDoGesto[];
+}
+
+/** A dica da primeira vez de um botão: o `data-act` dele e, no botão do ciclo, o protocolo. */
+export interface DicaDaTrilha { id: string; act: string; protocolo: string | null; texto: string }
+
+/** O que o arquivo da trilha declara, lido (os textos são dele; nenhum mora no código). */
+export interface ConfigDaTrilha {
+    /** Quantos dias para trás o uso se conta. */
+    janela: number;
+    acolhida: Readonly<Record<string, string>>;
+    cartao: Readonly<Record<string, string>>;
+    gestos: GestoDaTrilha[];
+    dicas: DicaDaTrilha[];
+    dicaFechar: string;
+}
+
+/** A acolhida do dia de hoje (05/11): os textos, a hora a partir da qual vale e os dias de antes sem registro. */
+export interface AcolhidaDoDia { textos: Readonly<Record<string, string>>; horaDaTarde: string; passados: string[] }
+
+/** O gesto da vez: o gesto, os dias de uso, a meta, a posição na trilha e o seguinte; `fim` quando todos viraram uso. */
+export type GestoDaVez =
+    | { fim: false; gesto: GestoDaTrilha; n: number; meta: number; i: number; total: number; proximo: GestoDaTrilha | null; textos: Readonly<Record<string, string>> }
+    | { fim: true; textos: Readonly<Record<string, string>> };
+
+/** A trilha no modelo de uma versão. */
+export interface TrilhaDoModelo {
+    /** A acolhida de um dia: só hoje, só com a Day dele sem registro e a acolhida ligada; senão `null`. */
+    acolhida(dia: string): AcolhidaDoDia | null;
+    /** O cartão do gesto da semana; `null` com o cartão desligado ou sem gesto declarado. */
+    gesto: GestoDaVez | null;
+    /** Os dias de uso de cada gesto, pelo id. */
+    usos: Readonly<Record<string, number>>;
+    /** As dicas da primeira vez; vazio com as dicas desligadas. */
+    dicas: DicaDaTrilha[];
+    dicaFechar: string;
 }
 
 /** O que o ▶️ gravou na Day: a ação, a entrega suficiente, o valor, o compromisso 🤝 e a tarefa ligada (no índice). */
@@ -636,7 +730,7 @@ export interface CustoDaPassagem {
     diasSemValor: number;
     /** Esses dias, em ordem (`diasSemRegistro`). */
     semRegistro: string[];
-    /** "28–31/10: saiu R$ 152 em 3 dias · 1 dia sem registro"; sem nada, "28–29/10: nada registrado (2 dias)". */
+    /** "28–31/10: saiu R$ 152 em 3 dias · 1 dia sem registro"; sem nada, "28–29/10: nenhum R$ registrado (2 dias)". */
     texto: string;
     /** A linha da reserva de hoje (a conta do dinheiro), a mesma do trimestre; vazia sem a nota da reserva. */
     reserva: string;

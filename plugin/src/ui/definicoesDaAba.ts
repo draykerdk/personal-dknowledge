@@ -262,3 +262,44 @@ export function opcoesDoPapel(carregados: ReadonlyArray<{ id: string; name?: str
     if (atual && !vistos.has(atual)) out.push({ valor: atual, rotulo: `${atual} (não carregado)` });
     return out;
 }
+
+/** Os campos da trilha de uso (05/11/2026), como caminho no bloco, e o tipo de cada um. */
+export const CAMPOS_DA_TRILHA = {
+    'trilha.acolhida': 'sim',
+    'trilha.hora_da_tarde': 'hora',
+    'trilha.dias_passados': 'numero',
+    'trilha.gesto_da_semana': 'sim',
+    'trilha.vezes': 'numero',
+    'trilha.dicas': 'sim',
+    'arquivos.trilha': 'caminho',
+} as const;
+export type CampoDaTrilha = keyof typeof CAMPOS_DA_TRILHA;
+
+/**
+ * O que faz: o que a edição de um campo da trilha de uso vira no bloco: sim ou não, a hora `HH:MM`, o número
+ * inteiro ou o caminho do arquivo dos textos; o texto vazio tira a chave (volta ao de partida), menos no
+ * caminho, onde o vazio desliga a trilha.
+ * Por quê: a trilha liga, desliga e se ajusta na aba, e o que vale é o que o leitor aceita.
+ * Entra → sai: o salvamento, as camadas de partida, o campo e o valor (sim/não, ou o texto digitado) → a edição.
+ * Erro e ataque: a hora fora de `HH:MM`, o número fora do intervalo (dias de 0 a 31, vezes de 1 a 30) e o
+ * caminho de fora do cofre dão o erro e nada grava; o mesmo valor de antes não grava.
+ * Prova: tests/ui/definicoesDaAba.test.ts ("a trilha de uso").
+ */
+export function editarTrilha(salvo: unknown, partida: ReadonlyArray<unknown>, campo: CampoDaTrilha, valor: boolean | string): Edicao {
+    const tipo = CAMPOS_DA_TRILHA[campo];
+    if (!tipo) return { erro: `"${campo}" não é um campo da trilha` };
+    const bloco = copiaDoBloco(salvo);
+    if (tipo === 'sim') {
+        if (typeof valor !== 'boolean') return { erro: 'a trilha liga com sim ou não' };
+        return conferir(salvo, partida, campo, blocoComMudanca(bloco, campo, valor), valor, '');
+    }
+    const aparado = String(valor ?? '').trim();
+    const limpo = tipo === 'caminho' ? aparado.replace(/\/+$/, '') : aparado;
+    if (!limpo && tipo !== 'caminho') return conferir(salvo, partida, campo, blocoComMudanca(bloco, campo, undefined), undefined, '');
+    if (tipo === 'numero') {
+        const n = /^\d+$/.test(limpo) ? Number(limpo) : Number.NaN;
+        return conferir(salvo, partida, campo, blocoComMudanca(bloco, campo, n), n, campo === 'trilha.vezes' ? `"${limpo}" não é um número de 1 a 30` : `"${limpo}" não é um número de 0 a 31`);
+    }
+    const erro = tipo === 'hora' ? `"${limpo}" não é uma hora (HH:MM, como 14:00)` : `"${limpo}" não é um caminho de dentro do cofre`;
+    return conferir(salvo, partida, campo, blocoComMudanca(bloco, campo, limpo), limpo, erro);
+}

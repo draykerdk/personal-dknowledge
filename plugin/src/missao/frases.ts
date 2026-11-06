@@ -117,6 +117,10 @@ export const GAVETA = {
     jaRegistrado: 'Já registrado hoje',
     dicaJaRegistrado: 'O registro de hoje já tem estes passos; o protocolo não os pergunta de novo.',
     semDiario: 'nada citado no diário de hoje',
+    /** A descrição do protocolo recolhida depois da primeira frase (06/11). */
+    maisDaDescricao: 'Mais sobre este protocolo',
+    /** O que o nó já respondeu, quando a gaveta abre pelo protocolo dele (06/11). */
+    doNo: (valores: readonly string[]) => `Deste nó: ${valores.join(' · ')}`,
     noFim: 'O protocolo pergunta no fim',
     dicaNoFim: 'Estes passos não cabem no formulário (ou ficaram sem resposta): ao gravar, o protocolo os pergunta no modal.',
     criar: (titulo: string) => `➕ Criar «${titulo}» ao gravar`,
@@ -168,6 +172,35 @@ export const REPUTACAO = {
     dica: 'A reputação desta função no uso, pelos fatos com data no cofre; só para ler, nada se grava na nota.',
 };
 
+/**
+ * O centro de um módulo de aprendizado (05/11, o módulo de idiomas): a fila do dia, o nível na forma de mostrar e as
+ * peças do nível. Os nomes da conta são os do nível ("dominadas · do nível"), pela mesma função de mostrar.
+ */
+export const APRENDIZADO = {
+    secao: 'Aprendizado',
+    hoje: 'Hoje',
+    nivel: (n: string) => `Nível ${n}`,
+    niveis: 'Os níveis',
+    pecas: 'As peças do nível',
+    rotulos: { feita: 'dominada', feitas: 'dominadas', plano: 'do nível' },
+    semFrases: 'sem frases no nível',
+    filaVazia: 'a fila de hoje está vazia',
+    usos: (n: number) => (n === 1 ? '1 uso em campo' : `${n} usos em campo`),
+    linhaDaFila: (novas: number, revisoes: number) => [novas ? `${novas} ${novas === 1 ? 'nova' : 'novas'}` : '', revisoes ? `${revisoes} ${revisoes === 1 ? 'revisão vencida' : 'revisões vencidas'}` : ''].filter(Boolean).join(' · '),
+    linhaDoCartao: (novas: number, revisoes: number, nivel: string) => ['🗣️ hoje:', [novas ? `${novas} ${novas === 1 ? 'nova' : 'novas'}` : '', revisoes ? `${revisoes} ${revisoes === 1 ? 'revisão' : 'revisões'}` : ''].filter(Boolean).join(' · ') || 'fila vazia', nivel ? `· ${nivel}` : ''].filter(Boolean).join(' '),
+    dicaDaFila: 'A fila do dia, na ordem do gesto: as revisões vencidas e a frase nova. O gesto do dia abre na seção Protocolos.',
+};
+
+/**
+ * O que faz: "por" com o artigo do começo, contraído ("a regra de X" → "pela regra de X"; "os perfis" → "pelos
+ * perfis"); sem artigo, "por" e o texto.
+ * Por quê: sem a contração, o campo dos destinos dizia "Sugerido por a regra de X".
+ */
+export function porComArtigo(texto: string): string {
+    const m = /^(as|os|a|o) /.exec(texto);
+    return m ? `${{ a: 'pela', o: 'pelo', as: 'pelas', os: 'pelos' }[m[1] as 'a' | 'o' | 'as' | 'os']} ${texto.slice(m[0].length)}` : `por ${texto}`;
+}
+
 export const PAINEL = {
     /** As etiquetas do ramo que a tarefa nova leva (o Novo diz antes de criar). */
     etiquetas: (lista: string) => `Leva a etiqueta do ramo: ${lista}`,
@@ -210,6 +243,16 @@ export const PAINEL = {
     proximaAcao: 'Próxima ação',
     marcaDaProxima: (titulo: string) => `→ ${titulo}`,
     nomeDaProxima: (titulo: string) => `próxima ação: ${titulo}`,
+    /**
+     * O campo vazio com as opções de outra nota (05/11, os destinos da peça): o que a regra dela sugere, e as opções.
+     * Sem o valor da regra, só as opções.
+     */
+    sugeridoPelaOutraNota: (s: { opcoes: readonly string[]; inicial: readonly string[]; porque: string }) =>
+        s.inicial.length ? `Sugerido ${porComArtigo(s.porque)}: ${s.inicial.join(', ')}${s.opcoes.length ? ` · os perfis: ${s.opcoes.join(', ')}` : ''}` : s.opcoes.length ? `Os ${s.porque.replace(/^os /, '')}: ${s.opcoes.join(', ')}` : `Sem perfis em ${s.porque.replace(/^os perfis de /, '')}`,
+    /** As caixas dos destinos marcadas pela regra do canal (06/11): o porquê curto, sem repetir os valores, e o gravar. */
+    marcadosPelaOutraNota: (s: { porque: string }) => `Marcados ${porComArtigo(s.porque)}.`,
+    gravarMarcados: '✓ Gravar estes',
+    dicaGravarMarcados: (campo: string) => `✓ Gravar estes: grava em ${campo} as marcadas (marcar ou desmarcar uma também grava)`,
     proximaFixada: 'Fixada na nota do projeto (proxima_acao_real).',
     proximaPelaOrdem: 'A primeira ação aberta do projeto pela ordem padrão (a hora, o peso, a reputação); para fixar outra, o campo proxima_acao_real na nota do projeto.',
     proximaFixadaSemEfeito: (nome: string) => `A fixada (${nome}) não é uma ação aberta deste projeto; vale a ordem padrão.`,
@@ -337,6 +380,17 @@ export const PORTAS = {
     /** O aviso do fim do protocolo de planejamento: o período e o link. */
     fim: (periodo: string) => `${periodo}: `,
     abrir: 'Abrir na Missão',
+    /** O atalho da Missão no canvas (o bloco `tipo: missao`, item 8 do roteiro): o botão e a frase de para onde ele leva. */
+    atalho: {
+        projeto: (nome: string) => `Abrir ${nome} na Missão`,
+        doProjeto: 'Com o zoom no projeto: as SMART, as tarefas e o que se liga a elas. A pinça para fora volta à semana.',
+        periodo: (periodo: string) => `Abrir a ${periodo} na Missão`,
+        doPeriodo: 'O período deste canvas, com ele escolhido. A pinça nele entra no ramo, onde se planeja.',
+        ramo: (id: string) => `Abrir a Missão no ramo ${id}`,
+        doRamo: 'O ramo pedido no bloco (ramo_principal), na semana de hoje.',
+        missao: 'Abrir a Missão',
+        daMissao: 'Num canvas de projeto, ou no de um período, o atalho abre a Missão nele.',
+    },
 } as const;
 
 export const RAMO = {

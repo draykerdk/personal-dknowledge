@@ -152,7 +152,8 @@ export class CanvasSyncManager {
                 await this.app.fileManager.processFrontMatter(tfile, (fm) => {
                     for (const [field, actions] of Object.entries(updateFields)) {
                         if (actions.add.length > 0 || actions.remove.length > 0) {
-                            if (!fm[field]) fm[field] = field === 'area' && fm.Area ? (Array.isArray(fm.Area) ? [...fm.Area] : fm.Area) : []; // o `Area` antigo, só como ponto de partida
+                            // O `area` nasce vazio: o `Area` com maiúscula das notas antigas não é lido (05/11; nenhum código as lê pela área).
+                            if (!fm[field]) fm[field] = [];
                             if (!Array.isArray(fm[field])) fm[field] = [fm[field]];
                             
                             for (const val of actions.add) {
@@ -264,7 +265,7 @@ export class CanvasSyncManager {
             }
             
             if (item.type === 'project' || item.type === 'iniciativa') {
-                const areaLink = fm.area || fm.Area;
+                const areaLink = fm.area;
                 if (areaLink) {
                     const list = Array.isArray(areaLink) ? areaLink : [areaLink];
                     for (const a of list) {
@@ -274,7 +275,7 @@ export class CanvasSyncManager {
             }
             
             if (item.type === 'departamento') {
-                const areaLink = fm.area || fm.Area;
+                const areaLink = fm.area;
                 if (areaLink) {
                     const list = Array.isArray(areaLink) ? areaLink : [areaLink];
                     for (const a of list) {
@@ -688,14 +689,9 @@ export class CanvasSyncManager {
                 const deptId = addNode(file, xDept, yLevel, "3");
                 xDept += 450;
 
-                let parentId = null;
-                if (dept.Area) {
-                    parentId = fileToNodeId.get(dept.Area.path);
-                }
-                if (!parentId) {
-                    const areaPath = areaFolderOf(dept.file.path);
-                    if (areaPath) parentId = fileToNodeId.get(areaIndexPath(areaPath));
-                }
+                // A área do departamento pela pasta dele (o `Area` com maiúscula saiu em 05/11).
+                const areaPath = areaFolderOf(dept.file.path);
+                const parentId = areaPath ? fileToNodeId.get(areaIndexPath(areaPath)) : null;
                 if (parentId) addEdge(parentId, deptId);
             }
         }
@@ -726,11 +722,7 @@ export class CanvasSyncManager {
                     }
                 }
 
-                if (!parentId) {
-                    if (proj.Area) {
-                        parentId = fileToNodeId.get(proj.Area.path);
-                    }
-                }
+                // Sem departamento, a área pela pasta do projeto (o `Area` com maiúscula saiu em 05/11).
                 if (!parentId) {
                     const areaPath = areaFolderOf(proj.file.path);
                     if (areaPath) parentId = fileToNodeId.get(areaIndexPath(areaPath));

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canvasRelationsAllowed, hasManagedZone, isManagedId, isTaskType, legacyEdgeAllowed, legacyRemovalAsks, operatorEdges, unmanagedSignature } from '../../src/canvas/managedIds';
 
@@ -10,6 +12,14 @@ describe('ids geridos', () => {
         expect(isManagedId('node-sync-1')).toBe(false);
         expect(isManagedId(undefined)).toBe(false);
         expect(isManagedId(42)).toBe(false);
+    });
+
+    it('a regra é uma só (05/11): o plano do canvas de projeto decide o dono pela `isManagedId`, sem uma cópia própria', async () => {
+        const modelo = await import('../../src/project/projectCanvasModel');
+        expect(modelo).not.toHaveProperty('isManaged');
+        const fonte = readFileSync(resolve(process.cwd(), 'src/project/projectCanvasModel.ts'), 'utf8').replace(/\/\/.*$/gm, '');
+        expect(fonte).not.toMatch(/startsWith\(ZONE_PREFIX\)/);
+        expect(fonte).toMatch(/operatorEdges\(current\.edges \?\? \[\], next, isManagedId,/);
     });
 
     it('canvas com um nó gerido tem zona; sem nenhum, não', () => {

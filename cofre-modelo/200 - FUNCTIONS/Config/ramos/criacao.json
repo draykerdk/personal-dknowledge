@@ -1,13 +1,7 @@
 {
   "id": "criacao",
   "titulo": "Criação",
-  "descricao": "O ramo Criação: as peças de criação, da ideia ao revisado, em todo formato, cada um com a publicação dele (o vídeo primeiro, com o longo, o short e o corte; e o artigo, o carrossel, a imagem, o post e o e-mail): canais, frentes, ideias, peças, desdobramentos (os cortes, as versões e os posts que saem de uma peça) e as tarefas de cada peça, no dia, na semana, no trimestre e no ano.",
-  "escalas": [
-    "dia",
-    "semana",
-    "trimestre",
-    "ano"
-  ],
+  "descricao": "O ramo Criação: as peças de criação, da ideia ao revisado, em todo formato, cada um com a publicação dele (o vídeo primeiro, com o longo, o short e o corte; e o artigo, o carrossel, a imagem, o post e o e-mail): canais, frentes, ideias, peças, desdobramentos (os cortes, as versões e os posts que saem de uma peça) e as tarefas de cada peça, no dia, na semana, no trimestre e no ano. A campanha: cada canal e cada frente mostram na linha as peças que apontam para eles, pela forma de mostrar (do plano é a peça com o dia de ir ao ar no período; feita é a publicada); o canal pode ter a nota dele (o tipo canal: o público, a promessa, o formato, a cadência, os perfis e para onde vai cada formato). A campanha: cada canal e cada frente mostram na linha as peças que apontam para eles, pela forma de mostrar (do plano é a peça com o dia de ir ao ar no período; feita é a publicada); o canal pode ter a nota dele (o tipo canal: o público, a promessa, o formato, a cadência, os perfis e para onde vai cada formato). A campanha: cada canal e cada frente mostram na linha as peças que apontam para eles, pela forma de mostrar (do plano é a peça com o dia de ir ao ar no período; feita é a publicada); o canal pode ter a nota dele (o tipo canal: o público, a promessa, o formato, a cadência, os perfis e para onde vai cada formato).",
   "centro": {
     "fonte": "colecoes.pecas",
     "rotulo": {
@@ -35,7 +29,12 @@
       "largura": "minmax(96px,.62fr)",
       "celular": 0.42,
       "painel": "estrutura",
-      "vazio": "sem canal"
+      "vazio": {
+        "texto": "sem canal",
+        "novos": [
+          "canal"
+        ]
+      }
     },
     {
       "id": "frentes",
@@ -68,7 +67,13 @@
       "fonte": "colecoes.pecas",
       "largura": "minmax(142px,1.05fr)",
       "celular": 1,
-      "painel": "pecas"
+      "painel": "pecas",
+      "vazio": {
+        "texto": "sem peça",
+        "novos": [
+          "roteiro_video"
+        ]
+      }
     },
     {
       "id": "desdobramentos",
@@ -77,7 +82,12 @@
       "largura": "minmax(142px,1.05fr)",
       "celular": 1,
       "painel": "pecas",
-      "vazio": "sem desdobramento"
+      "vazio": {
+        "texto": "sem desdobramento",
+        "novos": [
+          "roteiro_video"
+        ]
+      }
     },
     {
       "id": "tarefas",
@@ -258,6 +268,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -267,7 +278,8 @@
           "linha": [
             "status",
             "canal",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -288,8 +300,20 @@
               "formato": "data"
             },
             {
+              "nome": "destinos",
+              "rotulo": "Destinos"
+            },
+            {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -312,6 +336,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -321,7 +346,8 @@
           "linha": [
             "status",
             "canal",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -342,8 +368,20 @@
               "formato": "data"
             },
             {
+              "nome": "destinos",
+              "rotulo": "Destinos"
+            },
+            {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -366,6 +404,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -378,7 +417,8 @@
           "linha": [
             "status",
             "canal",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -399,12 +439,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -427,6 +475,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -439,7 +488,8 @@
           "linha": [
             "status",
             "canal",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -460,12 +510,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -488,6 +546,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -500,7 +559,8 @@
           "linha": [
             "status",
             "canal",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -521,12 +581,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -549,6 +617,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -561,7 +630,8 @@
           "linha": [
             "status",
             "canal",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -582,12 +652,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -610,6 +688,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -622,7 +701,8 @@
           "linha": [
             "status",
             "canal",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -643,12 +723,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -681,6 +769,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -690,7 +779,8 @@
           "segue": "de",
           "linha": [
             "status",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -711,8 +801,20 @@
               "formato": "data"
             },
             {
+              "nome": "destinos",
+              "rotulo": "Destinos"
+            },
+            {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -735,6 +837,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -747,7 +850,8 @@
           "segue": "de",
           "linha": [
             "status",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -768,12 +872,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -796,6 +908,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -808,7 +921,8 @@
           "segue": "de",
           "linha": [
             "status",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -829,12 +943,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -857,6 +979,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -869,7 +992,8 @@
           "segue": "de",
           "linha": [
             "status",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -890,12 +1014,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -918,6 +1050,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -930,7 +1063,8 @@
           "segue": "de",
           "linha": [
             "status",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -951,12 +1085,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -979,6 +1121,7 @@
               "pronto_para_gravar",
               "gravado",
               "editado",
+              "aprovado",
               "no_ar",
               "revisado"
             ]
@@ -991,7 +1134,8 @@
           "segue": "de",
           "linha": [
             "status",
-            "publicar_em"
+            "publicar_em",
+            "destinos"
           ],
           "campos": [
             {
@@ -1012,12 +1156,20 @@
               "formato": "data"
             },
             {
-              "nome": "plataforma",
-              "rotulo": "Plataforma"
+              "nome": "destinos",
+              "rotulo": "Destinos"
             },
             {
               "nome": "link",
               "rotulo": "Onde está publicado"
+            },
+            {
+              "nome": "links",
+              "rotulo": "Link por destino"
+            },
+            {
+              "nome": "link_cta",
+              "rotulo": "Link da campanha"
             },
             {
               "nome": "resultado",
@@ -1034,7 +1186,55 @@
         "colecao": "pecas",
         "campo": "canal"
       },
-      "fontes": []
+      "conta": {
+        "data": "publicar_em",
+        "colecoes": [
+          "pecas",
+          "desdobramentos"
+        ],
+        "vazio": "sem peça no plano"
+      },
+      "fontes": [
+        {
+          "dominio": "canal",
+          "type": "canal",
+          "titulo": "canal",
+          "rotulo": "Canal",
+          "linha": [
+            "perfis"
+          ],
+          "campos": [
+            {
+              "nome": "perfis",
+              "rotulo": "Perfis"
+            },
+            {
+              "nome": "destino_por_formato",
+              "rotulo": "Para onde vai cada formato"
+            },
+            {
+              "nome": "publico",
+              "rotulo": "Público"
+            },
+            {
+              "nome": "promessa",
+              "rotulo": "Promessa"
+            },
+            {
+              "nome": "formato",
+              "rotulo": "Formato"
+            },
+            {
+              "nome": "cadencia",
+              "rotulo": "Cadência"
+            },
+            {
+              "nome": "plataformas",
+              "rotulo": "Onde publica"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "frentes",
@@ -1054,7 +1254,15 @@
           "type": "departamento",
           "rotulo": "Departamento"
         }
-      ]
+      ],
+      "conta": {
+        "data": "publicar_em",
+        "colecoes": [
+          "pecas",
+          "desdobramentos"
+        ],
+        "vazio": "sem peça no plano"
+      }
     }
   ],
   "novo": {
@@ -1063,6 +1271,11 @@
         "tipo": "roteiro_video",
         "rotulo": "Roteiro",
         "titulo": "Novo roteiro"
+      },
+      {
+        "tipo": "canal",
+        "rotulo": "Canal",
+        "titulo": "Novo canal"
       },
       {
         "tipo": "tarefa",

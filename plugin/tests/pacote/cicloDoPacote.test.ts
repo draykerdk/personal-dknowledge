@@ -39,7 +39,9 @@ const MODELO = join(RAIZ, 'cofre-modelo');
 const EXEMPLO = join(RAIZ, 'cofre-exemplo');
 const PADRAO = join(RAIZ, 'config-padrao', 'definicoes.padrao.json');
 const PROTOCOLOS = '200 - FUNCTIONS/Protocolos';
-const IDS = ['planejamento_semanal', 'review_semanal', 'planejamento_trimestral', 'inicializacao'];
+const DO_CICLO = ['planejamento_semanal', 'review_semanal', 'planejamento_trimestral', 'inicializacao'];
+// os outros protocolos do pacote: a conferência da pesquisa e os três gestos do módulo de aprendizado
+const IDS = [...DO_CICLO, 'conferir_pesquisa', 'ingles_de_hoje', 'frase_nova', 'construir_ideia'];
 const noPacote = existsSync(join(MODELO, PROTOCOLOS));
 
 /* ------------------------------------------------------------------ o frontmatter */
@@ -253,7 +255,7 @@ afterEach(() => vi.useRealTimers());
 /* ------------------------------------------------------------------ a carga */
 
 describe.skipIf(!noPacote)('os protocolos do ciclo do pacote', () => {
-    it('o gerente de protocolos carrega os quatro, sem falha, e cada papel do ciclo e a inicialização acham o seu', async () => {
+    it('o gerente de protocolos carrega todos, sem falha, e cada papel do ciclo e a inicialização acham o seu', async () => {
         const pasta = { path: PROTOCOLOS, name: 'Protocolos', children: [] as any[] };
         const textos = new Map<string, string>();
         for (const nome of readdirSync(join(MODELO, PROTOCOLOS)).filter(n => n.endsWith('.json'))) {
@@ -279,7 +281,7 @@ describe.skipIf(!noPacote)('os protocolos do ciclo do pacote', () => {
     });
 
     it('cada passo tem id único, pergunta e um tipo que o motor conhece', () => {
-        const TIPOS = new Set(['text', 'textarea', 'suggest', 'multiselect', 'suggest_note', 'multiselect_note']);
+        const TIPOS = new Set(['text', 'textarea', 'select', 'suggest', 'multiselect', 'suggest_note', 'multiselect_note']);
         for (const id of IDS) {
             const def = JSON.parse(readFileSync(join(MODELO, PROTOCOLOS, `${id}.json`), 'utf8'));
             const ids = def.steps.map((s: any) => s.id);

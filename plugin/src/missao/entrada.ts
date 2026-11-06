@@ -71,6 +71,30 @@ export interface NotaComCampos { caminho: string; nome: string; campos: Record<s
  */
 export interface MarcaDoRamo { marca: string; titulo: string; recorte: { tags: readonly string[]; projetos: readonly string[] } }
 
+/** Os itens da seção da conferência de uma tarefa (05/11): o caminho, a seção, os abertos e o total. */
+export interface ConferenciaLida { caminho: string; secao: string; abertos: number; total: number }
+
+/** As chaves da trilha de uso nas definições do sistema (05/11, `definicoes.trilha`), como o leitor as passa. */
+export interface ChavesDaTrilha {
+    acolhida: boolean;
+    hora_da_tarde: string;
+    dias_passados: number;
+    gesto_da_semana: boolean;
+    vezes: number;
+    dicas: boolean;
+}
+
+/**
+ * O que a trilha de uso lê (05/11): o arquivo da trilha cru (os textos e os gestos), os protocolos com linha do
+ * motor em cada Day da janela, as marcas que a Missão guardou no salvamento e as chaves das definições.
+ */
+export interface EntradaDaTrilha {
+    config: unknown;
+    protocolosPorDia: Record<string, string[]>;
+    marcas: Record<string, string[]>;
+    chaves: ChavesDaTrilha;
+}
+
 export interface MissaoEntrada {
     /** `AAAA-MM-DD`: o relógio entra pela borda. */
     hoje: string;
@@ -133,6 +157,24 @@ export interface MissaoEntrada {
      */
     estadias?: NotaComCampos[];
     /**
+     * As notas dos tipos de aprendizado (05/11, o módulo de idiomas): as do `type` de cada modelo que declara o
+     * `aprendizado` (o cartão) e as do `type` das peças dele, lidas da casa do modelo; o centro do módulo as conta.
+     */
+    aprendizado?: NotaComCampos[];
+    /**
+     * As frases novas que a Day de hoje já registra, por `type` do modelo do aprendizado (06/11): as linhas do gesto
+     * que usa o tipo (`novasDeHojeNaDay`), a mesma conta da fila do gesto; o centro do módulo não promete outra nova.
+     */
+    novasDeHoje?: Record<string, number>;
+    /**
+     * A conferência das tarefas de pesquisa (05/11): para cada tarefa com a tag de uma `sinais.conferencias`, os
+     * itens da seção dela (os abertos e o total), pelo caminho e pela seção; a tarefa sem a seção fica de fora.
+     * Sem a chave, o leitor não leu (nenhum sinal de conferência: ausência não é zero).
+     */
+    conferencias?: ConferenciaLida[];
+    /** A trilha de uso (05/11); sem a chave, a trilha não aparece. */
+    trilha?: EntradaDaTrilha;
+    /**
      * Os pesos da direção da tarefa (02/11, o inventário da aposentadoria, itens 3 e 4): a categoria
      * `painel_direcao` da tabela única (`pesos_decisao.json`), lida pelo leitor; sem ela, nenhuma tarefa
      * tem direção (e o sinal da ação para fora que espera não aparece).
@@ -154,7 +196,7 @@ export function entradaVazia(hoje: string): MissaoEntrada {
         dias: {}, semanas: {}, trimestres: {}, pares: {},
         cidades: [], paises: [], pessoas: [], visoes: [], longoPrazo: null, reserva: null,
         habitos: [], caixaDeEntrada: [], ideias: [], rascunhos: [], exposicoes: [], tabelas: tabelasVazias(), tarefasAntigas: [],
-        notasDosRamos: {}, estadias: [],
+        notasDosRamos: {}, estadias: [], aprendizado: [],
     };
 }
 

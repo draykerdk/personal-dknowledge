@@ -25,6 +25,12 @@ export interface ColorTask {
 
 const DONE = new Set(['done', 'completed', 'complete']);
 
+/**
+ * O que faz: a cor de uma tarefa no canvas pelo lugar dela no fluxo e pelo que pede atenção, na ordem do
+ * cabeçalho deste arquivo; sem cor, `undefined`.
+ * Por quê: a zona gerida e o formatador pintam pela mesma regra.
+ * Prova: tests/project/projectCanvasModel.test.ts e tests/canvas/taskGraph.test.ts.
+ */
 export function taskColor(task: ColorTask, today: string, opts: { children?: ColorTask[]; blocked?: boolean } = {}): string | undefined {
     const status = String(task.status ?? '').toLowerCase();
     if (DONE.has(status)) return CANVAS_COLOR.green;

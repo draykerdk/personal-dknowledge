@@ -46,5 +46,23 @@
     "lugar": "codigo",
     "texto": "const { ramoPrincipal } = lerRamoPrincipal(raw); // Ramo: Viagem, em Config/ramos",
     "achados": []
+  },
+  {
+    "nome": "o nome antigo do planejamento da semana, no nome do protocolo (D6, 05/11)",
+    "lugar": "protocolos",
+    "texto": "\"name\": \"📅 Planejamento Semanal\",",
+    "achados": ["nome_antigo_do_planejamento_semanal"]
+  },
+  {
+    "nome": "o nome antigo do planejamento da semana, no código",
+    "lugar": "codigo",
+    "texto": "const rotulo = '📅 Planejamento Semanal';",
+    "achados": ["nome_antigo_do_planejamento_semanal"]
+  },
+  {
+    "nome": "o 🌳 planeja e o 📅 revisa: os dois nomes de hoje passam",
+    "lugar": "protocolos",
+    "texto": "\"name\": \"🌳 Planejamento Semanal\", e a revisão: \"📅 Revisão Semanal\"",
+    "achados": []
   }
 ]

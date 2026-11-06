@@ -97,6 +97,15 @@ proprio cofre-modelo/200 - FUNCTIONS/Config/pesos_decisao.json
 proprio cofre-modelo/200 - FUNCTIONS/Config/reputacao.json
 proprio cofre-modelo/200 - FUNCTIONS/Config/ech.json
 proprio cofre-modelo/200 - FUNCTIONS/Config/vocabulario.json
+# a trilha de uso (06/11/2026): os textos da acolhida, do gesto da semana e das dicas. O do cofre aponta as seções
+# do guia da pessoa e conta protocolos que o pacote não traz; o daqui tem os mesmos gestos e dicas, sem o guia e
+# só com os protocolos do pacote
+proprio cofre-modelo/200 - FUNCTIONS/Config/trilha.json
+# o canal (a Criação com campanha) e os dois tipos do módulo de aprendizado, o cartão e a peça lógica: os mesmos
+# campos, estados e blocos do cofre, com a descrição sem os canais, o módulo e as datas da pessoa
+proprio cofre-modelo/200 - FUNCTIONS/Config/dominios/canal.json
+proprio cofre-modelo/200 - FUNCTIONS/Config/dominios/cartao.json
+proprio cofre-modelo/200 - FUNCTIONS/Config/dominios/peca_logica.json
 
 # ── As notas-modelo e os moldes genéricos ────────────────────────────────────────────────
 # o dia, a semana e o trimestre do pacote são escritos aqui, novos e neutros (mapa da v0, D3):
@@ -119,6 +128,10 @@ proprio cofre-modelo/200 - FUNCTIONS/Templates/NotaSimples_template.md
 copiar 200 - FUNCTIONS/Templates/Pessoas_template.md -> cofre-modelo/200 - FUNCTIONS/Templates
 proprio cofre-modelo/200 - FUNCTIONS/Templates/Valor_template.md
 copiar 200 - FUNCTIONS/Templates/template_habito_habilidade.md -> cofre-modelo/200 - FUNCTIONS/Templates
+# os moldes do canal, do cartão e da peça lógica são neutros no cofre: saem como estão
+copiar 200 - FUNCTIONS/Templates/Canal_template.md -> cofre-modelo/200 - FUNCTIONS/Templates
+copiar 200 - FUNCTIONS/Templates/Cartao_template.md -> cofre-modelo/200 - FUNCTIONS/Templates
+copiar 200 - FUNCTIONS/Templates/Peca_logica_template.md -> cofre-modelo/200 - FUNCTIONS/Templates
 
 # ── Os protocolos do ciclo do pacote ─────────────────────────────────────────────────────
 # escritos aqui, novos, curtos e genéricos (mapa da v0, D2): os do cofre são os da pessoa e vão
@@ -129,6 +142,14 @@ proprio cofre-modelo/200 - FUNCTIONS/Protocolos/planejamento_trimestral.json
 # o protocolo de inicialização (C do mapa): pergunta o nome, as áreas, os valores e o foco e chama
 # a ação `inicializar`, que monta o cofre e grava as respostas nas definições
 proprio cofre-modelo/200 - FUNCTIONS/Protocolos/inicializacao.json
+# a conferência da pesquisa e os três gestos do módulo de aprendizado (06/11/2026): os mesmos passos do cofre, com
+# a pasta e o link de um módulo de partida (`100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês`), o hábito e a lista
+# de verificação do pacote no lugar do módulo, do hábito e da nota de função da pessoa
+proprio cofre-modelo/200 - FUNCTIONS/Protocolos/conferir_pesquisa.json
+proprio cofre-modelo/200 - FUNCTIONS/Protocolos/ingles_de_hoje.json
+proprio cofre-modelo/200 - FUNCTIONS/Protocolos/frase_nova.json
+proprio cofre-modelo/200 - FUNCTIONS/Protocolos/construir_ideia.json
+proprio cofre-modelo/200 - FUNCTIONS/Checklists/*
 # a prova deles, do ramo Criação e do modelo da peça (roda com o plugin inteiro e o cofre-modelo ao lado)
 proprio plugin/tests/pacote/*
 
@@ -195,6 +216,8 @@ copiar 200 - FUNCTIONS/Scripts/tests/**/* -> cofre-modelo/200 - FUNCTIONS/Script
 nunca 200 - FUNCTIONS/Scripts/tests/test_agent_commons*
 nunca 200 - FUNCTIONS/Scripts/tests/test_generate_agent_summaries.py
 nunca 200 - FUNCTIONS/Scripts/tests/fixtures/resumos_do_agente/*
+# o áudio dos cartões: o script fica no cofre (a voz local e o módulo da pessoa), e o teste dele também
+nunca 200 - FUNCTIONS/Scripts/tests/test_audio_dos_cartoes.py
 
 # os testes que leem o cofre real (sobem do plugin para as pastas do cofre): ficam até lerem
 # o cofre de exemplo (mapa, seção F). Um termo no nome aparece como ?.
@@ -344,6 +367,7 @@ nunca .obsidian/plugins/dfm-system/tests/missao/sinaisDoPlano.test.ts
 nunca .obsidian/plugins/dfm-system/tests/missao/sistema.test.ts
 nunca .obsidian/plugins/dfm-system/tests/missao/tempo.test.ts
 nunca .obsidian/plugins/dfm-system/tests/missao/vistoNoPais.test.ts
+nunca .obsidian/plugins/dfm-system/tests/contracts/mapasDasPastasAntigas.test.ts
 
 # podados pela guarda (o arquivo tem termo privado; volta quando a pendência fechar).
 # Um termo no nome do arquivo aparece como ?, para a lista não o escrever.
@@ -526,3 +550,27 @@ nunca .obsidian/plugins/dfm-system/tests/opcionais/cofre.test.ts  # guarda: area
 # Um termo no nome do arquivo aparece como ?, para a lista não o escrever.
 nunca .obsidian/plugins/dfm-system/tests/definicoes/leitoresDasDefinicoes.test.ts  # guarda: areas_e_organizacoes 10, autor_publico 4, ids_genericos 1, pessoal 2, valores 6
 nunca .obsidian/plugins/dfm-system/tests/ui/definicoesDaAba.test.ts  # guarda: areas_e_organizacoes 10, autor_publico 3, ids_protocolo 1, pessoal 4, valores 3
+
+# podados pela guarda (o arquivo tem termo privado; volta quando a pendência fechar).
+# Um termo no nome do arquivo aparece como ?, para a lista não o escrever.
+nunca .obsidian/plugins/dfm-system/tests/board/missaoAtalho.test.ts  # guarda: areas_e_organizacoes 5
+nunca .obsidian/plugins/dfm-system/tests/engine/criadorUnico.test.ts  # guarda: ids_protocolo 2
+nunca .obsidian/plugins/dfm-system/tests/engine/datasDaReputacao.test.ts  # guarda: ids_protocolo 2
+nunca .obsidian/plugins/dfm-system/tests/engine/destinosDaPeca.test.ts  # guarda: areas_e_organizacoes 20, autor_publico 1, falas 1, ids_protocolo 9
+nunca .obsidian/plugins/dfm-system/tests/engine/destinosNoRoteiro.test.ts  # guarda: areas_e_organizacoes 10, ids_protocolo 2
+nunca .obsidian/plugins/dfm-system/tests/engine/direcaoDosRamos.test.ts  # guarda: areas_e_organizacoes 2, ids_protocolo 27
+nunca .obsidian/plugins/dfm-system/tests/engine/fluxoSmartD2aD6.test.ts  # guarda: ids_genericos 2, ids_protocolo 12
+nunca .obsidian/plugins/dfm-system/tests/engine/inglesDeHoje.test.ts  # guarda: areas_e_organizacoes 1, departamentos_e_projetos 3
+nunca .obsidian/plugins/dfm-system/tests/engine/paraGravar.test.ts  # guarda: areas_e_organizacoes 3, ids_protocolo 3
+nunca .obsidian/plugins/dfm-system/tests/engine/publicadaPeloModelo.test.ts  # guarda: ids_protocolo 1
+nunca .obsidian/plugins/dfm-system/tests/engine/publicadoDaSemana.test.ts  # guarda: areas_e_organizacoes 2, autor_publico 2, ids_protocolo 2
+nunca .obsidian/plugins/dfm-system/tests/engine/refinosDosRamos.test.ts  # guarda: areas_e_organizacoes 6, ids_protocolo 5
+nunca .obsidian/plugins/dfm-system/tests/engine/repeticao.test.ts  # guarda: departamentos_e_projetos 2
+nunca .obsidian/plugins/dfm-system/tests/engine/usoDosGestos.test.ts  # guarda: ids_protocolo 5
+nunca .obsidian/plugins/dfm-system/tests/missao/aprendizado.test.ts  # guarda: areas_e_organizacoes 1, departamentos_e_projetos 4
+nunca .obsidian/plugins/dfm-system/tests/missao/componenteDestinos.test.ts  # guarda: areas_e_organizacoes 5, ids_protocolo 4
+nunca .obsidian/plugins/dfm-system/tests/missao/componenteTrilha.test.ts  # guarda: ids_protocolo 6
+nunca .obsidian/plugins/dfm-system/tests/missao/contaDaColecao.test.ts  # guarda: areas_e_organizacoes 3, autor_publico 1, ids_protocolo 2
+nunca .obsidian/plugins/dfm-system/tests/missao/sinaisDaCampanha.test.ts  # guarda: areas_e_organizacoes 4, autor_publico 10, ids_protocolo 6
+nunca .obsidian/plugins/dfm-system/tests/missao/soltarComSentido.test.ts  # guarda: areas_e_organizacoes 4, autor_publico 1, ids_protocolo 1
+nunca .obsidian/plugins/dfm-system/tests/missao/trilha.test.ts  # guarda: falas 1, ids_protocolo 3

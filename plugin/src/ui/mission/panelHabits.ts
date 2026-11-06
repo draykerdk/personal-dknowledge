@@ -4,9 +4,9 @@
  * Esta aba traz para o Mission Control a única superfície do Control Center
  * antigo que não existia em lugar nenhum do console novo. A leitura é a mesma
  * dos blocos ```dfm-habits``` das notas (`engine/habits.ts`), e a escrita de
- * marcação reusa **exatamente** o caminho canônico: `resolveClick` decide,
- * `toggleEntry` calcula a lista e `fileManager.processFrontMatter` grava. Nada
- * de write novo inventado aqui.
+ * marcação reusa **exatamente** o caminho canônico: `resolveClick` decide e
+ * `HabitLog.alternarDia` grava (o dia em `entries` e a linha da marca na Day, 06/11).
+ * Nada de write novo inventado aqui.
  *
  * O que a tela promete, e por que:
  * 1. **Contagem de execuções, nunca sequência.** Não há streak, não há dívida,
@@ -26,7 +26,7 @@ import { TFile } from 'obsidian';
 import { applyTone, card, el, emptyState, icon, metric, pill, rowLink } from './primitives';
 import { MissionPanelContext, truncate } from './context';
 import { MissionHabitRow } from '../../engine/missionControl';
-import { Habit, parseHabit, resolveClick, toggleEntry } from '../../engine/habits';
+import { Habit, parseHabit, resolveClick } from '../../engine/habits';
 
 /** `2026-09-14` → `14`. O cabeçalho já diz o mês; o número é o que se lê. */
 function dayNumber(date: string): string {
@@ -75,10 +75,8 @@ async function clickCell(
         ctx.executeCommand(`dfm-${decision.protocolId}`);
         return false;
     }
-    await ctx.app.fileManager.processFrontMatter(file, frontmatter => {
-        frontmatter.entries = toggleEntry(frontmatter.entries, date);
-    });
-    return true;
+    // A porta única dos hábitos (06/11): o dia em `entries` e a linha da marca na Day.
+    return (await ctx.plugin.habitLog.alternarDia(row.path, date)) !== null;
 }
 
 function cellFor(

@@ -14,13 +14,14 @@
 import { weekDates } from '../engine/calendario';
 import { weekGrammar } from '../engine/tarefasNoPeriodo';
 import { fieldNumber } from '../engine/choose';
-import { fold } from '../project/projectCanvasModel';
+import { fold, linkTarget } from '../project/projectCanvasModel';
 import { ehManutencao } from '../engine/taskSemantics';
-import type { MissaoEntrada, NotaComCampos } from './entrada';
+import type { ConferenciaLida, MissaoEntrada, NotaComCampos } from './entrada';
 import type { Passagem, MissaoIndice, MissaoTarefa, ProximoPasso, Sinal, TipoDeSinal } from './tipos';
 import { dataDoCampo, ehDia, semEmojiInicial, textoDoCampo } from './formatos';
 import { addDays, chaveDeHoje, diaMes, semanaCurta } from './tempo';
-import type { DatasDeclaradas, DeclaracoesDeSinais, LimiteDeclarado, PassoDeclarado } from './estados';
+import type { ConferenciaDeclarada, DatasDeclaradas, DeclaracoesDeSinais, LimiteDeclarado, PassoDeclarado } from './estados';
+import { campoDaDataDePublicacao, publicadaPeloModelo, valoresLivres, type DomainModel } from '../engine/domainModel';
 import { sinaisDaSemanaDoPlano, sinaisDeDataDaTarefa } from './sinaisDoPlano';
 import { sinaisDaParaFora, sinalDoFimDaSmart } from './sinaisDaDirecao';
 
@@ -136,6 +137,38 @@ export function sinaisDosTrechos(indice: Pick<MissaoIndice, 'vivas'>, daViagem: 
     return out;
 }
 
+/**
+ * O que faz: a conferência das tarefas de pesquisa (05/11): a tarefa com a tag de uma declaração, aberta e sem os
+ * itens da seção da conferência na nota, dá `pesquisa-sem-conferencia` (o próximo passo é o protocolo que leva a
+ * lista, e a situação do modelo o sobe no painel); a concluída com item da seção ainda aberto dá
+ * `conferencia-aberta`, com quantos, e o próximo passo é abrir a nota.
+ * Por quê: nenhuma pesquisa de agente é aceita sem a conferência dos itens críticos; a
+ * tag e a seção moram no modelo (`sinais.conferencias`), e o leitor conta os itens da seção (`ConferenciaLida`).
+ * Entra → sai: o índice, as declarações e o que o leitor contou (`undefined` = não leu) → os sinais.
+ * Erro e ataque: sem a leitura, nenhum sinal (ausência não é zero); a tarefa sem a tag, a cancelada e a de algum
+ * dia não dão sinal; a concluída sem a seção não dá sinal (a conferência não foi levada a ela, e o sinal é do
+ * item aberto); a seção sem item vale como sem a conferência.
+ * Prova: tests/missao/sinais.test.ts ("a conferência de uma pesquisa").
+ */
+export function sinaisDasConferencias(indice: Pick<MissaoIndice, 'vivas'>, declaradas: readonly ConferenciaDeclarada[], lidas: readonly ConferenciaLida[] | undefined): Sinal[] {
+    const out: Sinal[] = [];
+    if (!lidas) return out;
+    for (const d of declaradas) {
+        for (const t of indice.vivas) {
+            if (!(t.record.tags ?? []).includes(d.tag)) continue;
+            const lida = lidas.find(l => l.caminho === t.caminho && l.secao === d.secao && l.total > 0);
+            if (t.aberta && !lida) {
+                out.push({ tipo: 'pesquisa-sem-conferencia', alvo: t.id, fato: `${d.fato} sem a conferência`, desde: null, proximoPasso: proximo(d.passo) });
+            } else if (t.feita && lida && lida.abertos > 0) {
+                const n = lida.abertos;
+                const fechou = ehDia(t.record.completedDate) ? t.record.completedDate : '';
+                out.push({ tipo: 'conferencia-aberta', alvo: t.id, fato: `${d.fato} concluída com ${n === 1 ? '1 item' : `${n} itens`} da conferência em aberto`, desde: fechou || null, proximoPasso: { acao: 'abrir-nota', rotulo: 'Abrir a nota' } });
+            }
+        }
+    }
+    return out;
+}
+
 /** O que faz: os sinais por nó (a marca discreta no nó e o texto no título e no painel). */
 export function sinaisPorAlvo(lista: readonly Sinal[]): Map<string, Sinal[]> {
     const out = new Map<string, Sinal[]>();
@@ -154,10 +187,33 @@ const passoDe = (v: any): PassoDeclarado | null => (txt(v?.protocolo) && txt(v?.
  * (`domainModel.signalProblems`) e a do juiz.
  * Prova: tests/missao/sinais.test.ts ("os sinais declarados").
  */
-export function declaracoesDosModelos(modelos: ReadonlyArray<{ sinais?: Record<string, unknown> }>): DeclaracoesDeSinais {
+export function declaracoesDosModelos(modelos: ReadonlyArray<{ sinais?: Record<string, unknown> } & Partial<Pick<DomainModel, 'campos' | 'estados' | 'formatos'>>>): DeclaracoesDeSinais {
     const out: DeclaracoesDeSinais = { prazos: [], limites: [] };
     for (const m of modelos) {
         const b = (m?.sinais ?? {}) as Record<string, any>;
+        // 05/11: a cadência e a origem leem do modelo os valores do campo, o dia de ir ao ar, o publicado e o oculto.
+        const doModelo = { campos: m?.campos ?? [], estados: m?.estados ?? [], formatos: m?.formatos };
+        for (const c of Array.isArray(b.cadencias) ? b.cadencias : []) {
+            const campo = doModelo.campos.find(x => x.nome === txt(c?.por));
+            const data = campoDaDataDePublicacao(doModelo);
+            // Os `livres` (05/11, o canal pessoal de testes, "sem obrigação") saem da cadência.
+            const livres = new Set(valoresLivres({ cadencias: [c] }, txt(c?.por)).map(fold));
+            const valores = campo?.tipo === 'escolha' && Array.isArray(campo.valores) ? campo.valores.map(String).filter(v => !livres.has(fold(v))) : [];
+            if (!txt(c?.type) || !txt(c?.fato) || !data || !valores.length) continue;
+            (out.cadencias ??= []).push({ type: txt(c.type), por: txt(c.por), valores, data, publicada: campos => publicadaPeloModelo(doModelo, campos), fato: txt(c.fato), passo: passoDe(c.passo) });
+        }
+        for (const o of Array.isArray(b.origens) ? b.origens : []) {
+            if (!txt(o?.type) || !txt(o?.campo) || !txt(o?.fato)) continue;
+            const formatos = Array.isArray(o.formatos) ? o.formatos.map(txt).filter(Boolean) : [];
+            const ocultos = doModelo.estados.filter(e => e.mostrar === 'oculto').map(e => e.valor);
+            (out.origens ??= []).push({ type: txt(o.type), campo: txt(o.campo), campoDoFormato: doModelo.formatos?.campo ?? null, formatos, ocultos, fato: txt(o.fato), passo: passoDe(o.passo) });
+        }
+        for (const v of Array.isArray(b.vazios) ? b.vazios : []) {
+            if (!txt(v?.type) || !txt(v?.campo) || !txt(v?.fato)) continue;
+            const estados = Array.isArray(v.estados) ? v.estados.map(txt).filter(Boolean) : [];
+            const ocultos = doModelo.estados.filter(e => e.mostrar === 'oculto').map(e => e.valor);
+            (out.vazios ??= []).push({ type: txt(v.type), campo: txt(v.campo), estados, ocultos, fato: txt(v.fato), passo: passoDe(v.passo) });
+        }
         for (const p of Array.isArray(b.prazos) ? b.prazos : []) {
             if (txt(p?.type) && txt(p?.campo) && txt(p?.fato)) out.prazos.push({ type: txt(p.type), campo: txt(p.campo), fato: txt(p.fato), passo: passoDe(p.passo) });
         }
@@ -165,6 +221,9 @@ export function declaracoesDosModelos(modelos: ReadonlyArray<{ sinais?: Record<s
             if (txt(l?.type) && (txt(l?.ate) || txt(l?.dias)) && txt(l?.lugar) && txt(l?.fato)) {
                 out.limites.push({ type: txt(l.type), ate: txt(l.ate) || null, dias: txt(l.dias) || null, lugar: txt(l.lugar), fato: txt(l.fato), recente: txt(l.recente) || null, passo: passoDe(l.passo) });
             }
+        }
+        for (const c of Array.isArray(b.conferencias) ? b.conferencias : []) {
+            if (txt(c?.tag) && txt(c?.secao) && txt(c?.fato)) (out.conferencias ??= []).push({ tag: txt(c.tag).toLowerCase().replace(/^#/, ''), secao: txt(c.secao), fato: txt(c.fato), passo: passoDe(c.passo) });
         }
         for (const d of Array.isArray(b.datas) ? b.datas : []) {
             const lista = (v: unknown) => (Array.isArray(v) ? v.map(txt).filter(Boolean) : []);
@@ -303,7 +362,9 @@ function limiteDaNota(n: NotaComCampos, l: LimiteDeclarado, chegada: string): Li
  */
 export function sinaisDeclarados(notas: readonly NotaComCampos[], lista: readonly Passagem[], decl: DeclaracoesDeSinais, hoje: string): Sinal[] {
     // As datas de notas seguidas (as estadias, 02/11): a conferência das datas, pela declaração do modelo.
-    const out: Sinal[] = sinaisDasDatas(notas, decl.datas ?? [], hoje);
+    // A origem que falta (05/11, o corte sem a peça-mãe), também pela declaração do modelo.
+    // O campo vazio num estado (05/11, a peça editada ou aprovada sem destino), também pela declaração do modelo.
+    const out: Sinal[] = [...sinaisDasDatas(notas, decl.datas ?? [], hoje), ...sinaisDeOrigem(notas, decl.origens ?? []), ...sinaisDeVazio(notas, decl.vazios ?? [])];
     const unicas = [...new Map(notas.map(n => [n.caminho, n])).values()];
     const doTipo = (type: string) => unicas.filter(n => String(n.campos?.type ?? '').trim() === type);
     for (const p of decl.prazos) {
@@ -332,6 +393,91 @@ export function sinaisDeclarados(notas: readonly NotaComCampos[], lista: readonl
                 ? `${l.fato}: ${diaMes(c.limite)} (${contadoDeHoje(c.limite, hoje)}${saida && saida > c.limite ? `; a passagem vai até ${diaMes(saida)}` : ''})`
                 : `${l.fato}: ${diaMes(c.limite)} (o ${c.dias}º dia desde a chegada no país, em ${diaMes(aqui.chegada)})`;
             out.push({ tipo: 'limite-no-lugar', alvo: aqui.passagem.id, fato, desde: c.limite, proximoPasso: proximo(l.passo) });
+        }
+    }
+    return out;
+}
+
+/**
+ * O que faz: a origem que falta: cada nota do tipo, num dos formatos da declaração, sem a nota de origem no campo (o
+ * corte sem a peça-mãe), ou com a de origem que não é nota do tipo ("aponta X, que não é peça"). O fato diz isso, sem
+ * julgar; o sinal vai para a nota.
+ * Por quê: 05/11, a campanha da semana: o corte sai de um longo, e o corte solto não se liga a frente nem a canal pelo
+ * longo; só informa, e o próximo passo é o protocolo que a declaração diz.
+ * Entra → sai: as notas (com o frontmatter) e as declarações `origens` → `Sinal[]`.
+ * Erro e ataque: a nota no estado oculto (o arquivado) e a de outro formato ficam de fora; o link vazio do protocolo
+ * (`[[]]`) conta como sem origem; a mesma nota lida duas vezes conta uma.
+ * Prova: tests/missao/sinaisDaCampanha.test.ts.
+ */
+export function sinaisDeOrigem(notas: readonly NotaComCampos[], origens: readonly NonNullable<DeclaracoesDeSinais['origens']>[number][]): Sinal[] {
+    const out: Sinal[] = [];
+    const unicas = [...new Map(notas.map(n => [n.caminho, n])).values()];
+    for (const o of origens) {
+        const doTipo = unicas.filter(n => String(n.campos?.type ?? '').trim() === o.type);
+        const nomes = new Set(doTipo.map(n => fold(n.nome)));
+        for (const n of doTipo) {
+            if (o.ocultos.includes(textoDoCampo(n.campos?.status))) continue;
+            if (o.formatos.length && !(o.campoDoFormato && o.formatos.includes(textoDoCampo(n.campos?.[o.campoDoFormato])))) continue;
+            const cru = n.campos?.[o.campo];
+            const alvos = (Array.isArray(cru) ? cru : [cru]).map(linkTarget).filter(x => x.replace(/[\[\]"'\s]/g, ''));
+            const fora = alvos.find(x => !nomes.has(fold(x)));
+            if (alvos.length && !fora) continue;
+            out.push({ tipo: 'sem-peca-mae', alvo: `n:${n.caminho}`, fato: fora ? `${o.fato}: aponta "${fora}", que não está entre as notas do tipo` : o.fato, desde: null, proximoPasso: proximo(o.passo) });
+        }
+    }
+    return out;
+}
+
+/**
+ * O que faz: o campo vazio num estado: cada nota do tipo num dos estados da declaração (sem a lista, em qualquer um que
+ * não é oculto) com o campo vazio; o fato diz isso, sem julgar, e o sinal vai para a nota.
+ * Por quê: 05/11, o gerenciamento dos destinos: "para qual perfil ou rede vai cada conteúdo"; a peça editada ou aprovada
+ * sem destino ainda não sabe aonde vai. Só informa; nada se cria.
+ * Entra → sai: as notas (com o frontmatter, os nomes antigos já lidos) e as declarações `vazios` → `Sinal[]`.
+ * Erro e ataque: o texto em branco, a lista vazia e o link vazio (`[[]]`) contam como vazio; o estado compara sem caixa;
+ * o oculto (o arquivado) fica de fora; a mesma nota lida duas vezes conta uma.
+ * Prova: tests/engine/destinosDaPeca.test.ts.
+ */
+export function sinaisDeVazio(notas: readonly NotaComCampos[], vazios: readonly NonNullable<DeclaracoesDeSinais['vazios']>[number][]): Sinal[] {
+    const out: Sinal[] = [];
+    const unicas = [...new Map(notas.map(n => [n.caminho, n])).values()];
+    const cheio = (v: unknown) => (Array.isArray(v) ? v : [v]).some(x => String(x ?? '').replace(/[\[\]"'\s]/g, '') !== '');
+    for (const d of vazios) {
+        const estados = d.estados.map(e => e.toLowerCase());
+        for (const n of unicas) {
+            if (String(n.campos?.type ?? '').trim() !== d.type) continue;
+            const estado = textoDoCampo(n.campos?.status).toLowerCase();
+            if (d.ocultos.some(o => o.toLowerCase() === estado)) continue;
+            if (estados.length && !estados.includes(estado)) continue;
+            if (cheio(n.campos?.[d.campo])) continue;
+            out.push({ tipo: 'campo-vazio', alvo: `n:${n.caminho}`, fato: d.fato, desde: null, proximoPasso: proximo(d.passo) });
+        }
+    }
+    return out;
+}
+
+/**
+ * O que faz: a cadência da semana de hoje: cada valor declarado (o canal) sem nenhuma nota do tipo publicada nesta
+ * semana, pelo dia de ir ao ar e pelo modelo. O sinal vai para o nó do valor (o canal na coluna Canais), quando a
+ * borda o dá; senão, para a semana.
+ * Por quê: 05/11, a campanha da semana: um longo por semana e cortes todos os dias em cada canal; o sinal só diz o
+ * fato ("o canal X está sem peça publicada nesta semana") e nunca cria tarefa: a semana é dele.
+ * Entra → sai: as notas, as declarações `cadencias`, hoje e o nó de um valor (opcional) → `Sinal[]`.
+ * Erro e ataque: a nota sem o dia de ir ao ar, ou com o dia fora da semana, não conta; o valor compara sem acento nem
+ * caixa; a mesma nota lida duas vezes conta uma.
+ * Prova: tests/missao/sinaisDaCampanha.test.ts.
+ */
+export function sinaisDeCadencia(notas: readonly NotaComCampos[], cadencias: readonly NonNullable<DeclaracoesDeSinais['cadencias']>[number][], hoje: string, noDoValor: (valor: string) => string | null = () => null): Sinal[] {
+    const out: Sinal[] = [];
+    const week = chaveDeHoje('semana', hoje);
+    const dias = new Set(weekDates(week));
+    const monday = weekDates(week)[0] ?? hoje;
+    const unicas = [...new Map(notas.map(n => [n.caminho, n])).values()];
+    for (const c of cadencias) {
+        const publicadas = unicas.filter(n => String(n.campos?.type ?? '').trim() === c.type && dias.has(dataDoCampo(n.campos?.[c.data]) ?? '') && c.publicada(n.campos ?? {}));
+        for (const valor of c.valores) {
+            if (publicadas.some(n => fold(textoDoCampo(n.campos?.[c.por])) === fold(valor))) continue;
+            out.push({ tipo: 'sem-peca-publicada', alvo: noDoValor(valor) ?? `w:${week}`, fato: c.fato.split('{valor}').join(valor), desde: monday, proximoPasso: proximo(c.passo) });
         }
     }
     return out;

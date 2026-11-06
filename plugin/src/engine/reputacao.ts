@@ -515,9 +515,11 @@ function linhasDeRegistro(text: string): string[] {
  * Por quê: a rodada é a unidade da passagem (uma por célula por rodada) e o rastro com data
  * de que a função rodou; é a mesma regra do uso recente (`usoDatas`, protocolRank.ts).
  * Entra → sai: as Days lidas e os JSON dos protocolos → `Rodada[]`, na ordem das Days.
+ * Os nomes antigos (`rotulosAntigos`) valem como o de hoje, nas linhas sem a marca do id (o 🌳 Planejamento
+ * Semanal levava o 📅 até 05/11).
  * Erro e ataque: rótulo que nenhum protocolo tem fica de fora; rótulo com caracteres de
  * regex; Day sem texto; alias em cadeia (até 3 saltos); linha de botão não é rodada.
- * Prova: tests/engine/reputacao.test.ts ("as rodadas").
+ * Prova: tests/engine/reputacao.test.ts ("as rodadas"); tests/missao/reputacaoNoLugar.test.ts (o nome antigo).
  */
 export function rodadasDasDays(days: readonly DayRead[], defs: readonly DefProtocolo[]): Rodada[] {
     const porId = new Map<string, DefProtocolo>();
@@ -535,6 +537,11 @@ export function rodadasDasDays(days: readonly DayRead[], defs: readonly DefProto
         if (!alvo) continue;
         const rotulo = String(d.dailyLedgerLabel || d.name || d.id || '').trim();
         if (rotulo && !porRotulo.has(rotulo)) porRotulo.set(rotulo, alvo.id);
+        // Os nomes que o protocolo já teve (`rotulosAntigos`, 05/11): a linha antiga, sem a marca do id, conta para ele.
+        for (const antigo of Array.isArray(d.rotulosAntigos) ? d.rotulosAntigos : []) {
+            const r = typeof antigo === 'string' ? antigo.trim() : '';
+            if (r && !porRotulo.has(r)) porRotulo.set(r, alvo.id);
+        }
         if (d === alvo && d.logMode === 'append') {
             const props = d.properties && typeof d.properties === 'object' ? d.properties : {};
             const campos = Object.keys(props).filter(k => !CHAVES_GENERICAS.includes(k));

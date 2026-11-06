@@ -2,7 +2,9 @@
  * O arrasto da Missão (P6): mover a tarefa, a alça de ligar e a ideia da triagem, com o fantasma, a
  * dica perto do ponteiro, o laço da borda (anda no tempo e entre as asas, no mapa) e o soltar, que vira
  * a intenção de sempre (`intencaoDeSoltar`) ou a ligação dos dois cartões (`ligar`, a interação do
- * cartão, view/interacao.ts), e a gravação do componente. Vale em toda vista com cartões (o mapa, o
+ * cartão, view/interacao.ts), e a gravação do componente. A tarefa solta num cartão que não é do plano (o
+ * tempo, o projeto, a SMART, outra tarefa), como a cidade ou o país, faz o Ligar dos dois: o campo que os
+ * modelos dos tipos declaram entre eles (o acabamento, item 8 do roteiro, 05/11); sem campo, vale a linha. Vale em toda vista com cartões (o mapa, o
  * ramo, o Sistema; desde 30/10, os ramos também oferecem fazer conexões).
  *
  * Por quê: o passo `arrasto` da divisão da Missão (H5, tests/missao/modeloDfm.test.ts). O arrasto
@@ -41,6 +43,11 @@ export interface ContextoDoArrasto {
     ligar(de: string, para: string): void;
     /** O que a alça sobre outro cartão faria, em palavras (a dica perto do ponteiro). */
     previaDoLigar(de: string, para: string): string;
+    /**
+     * A tarefa solta num cartão que não é do plano: a prévia do Ligar dos dois quando ele tem o que gravar
+     * (um campo dos modelos entre os dois tipos); `null` = nada, e o soltar fica com a linha.
+     */
+    soltarLiga(de: string, para: string): string | null;
     modelo(): MissaoModelo | null;
     escala(): Escala;
     destruido(): boolean;
@@ -100,6 +107,8 @@ interface Gesto {
     pid: number;
     iniciado: boolean;
     alvo: IntencaoDaTela | null;
+    /** O cartão que não é do plano sob a tarefa, quando soltar nele é o Ligar dos dois (o campo dos modelos). */
+    ligarCom: string | null;
     /** O id do alvo sob o ponteiro (a linha ou o nó), para trazer a linha ao foco depois. */
     alvoId: string | null;
     fantasma: HTMLElement | null;
@@ -131,16 +140,34 @@ export function ligarArrasto(c: ContextoDoArrasto): ArrastoLigado {
         c.dropTip.style.left = `${Math.round(x + 14)}px`;
         c.dropTip.style.top = `${Math.round(y + 16)}px`;
     };
+    /** O nó do plano: o que recebe a tarefa pela tabela das setas (o projeto, a SMART, o período). */
+    const doPlano = (id: string) => id.startsWith('p:') || id.startsWith('s:') || !!periodoDoId(id);
     /** O alvo sob o ponteiro: um nó que recebe (projeto, SMART, período) ou uma linha que recebe. */
     function alvoDoSoltar(sob: Element | null): { id: string; el: Element } | null {
         const no = sob?.closest?.('[data-node]');
         if (no && naVista(no)) {
             const id = no.getAttribute('data-node') ?? '';
-            if (id.startsWith('p:') || id.startsWith('s:') || periodoDoId(id)) return { id, el: no };
+            if (doPlano(id)) return { id, el: no };
         }
         const row = sob?.closest?.('.row[data-drop]');
         if (row && c.track.contains(row)) return { id: idDoPeriodo(c.escala(), row.getAttribute('data-row') ?? ''), el: row };
         return null;
+    }
+    /**
+     * O que faz: o cartão sob a tarefa arrastada que não é do plano nem outra tarefa (a cidade, o país, a
+     * candidata), quando soltar nele grava o campo que os modelos declaram entre os dois tipos (o Ligar).
+     * Por quê: o gesto com o sentido do tipo de destino (item 8 do roteiro): a tarefa solta na cidade a põe no
+     * lugar dela, como o Ligar; antes, o soltar caía na linha do cartão e agendava para aquele dia. A outra
+     * tarefa fica com a linha (o arrasto no tempo de sempre): soltar numa tarefa tem mais de um sentido.
+     * Erro e ataque: o cartão fora da vista, a própria tarefa e o par sem campo entre os tipos dão `null`.
+     */
+    function cartaoQueLiga(sob: Element | null, id: string, modelo: MissaoModelo): { id: string; el: Element; previa: string } | null {
+        const no = sob?.closest?.('[data-node]');
+        if (!no || !naVista(no)) return null;
+        const outro = no.getAttribute('data-node') ?? '';
+        if (!outro || outro === id || doPlano(outro) || modelo.indice.porId.has(outro)) return null;
+        const previa = c.soltarLiga(id, outro);
+        return previa ? { id: outro, el: no, previa } : null;
     }
     /**
      * O laço da borda durante o arrasto: perto de cima ou de baixo anda no tempo, perto dos
@@ -201,7 +228,10 @@ export function ligarArrasto(c: ContextoDoArrasto): ArrastoLigado {
         const zona = sob?.closest?.('[data-tri-soltar]');
         g.soltarEm = zona && c.tri.contains(zona) && g.modo === 'mover' ? (zona.getAttribute('data-tri-soltar') as Gesto['soltarEm']) : null;
         if (zona && g.soltarEm) { zona.classList.add('hot'); dica(x, y, g.soltarEm === 'algum-dia' ? 'Algum dia' : 'Cancelar'); g.alvo = null; return; }
+        g.ligarCom = null;
         if (g.modo === 'mover') {
+            const liga = cartaoQueLiga(sob, g.id, modelo);
+            if (liga) { g.alvo = null; g.ligarCom = liga.id; g.alvoId = liga.id; liga.el.classList.add('hot-link'); dica(x, y, liga.previa); return; }
             const alvo = alvoDoSoltar(sob);
             g.alvo = alvo ? intencaoDeSoltar(modelo, g.id, alvo.id) : null;
             g.alvoId = alvo?.id ?? null;
@@ -245,6 +275,8 @@ export function ligarArrasto(c: ContextoDoArrasto): ArrastoLigado {
             if (g.alvoId) c.ligar(g.id, g.alvoId);
             return;
         }
+        // A tarefa solta num cartão que não é do plano: o Ligar dos dois (o campo dos modelos).
+        if (g.ligarCom) { c.ligar(g.id, g.ligarCom); return; }
         if (!g.alvo) return;
         const alvoId = g.alvoId;
         if (item && item.id === g.id) c.triarPorIntencao(item, g.alvo, () => c.aposSoltar(g.id, alvoId));
@@ -262,7 +294,7 @@ export function ligarArrasto(c: ContextoDoArrasto): ArrastoLigado {
         gesto = {
             modo: h ? 'ligar' : ideia ? 'ideia' : 'mover', id: ideia ? (alvo.getAttribute('data-tri-ideia') ?? '') : alvo.getAttribute(h ? 'data-handle' : 'data-node') ?? '', el: alvo,
             x0: ev.clientX, y0: ev.clientY, pid: ev.pointerId, iniciado: false, alvo: null, fantasma: null,
-            soltarEm: null, smartDaIdeia: null, daTriagem, alvoId: null, px: ev.clientX, py: ev.clientY, vr: null, mr: null,
+            soltarEm: null, smartDaIdeia: null, daTriagem, alvoId: null, ligarCom: null, px: ev.clientX, py: ev.clientY, vr: null, mr: null,
         };
         if (h) ev.preventDefault();
     });

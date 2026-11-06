@@ -1,0 +1,72 @@
+{
+    "id": "frase_nova",
+    "name": "🗣️ Frase nova",
+    "icon": "message-square-plus",
+    "description": "A captura do módulo de aprendizado: a frase que você ouviu ou escolheu vira um cartão `nova` na subpasta `Cartões/` do módulo, com o nome da nota igual à frase (sem `?` nem `/`), o `diga` (o que ela quer dizer, na sua língua: a frente do cartão) e a categoria. A frase que já tem cartão preserva o cartão, e a Day não registra nada (`preservadaSemRegistro`): a repetida não conta como nova. O resto (a `ordem` na trilha, a peça que acende, as peças lógicas, os conectores, o peso, o gancho, o nível e o corpo) fica para depois: o agente pode propor, e você confirma. O cartão entra na fila das novas do 🗣️ Inglês de hoje. O corpo vem do molde do cartão (`Templates/Cartao_template.md`), o mesmo do Novo da Missão. No pacote, o módulo de partida é `100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês` (o link `[[Inglês]]`): troque a pasta e o link pelo seu módulo, e a língua (`lingua`) pela que você aprende.",
+    "useCurrentDate": true,
+    "targetFolder": "100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês/Cartões",
+    "filename": "{{titulo_nome}}",
+    "overwriteExisting": false,
+    "templateFile": "200 - FUNCTIONS/Templates/Cartao_template.md",
+    "logMode": "link",
+    "dailyTimestampFormat": "HH:mm",
+    "dailyLedgerLabel": "🗣️ Frase nova",
+    "steps": [
+        {
+            "id": "titulo",
+            "type": "text",
+            "prompt": "🗣️ A frase, em inglês, como você ouviu ou escolheu",
+            "placeholder": "What made you choose this life?",
+            "trim": true,
+            "comoNome": true,
+            "required": true
+        },
+        {
+            "id": "diga",
+            "type": "text",
+            "prompt": "💬 O que ela quer dizer, na sua língua (a frente do cartão)",
+            "placeholder": "Perguntar, com curiosidade, o que levou a pessoa a escolher essa vida",
+            "trim": true,
+            "required": true
+        },
+        {
+            "id": "categoria",
+            "type": "select",
+            "prompt": "🗂️ Que tipo de frase é?",
+            "options": [
+                "🧰 Utilitária",
+                "❓ Pergunta que conecta",
+                "💬 Assunto seu",
+                "🤝 Conhecer alguém",
+                "🌍 Viagem",
+                "🫂 Socializar",
+                "💼 Trabalho",
+                "🔗 Conector"
+            ],
+            "optionValues": [
+                "utilitaria",
+                "pergunta",
+                "assunto",
+                "conhecer",
+                "viagem",
+                "socializar",
+                "trabalho",
+                "conector"
+            ]
+        }
+    ],
+    "properties": {
+        "type": "cartao",
+        "lingua": "en",
+        "modulo": "[[Inglês]]",
+        "diga": "{{diga}}",
+        "categoria": "{{categoria_value}}",
+        "estado": "nova",
+        "intervalo": 0,
+        "created": "{{date:YYYY-MM-DD}}"
+    },
+    "fase_uso": "nova",
+    "objetivo": "transformar a frase ouvida ou escolhida em um cartão novo, com o diga e a categoria",
+    "fase": "captura",
+    "preservadaSemRegistro": true
+}

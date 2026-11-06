@@ -8,13 +8,18 @@
  * |----------------------------|----------------------------------------------------|
  * | semana ↔ SMART ou ação     | `week` da tarefa                                   |
  * | dia ↔ ação                 | `scheduled` (a hora fica) e a `week` do dia        |
- * | "sem dia" ↔ ação           | tira `scheduled`; `week` = a semana do bloco       |
  * | SMART ↔ ação               | SMART mãe: acrescenta, herda `week`/`impacto` vazios |
  * | projeto ↔ SMART ou ação    | acrescenta o projeto em `projects`                 |
  * | tarefa → tarefa (mesmo nível) | `blockedBy` na de destino                       |
  *
  * Dia ↔ SMART não grava: a SMART é da semana; o dia vai na ação. Qualquer
  * outro par cujas duas pontas o DFM reconhece fica só como desenho.
+ *
+ * As pontas são o cabeçalho do canvas de projeto (`dfm-pc-proj`) e os nós de
+ * arquivo (tarefa, nota da semana, nota do dia, índice ou `.canvas` de projeto).
+ * A célula da semana (`dfm-qw-*`), o bloco do dia e o "📥 sem dia" (`dfm-q?-*`)
+ * dos canvas do trimestre e da semana saíram em 06/11/2026: os canvas se
+ * aposentaram em 02/11 e estão no Arquivo, onde abrem sem setas que gravam.
  *
  * `week` e `scheduled`: o último gesto vence. Mãe e projeto: a seta acrescenta
  * o vínculo e não apaga os outros (a regra do "Ligar a uma SMART…", que usa a
@@ -44,7 +49,6 @@ import { listOf } from '../tasks/taskRecord';
 import { isManagedId } from './managedIds';
 import type { KeepEdge } from './managedIds';
 import { dayLabel, isoWeekOf, shortWeek } from '../engine/calendario';
-import { ehDia } from '../engine/dia';
 
 /* ---------------------------------------------------------------- tipos */
 
@@ -73,18 +77,13 @@ export type NoteRef =
 
 export type End =
     | { kind: 'week'; week: string }
-    /** `date: null` é o "📥 sem dia" de um bloco da semana. */
-    | { kind: 'day'; date: string | null; week: string }
+    | { kind: 'day'; date: string; week: string }
     | { kind: 'smart'; task: LinkTask }
     | { kind: 'action'; task: LinkTask }
     | { kind: 'project'; project: ProjectRef };
 
 /** O que os gerentes de canvas sabem dos próprios ids geridos. */
 export interface ManagedScope {
-    /** Semana de cada bloco gerido, pelo prefixo (`dfm-qs-` → a semana em foco do trimestre). */
-    blockWeeks?: Record<string, string>;
-    /** Projeto de cada nó `<prefixo>pj-<hash>` (hash de `hashId(nome)`). */
-    projectsByHash?: Record<string, ProjectRef>;
     /** Projeto de cada nota-índice ou `.canvas` de projeto, pelo caminho. */
     projectsByFile?: Record<string, ProjectRef>;
     /** Projeto de um nó gerido pelo id exato (o cabeçalho `dfm-pc-proj` do canvas do projeto). */
@@ -109,7 +108,7 @@ export interface Link {
     /** Nome da tarefa que muda (para o aviso). */
     name: string;
     taskKind: 'smart' | 'action';
-    /** Semana, data (ou `null` = sem dia), SMART mãe, projeto ou tarefa que bloqueia. */
+    /** Semana, data, SMART mãe, projeto ou tarefa que bloqueia. */
     value: string | null;
     /** `scheduled`: a semana do dia. */
     week?: string;
@@ -127,10 +126,6 @@ export interface CanvasLike { nodes?: NodeLike[]; edges?: EdgeLike[] }
 
 /* --------------------------------------------------------------- pontas */
 
-// Forma própria (não é a `SEMANA`): o id da célula da semana no canvas do trimestre (`dfm-qw-AAAA-Www`), não a semana.
-const CELL = /^dfm-qw-(\d{4}-W\d{2})$/;
-const BLOCK = /^(dfm-q[a-z]-)(.+)$/;
-
 /** Classifica a ponta de uma seta. `null` = o DFM não sabe o que é (anotação). */
 export function endOf(node: NodeLike | null | undefined, ctx: EdgeContext): End | null {
     if (!node) return null;
@@ -138,24 +133,6 @@ export function endOf(node: NodeLike | null | undefined, ctx: EdgeContext): End 
 
     const head = ctx.projectNodes?.[id];
     if (head) return { kind: 'project', project: head };
-
-    const cell = id.match(CELL);
-    if (cell) return { kind: 'week', week: cell[1] };
-
-    const block = id.match(BLOCK);
-    if (block && block[1] !== 'dfm-qw-') {
-        const [, prefix, rest] = block;
-        const week = ctx.blockWeeks?.[prefix] ?? null;
-        if (rest === 'week') return week ? { kind: 'week', week } : null;
-        if (rest === 'nodate') return week ? { kind: 'day', date: null, week } : null;
-        const day = rest.startsWith('day-') && ehDia(rest.slice(4)) ? rest.slice(4) : '';
-        if (day) return { kind: 'day', date: day, week: isoWeekOf(day) };
-        const pj = rest.match(/^pj-([a-z0-9]+)$/);
-        if (pj) {
-            const project = ctx.projectsByHash?.[pj[1]];
-            return project ? { kind: 'project', project } : null;
-        }
-    }
 
     if (node.type !== 'file' || typeof node.file !== 'string') return null;
     const path = node.file;
@@ -360,12 +337,8 @@ export function patchFor(fm: Record<string, any>, link: Link): Patch | null {
             if (!same(fm.week, link.value)) patch.week = link.value;
             break;
         case 'scheduled': {
-            if (link.value) {
-                const next = `${link.value}${timeOf(fm.scheduled)}`;
-                if (!same(fm.scheduled, next)) patch.scheduled = next;
-            } else if (fm.scheduled !== undefined && fm.scheduled !== null && fm.scheduled !== '') {
-                patch.scheduled = null;
-            }
+            const next = `${link.value}${timeOf(fm.scheduled)}`;
+            if (!same(fm.scheduled, next)) patch.scheduled = next;
             if (link.week && !same(fm.week, link.week)) patch.week = link.week;
             break;
         }
@@ -461,7 +434,7 @@ const who = (kind: 'smart' | 'action') => (kind === 'smart' ? 'SMART' : 'Ação'
 export function linkLabel(link: Link): string {
     switch (link.kind) {
         case 'week': return `${who(link.taskKind)} ${link.name} → ${shortWeek(String(link.value))}`;
-        case 'scheduled': return `Ação ${link.name} → ${link.value ? dayLabel(link.value) : 'sem dia'} (${shortWeek(String(link.week))})`;
+        case 'scheduled': return `Ação ${link.name} → ${dayLabel(String(link.value))} (${shortWeek(String(link.week))})`;
         case 'mother': return `Ação ${link.name} → SMART ${link.value}`;
         case 'project': return `${who(link.taskKind)} ${link.name} → projeto ${link.value}`;
         case 'blockedBy': return `${link.value} bloqueia ${link.name}`;
@@ -473,7 +446,7 @@ export function unlinkLabel(link: Link): string {
     const target = (() => {
         switch (link.kind) {
             case 'week': return `${who(link.taskKind)} ${link.name} ↛ ${shortWeek(String(link.value))}`;
-            case 'scheduled': return `Ação ${link.name} ↛ ${link.value ? dayLabel(link.value) : 'sem dia'}`;
+            case 'scheduled': return `Ação ${link.name} ↛ ${dayLabel(String(link.value))}`;
             case 'mother': return `Ação ${link.name} ↛ SMART ${link.value}`;
             case 'project': return `${who(link.taskKind)} ${link.name} ↛ projeto ${link.value}`;
             case 'blockedBy': return `${link.value} ↛ ${link.name} (não bloqueia mais)`;
@@ -485,7 +458,7 @@ export function unlinkLabel(link: Link): string {
 function endName(end: End): string {
     switch (end.kind) {
         case 'week': return shortWeek(end.week);
-        case 'day': return end.date ? dayLabel(end.date) : 'sem dia';
+        case 'day': return dayLabel(end.date);
         case 'smart': return `SMART ${end.task.basename}`;
         case 'action': return end.task.basename;
         case 'project': return end.project.name;

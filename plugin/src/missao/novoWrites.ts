@@ -1,6 +1,8 @@
 /**
  * As gravações do Novo (P8): a tarefa pela API do TaskNotes, com a herança da SMART e o
- * Desfazer, e a tarefa pelo formulário nativo do TaskNotes ("Abrir no TaskNotes").
+ * Desfazer, e a tarefa pelo formulário nativo do TaskNotes ("Abrir no TaskNotes"). As duas
+ * saem com o frontmatter na forma única do criador de tarefa (`tasknotesCreate.frontmatterDaTarefaNova`):
+ * a primeira pela borda única, a segunda pelo patch de depois do formulário (06/11).
  *
  * Por quê: a arquitetura da página Missão (§4.3, §4.4, §8.3) e o P8: "a tarefa pelo TaskNotes"
  * (o formulário curto), com o `type: task` que a API não grava sozinha (`tasknotesCreate.ts`), e
@@ -15,7 +17,7 @@
  * Os efeitos chegam pela borda (`DepsDoNovo`); aqui não há Obsidian. Prova: tests/missao/novoWrites.test.ts.
  */
 import { motherLink, patchFor, type LinkTask, type Patch } from '../canvas/edgeLinks';
-import { pedidoDoFrontmatter, TIPO_DA_TAREFA, type PedidoDeCriacao } from '../engine/tasknotesCreate';
+import { patchDaFormaUnica, pedidoDoFrontmatter, TIPO_DA_TAREFA, type PedidoDeCriacao } from '../engine/tasknotesCreate';
 import { frontmatterInicial, type PedidoDaNota } from './novo';
 import type { Gravado, PilhaDoDesfazer } from './missaoWrites';
 import type { Avisar, ResultadoDaGravacao } from './tipos';
@@ -42,6 +44,16 @@ export interface DepsDoNovo {
     criarNota?(pasta: string, nome: string, fm: Record<string, unknown>, molde?: PedidoDaNota['molde']): Promise<string>;
     /** `store.scheduleRefresh()`. */
     refrescar(): void;
+    /**
+     * O carimbo do momento (`dia.carimboDoMomento`), para a data de criação que o formulário do TaskNotes
+     * não gravou. Sem ele, a data que falta fica faltando.
+     */
+    carimbo?(): string;
+    /**
+     * O status que a tarefa da entrada ganha ao ganhar um lugar no tempo (a regra D1 de 02/11, `statusAoGanharLugar`,
+     * pela tabela do modelo); `null` = o status fica. Sem ele, o status fica como o formulário deu.
+     */
+    aoGanharLugar?(status: string): string | null;
 }
 
 /** O resultado da criação: o da gravação e o caminho da nota nova. */
@@ -129,8 +141,11 @@ export class GravacoesDoNovo {
 
     /**
      * O que faz: "Abrir no TaskNotes": o formulário nativo, preenchido com o título, o onde, a
-     * estimativa e o projeto (com a herança); depois que ele salva, o `type: task` que ele não
-     * grava e a herança da mãe, pelo patch de sempre (só o que veio vazio).
+     * estimativa e o projeto (com a herança), para a pessoa completar; depois que ele salva, a herança
+     * da mãe pelo patch de sempre (só o que veio vazio) e o frontmatter na forma única do criador de
+     * tarefa (`patchDaFormaUnica`: o `type`, a tag `task`, as listas e os números; o `status`, a
+     * prioridade e a data de criação que o formulário deu ficam), numa gravação só. A tarefa que ganhou a semana ou
+     * o dia (da mãe, ou no formulário) sai da entrada pela regra D1 (06/11), no mesmo patch; o status escolhido fica.
      * Entra → sai: os valores conferidos, a SMART mãe e o aviso → o resultado (o formulário
      * fechado sem salvar não cria nada).
      */
@@ -142,12 +157,18 @@ export class GravacoesDoNovo {
         const agora = this.mae(smart);
         await this.deps.atualizarTarefa(caminho, fm => {
             const patch: Patch = {};
-            if (!fm.type) patch.type = TIPO_DA_TAREFA;
             const nome = String(fm.title ?? caminho.slice(caminho.lastIndexOf('/') + 1).replace(/\.md$/, ''));
             // A herança só se a tarefa ficou na SMART (no formulário dele, o operador pode ter trocado).
             const naMae = agora && typeof agora !== 'string' && (Array.isArray(fm.projects) ? fm.projects : [fm.projects])
                 .some(l => String(l ?? '').replace(/^\[\[|\]\]$/g, '').split('|')[0].trim().toLowerCase() === agora.basename.toLowerCase());
             if (naMae) Object.assign(patch, patchFor(fm, motherLink({ path: caminho, basename: nome }, agora as LinkTask)) ?? {});
+            Object.assign(patch, patchDaFormaUnica({ ...fm, ...patch }, this.deps.carimbo?.() ?? '') ?? {});
+            // A regra D1 (02/11), no mesmo patch (06/11): com a semana (ou o dia) que herdou da mãe, a tarefa sai da
+            // entrada; o status que a pessoa escolheu no formulário (outro que não o da entrada) fica.
+            const final = { ...fm, ...patch };
+            const temLugar = [final.week, final.scheduled].some(v => String(v ?? '').trim());
+            const saiDaEntrada = temLugar ? this.deps.aoGanharLugar?.(String(final.status ?? '')) ?? null : null;
+            if (saiDaEntrada && saiDaEntrada !== final.status) patch.status = saiDaEntrada;
             return Object.keys(patch).length ? patch : null;
         });
         this.deps.refrescar();

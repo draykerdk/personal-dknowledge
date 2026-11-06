@@ -114,17 +114,23 @@ export function grammarCounts(units: readonly GrammarUnit[], horizon: GrammarHor
 }
 
 /**
+ * Os nomes da feita e do plano na linha. A ordem, os sinais e o resto da linha não mudam; o aprendizado (05/11) diz
+ * "4 dominadas · 4/12 do nível · faltam 8": a mesma conta, com o nome do que se conta.
+ */
+export interface GrammarLabels { feita: string; feitas: string; plano: string }
+
+/**
  * O que faz: a linha da forma de mostrar: "3 feitas · 3/5 do plano · faltam 2 ·
  * +4 fora do plano · +1 algum dia". O que está zerado não aparece; a ordem e os
  * rótulos não mudam. Sem nada para contar, o texto de ausência (`empty`, "sem ações"
  * no cartão da SMART): ausência não é zero.
  * Prova: tests/engine/showGrammar.test.ts.
  */
-export function grammarText(c: GrammarCounts, empty = 'sem ações'): string {
+export function grammarText(c: GrammarCounts, empty = 'sem ações', rotulos?: GrammarLabels): string {
     if (c.feitas === 0 && c.plano === 0 && c.algumDia === 0) return empty;
     const parts: string[] = [];
-    if (c.feitas) parts.push(`${c.feitas} ${c.feitas === 1 ? 'feita' : 'feitas'}`);
-    if (c.plano) parts.push(`${c.planoFeitas}/${c.plano} do plano`);
+    if (c.feitas) parts.push(rotulos ? `${c.feitas} ${c.feitas === 1 ? rotulos.feita : rotulos.feitas}` : `${c.feitas} ${c.feitas === 1 ? 'feita' : 'feitas'}`);
+    if (c.plano) parts.push(rotulos ? `${c.planoFeitas}/${c.plano} ${rotulos.plano}` : `${c.planoFeitas}/${c.plano} do plano`);
     if (c.faltam) parts.push(`faltam ${c.faltam}`);
     if (c.fora) parts.push(`+${c.fora} fora do plano`);
     if (c.algumDia) parts.push(`+${c.algumDia} algum dia`);

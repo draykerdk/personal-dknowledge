@@ -1,0 +1,396 @@
+{
+  "dfm": 1,
+  "system": "temporal",
+  "purpose": "As notas de período do dfm-system (`src/temporal`): a Week e o trimestre que o Calendar ou o Periodic Notes criam crus, preenchidos como se o DFM os tivesse criado, e a leitura da nota do trimestre e da semana em foco. É o que sobrou da pasta depois da aposentadoria dos canvas da semana e do trimestre (02/11/2026). Este mapa declara os módulos e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "modules": [
+    {
+      "id": "fn.reparo",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. Diz se um caminho é a nota de uma semana ou de um trimestre, se ela nasceu crua (a cópia do modelo, com os tokens sem trocar) e monta o texto preenchido pelo mesmo modelo e pelos mesmos tokens que o DFM usa ao criar.",
+      "why": "A decisão de 27/10/2026 (\"vamos de B\"): a nota criada pelo mini calendário tem de sair igual à que o DFM cria; a conta fica testável sem o cofre.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/diaNosLeitores.test.ts tests/temporal/periodNoteRepair.test.ts tests/temporal/periodNoteRepairWatcher.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine"
+      ],
+      "used_by": [
+        "liga.reparo"
+      ]
+    },
+    {
+      "id": "liga.leitura",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. Lê do cache de metadados a nota do trimestre, a nota de uma semana (e um campo dela) e a semana em foco do trimestre; só lê.",
+      "why": "As leituras moravam no gerente do canvas do trimestre, que se aposentou em 02/11/2026; o painel e o cabeçalho do canvas de projeto seguem lendo por aqui.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/temporal/periodNotes.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine",
+        "ext.obsidian"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "liga.reparo",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. Escuta o `create` do vault e o comando do reparo, e regrava uma vez a nota de período que nasceu crua, pelo fn.reparo.",
+      "why": "O efeito (a escuta, a leitura e a gravação) fica fora das funções, num lugar só.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/temporal/periodNoteRepairWatcher.test.ts"
+      ],
+      "connects_to": [
+        "ext.obsidian",
+        "fn.reparo"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.reparo",
+        "liga.leitura"
+      ]
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "state": "standard",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.leitura",
+        "liga.reparo"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "periodNoteAt",
+      "path": "periodNoteRepair.ts",
+      "line": 95,
+      "module": "fn.reparo",
+      "summary": "a nota de período de um caminho (filha direta da pasta, nome do período, `.md`), ou `null`.",
+      "card": {
+        "does": "a nota de período de um caminho (filha direta da pasta, nome do período, `.md`), ou `null`.",
+        "why": "só a nota de semana e de trimestre nasce crua do Calendar e do Periodic Notes.",
+        "errors": "semana que não existe no ano (`2025-W53`), subpasta (`Week/Canvases/`), outra extensão e nome com sufixo ficam de fora."
+      }
+    },
+    {
+      "name": "modelPathOf",
+      "path": "periodNoteRepair.ts",
+      "line": 109,
+      "module": "fn.reparo",
+      "summary": "O caminho do modelo de que a nota nasce.",
+      "card": {}
+    },
+    {
+      "name": "periodRenderContext",
+      "path": "periodNoteRepair.ts",
+      "line": 122,
+      "module": "fn.reparo",
+      "summary": "as variáveis e o relógio que o protocolo monta com a nota aberta: a data de contexto é hoje, se hoje cai no período, ou o primeiro dia dele (`contextDayOf`); a semana-alvo é a da nota (`targetWeekStart` com `_active_basename`); o trimestre-alvo é o da data de contexto.",
+      "card": {
+        "does": "as variáveis e o relógio que o protocolo monta com a nota aberta: a data de contexto é hoje, se hoje cai no período, ou o primeiro dia dele (`contextDayOf`); a semana-alvo é a da nota (`targetWeekStart` com `_active_basename`); o trimestre-alvo é o da data de contexto.",
+        "why": "\"como se o DFM a tivesse criado\" é renderizar com o mesmo relógio.",
+        "io": "a nota, hoje (`AAAA-MM-DD`), o moment e o relógio de verdade → o contexto, ou `null` se o período não se lê."
+      }
+    },
+    {
+      "name": "periodFields",
+      "path": "periodNoteRepair.ts",
+      "line": 150,
+      "module": "fn.reparo",
+      "summary": "os campos que o protocolo grava pelo período: na semana, `week` e `quarter` (o da quinta-feira, `quarterOfWeek`); no trimestre, `quarter` e `year`.",
+      "card": {
+        "does": "os campos que o protocolo grava pelo período: na semana, `week` e `quarter` (o da quinta-feira, `quarterOfWeek`); no trimestre, `quarter` e `year`.",
+        "why": "o 🌳 grava `week` e `quarter` (`{{weekday:_target_week:4:YYYY-[Q]Q}}`), e o planejamento trimestral, `quarter` e `year`."
+      }
+    },
+    {
+      "name": "comparableText",
+      "path": "periodNoteRepair.ts",
+      "line": 156,
+      "module": "fn.reparo",
+      "summary": "O texto para comparar: sem BOM, `\\n` como quebra, sem espaço no fim da linha nem linhas vazias no fim.",
+      "card": {}
+    },
+    {
+      "name": "fillEmptyFields",
+      "path": "periodNoteRepair.ts",
+      "line": 172,
+      "module": "fn.reparo",
+      "summary": "preenche, no frontmatter, cada campo de `fields` que está vazio (`campo:`, `campo: \"\"` ou `campo: ''`), como `campo: \"valor\"`. Nenhuma outra linha muda; campo ausente não é criado; campo com valor, ou com lista nas linhas seguintes, fica.",
+      "card": {
+        "does": "preenche, no frontmatter, cada campo de `fields` que está vazio (`campo:`, `campo: \"\"` ou `campo: ''`), como `campo: \"valor\"`. Nenhuma outra linha muda; campo ausente não é criado; campo com valor, ou com lista nas linhas seguintes, fica.",
+        "why": "\"preencher `week`/`quarter` só se vazio\", sem regravar o YAML inteiro."
+      }
+    },
+    {
+      "name": "renderPeriodNote",
+      "path": "periodNoteRepair.ts",
+      "line": 196,
+      "module": "fn.reparo",
+      "summary": "o modelo renderizado para o período: o renderizador do protocolo (`renderTemplateTokens`) e os campos do período preenchidos.",
+      "card": {
+        "does": "o modelo renderizado para o período: o renderizador do protocolo (`renderTemplateTokens`) e os campos do período preenchidos.",
+        "proof": "tests/temporal/periodNoteRepair.test.ts."
+      }
+    },
+    {
+      "name": "repairPlan",
+      "path": "periodNoteRepair.ts",
+      "line": 211,
+      "module": "fn.reparo",
+      "summary": "decide o reparo da nota recém-criada: só a cópia intocada do modelo (igual ao texto atual dele, tolerando espaço no fim da linha e a quebra de linha) vira o modelo renderizado. Qualquer linha a mais ou diferente: nada.",
+      "card": {
+        "does": "decide o reparo da nota recém-criada: só a cópia intocada do modelo (igual ao texto atual dele, tolerando espaço no fim da linha e a quebra de linha) vira o modelo renderizado. Qualquer linha a mais ou diferente: nada.",
+        "why": "nunca tocar uma nota que tem algo além da cópia crua.",
+        "io": "o texto da nota, o do modelo, a nota e o contexto → o plano.",
+        "errors": "modelo vazio ou sem marcador a preencher → nada (o texto renderizado não é cópia crua, então reparar duas vezes não muda nada).",
+        "proof": "tests/temporal/periodNoteRepair.test.ts."
+      }
+    },
+    {
+      "name": "fillRawMarkers",
+      "path": "periodNoteRepair.ts",
+      "line": 230,
+      "module": "fn.reparo",
+      "summary": "na nota que já tem conteúdo do operador, troca só os marcadores de data crus que o renderizador conhece (`resolveDateTokens`), fora dos blocos de código, e preenche `week`/`quarter` (ou `quarter`/`year`) vazios. Nenhuma outra linha muda.",
+      "card": {
+        "does": "na nota que já tem conteúdo do operador, troca só os marcadores de data crus que o renderizador conhece (`resolveDateTokens`), fora dos blocos de código, e preenche `week`/`quarter` (ou `quarter`/`year`) vazios. Nenhuma outra linha muda.",
+        "why": "a W43 nasceu crua e já tem o que ele escreveu (27/10/2026).",
+        "io": "o texto, a nota e o contexto → o texto novo, quantos marcadores e quais campos foram preenchidos.",
+        "errors": "`{{nome}}` de protocolo e `[[ ]]` ficam como estão (são do texto dele); código em bloco (```dataviewjs) não é tocado.",
+        "proof": "tests/temporal/periodNoteRepair.test.ts."
+      }
+    },
+    {
+      "name": "dayNoteAt",
+      "path": "periodNoteRepair.ts",
+      "line": 293,
+      "module": "fn.reparo",
+      "summary": "a Day de um caminho (filha direta da pasta da Day, nome `AAAA-MM-DD` de uma data que existe, `.md`), ou `null`.",
+      "card": {
+        "does": "a Day de um caminho (filha direta da pasta da Day, nome `AAAA-MM-DD` de uma data que existe, `.md`), ou `null`.",
+        "errors": "subpasta, nome com sufixo (`2026-10-27 - Nota`), data impossível (`2026-02-30`) e outra extensão ficam de fora."
+      }
+    },
+    {
+      "name": "dayQuarterOf",
+      "path": "periodNoteRepair.ts",
+      "line": 308,
+      "module": "fn.reparo",
+      "summary": "o trimestre de uma data pela regra da quinta-feira: o da semana ISO dela (`quarterOfWeek(isoWeekOf(data))`). 2026-09-28 (W40) → 2026-Q4; 2026-12-31 (W53) → 2026-Q4; 2027-01-01 (sexta da 2026-W53) → 2026-Q4. Data ilegível → `null`.",
+      "card": {
+        "does": "o trimestre de uma data pela regra da quinta-feira: o da semana ISO dela (`quarterOfWeek(isoWeekOf(data))`). 2026-09-28 (W40) → 2026-Q4; 2026-12-31 (W53) → 2026-Q4; 2027-01-01 (sexta da 2026-W53) → 2026-Q4. Data ilegível → `null`."
+      }
+    },
+    {
+      "name": "fixDayQuarter",
+      "path": "periodNoteRepair.ts",
+      "line": 328,
+      "module": "fn.reparo",
+      "summary": "troca só o valor de `quarter:` no frontmatter pelo trimestre da semana da data, quando ele difere. O valor que estava vazio (`quarter:`, `quarter: \"\"`) ou era um trimestre (`2026-Q3`, com ou sem aspas) muda; as aspas que havia ficam. Nenhuma outra linha muda; campo ausente não é criado; valor que não é trimestre (texto dele, lista) fica como está.",
+      "card": {
+        "does": "troca só o valor de `quarter:` no frontmatter pelo trimestre da semana da data, quando ele difere. O valor que estava vazio (`quarter:`, `quarter: \"\"`) ou era um trimestre (`2026-Q3`, com ou sem aspas) muda; as aspas que havia ficam. Nenhuma outra linha muda; campo ausente não é criado; valor que não é trimestre (texto dele, lista) fica como está.",
+        "io": "o texto e a data → o texto e o que mudou.",
+        "proof": "tests/temporal/periodNoteRepair.test.ts (\"o trimestre da Day\")."
+      }
+    },
+    {
+      "name": "dayQuarterPlan",
+      "path": "periodNoteRepair.ts",
+      "line": 368,
+      "module": "fn.reparo",
+      "summary": "decide a correção do `quarter` da Day recém-criada. Só a Day que acabou de nascer do modelo (o corpo, depois do frontmatter, igual ao do modelo atual, tolerando espaço no fim da linha e as linhas vazias das pontas) tem o `quarter` corrigido; a Day com qualquer coisa a mais (texto dele, um registro) fica como está.",
+      "card": {
+        "does": "decide a correção do `quarter` da Day recém-criada. Só a Day que acabou de nascer do modelo (o corpo, depois do frontmatter, igual ao do modelo atual, tolerando espaço no fim da linha e as linhas vazias das pontas) tem o `quarter` corrigido; a Day com qualquer coisa a mais (texto dele, um registro) fica como está.",
+        "why": "\"nunca nas notas que já existem, nunca nas edições\" (27/10/2026). O `create` também chega para a Day que o Sync ou um checkout trazem: com o corpo diferente do modelo de hoje, ela não é uma Day que nasceu agora.",
+        "io": "o texto da Day, o do modelo e a data → o plano.",
+        "proof": "tests/temporal/periodNoteRepair.test.ts (\"o trimestre da Day\")."
+      }
+    },
+    {
+      "name": "dayQuarterNoticeText",
+      "path": "periodNoteRepair.ts",
+      "line": 378,
+      "module": "fn.reparo",
+      "summary": "O aviso da correção: \"Day 2026-09-28: trimestre 2026-Q4 (o da quinta-feira da semana)\".",
+      "card": {}
+    },
+    {
+      "name": "renderDayNote",
+      "path": "periodNoteRepair.ts",
+      "line": 391,
+      "module": "fn.reparo",
+      "summary": "o modelo da Day com os marcadores que o Periodic Notes resolve: `{{date}}` e `{{time}}` (com deslocamento, `{{date+1d:FMT}}`, e formato), `{{title}}` e os dias da semana (`{{monday:FMT}}`), e depois o `quarter` pela regra da quinta-feira.",
+      "card": {
+        "does": "o modelo da Day com os marcadores que o Periodic Notes resolve: `{{date}}` e `{{time}}` (com deslocamento, `{{date+1d:FMT}}`, e formato), `{{title}}` e os dias da semana (`{{monday:FMT}}`), e depois o `quarter` pela regra da quinta-feira.",
+        "why": "o `createDailyNote` do plugin replica o Periodic Notes; a regra dele, aqui, pode ser conferida sem criar nota (`periodNotes.previewDay('2026-10-28')`).",
+        "io": "o modelo, o dia (moment), o formato do nome e o agora (moment) → o texto.",
+        "proof": "tests/temporal/periodNoteRepair.test.ts (\"o trimestre da Day\")."
+      }
+    },
+    {
+      "name": "periodLabelOf",
+      "path": "periodNoteRepair.ts",
+      "line": 415,
+      "module": "fn.reparo",
+      "summary": "O nome do período no aviso: \"Semana 2026-W44\", \"Trimestre 2026-Q4\".",
+      "card": {}
+    },
+    {
+      "name": "repairNoticeText",
+      "path": "periodNoteRepair.ts",
+      "line": 420,
+      "module": "fn.reparo",
+      "summary": "O aviso do reparo: \"Semana 2026-W44 preenchida pelo modelo\".",
+      "card": {}
+    },
+    {
+      "name": "fillNoticeText",
+      "path": "periodNoteRepair.ts",
+      "line": 425,
+      "module": "fn.reparo",
+      "summary": "O aviso do \"Preencher os marcadores crus desta nota\".",
+      "card": {}
+    },
+    {
+      "name": "PeriodNoteRepairWatcher.register",
+      "path": "periodNoteRepairWatcher.ts",
+      "line": 69,
+      "module": "liga.reparo",
+      "summary": "Liga a escuta do `create` e o comando.",
+      "card": {}
+    },
+    {
+      "name": "PeriodNoteRepairWatcher.onCreateDay",
+      "path": "periodNoteRepairWatcher.ts",
+      "line": 125,
+      "module": "liga.reparo",
+      "summary": "A Day recém-criada: se nasceu do modelo e o `quarter` difere do da semana, troca só essa linha, uma vez. Nota que já tinha algo além do modelo: nada.",
+      "card": {}
+    },
+    {
+      "name": "PeriodNoteRepairWatcher.onCreate",
+      "path": "periodNoteRepairWatcher.ts",
+      "line": 156,
+      "module": "liga.reparo",
+      "summary": "A nota recém-criada: lê com espera e, se for a cópia crua do modelo, regrava uma vez.",
+      "card": {}
+    },
+    {
+      "name": "PeriodNoteRepairWatcher.fillActive",
+      "path": "periodNoteRepairWatcher.ts",
+      "line": 191,
+      "module": "liga.reparo",
+      "summary": "O comando: troca os marcadores crus da nota ativa e preenche os campos vazios.",
+      "card": {}
+    },
+    {
+      "name": "PeriodNoteRepairWatcher.preview",
+      "path": "periodNoteRepairWatcher.ts",
+      "line": 211,
+      "module": "liga.reparo",
+      "summary": "O modelo renderizado para um período (`2026-W45`, `2026-Q4`), sem gravar nada.",
+      "card": {}
+    },
+    {
+      "name": "PeriodNoteRepairWatcher.previewDay",
+      "path": "periodNoteRepairWatcher.ts",
+      "line": 223,
+      "module": "liga.reparo",
+      "summary": "O modelo da Day para uma data (`2026-10-28`), resolvido como o Periodic Notes o resolve (`{{date:…}}`), com o `quarter` da semana, sem gravar nada.",
+      "card": {}
+    },
+    {
+      "name": "PeriodNotes.quarterNote",
+      "path": "periodNotes.ts",
+      "line": 32,
+      "module": "liga.leitura",
+      "summary": "a nota do trimestre (`type: quarterly_note`, `quarter` ou o nome), fora de P&D; sem ela, `null`.",
+      "card": {
+        "does": "a nota do trimestre (`type: quarterly_note`, `quarter` ou o nome), fora de P&D; sem ela, `null`."
+      }
+    },
+    {
+      "name": "PeriodNotes.weekNotePath",
+      "path": "periodNotes.ts",
+      "line": 40,
+      "module": "liga.leitura",
+      "summary": "o caminho da nota de uma semana (`type: weekly_note`); duas para a mesma semana: a de menor caminho.",
+      "card": {
+        "does": "o caminho da nota de uma semana (`type: weekly_note`); duas para a mesma semana: a de menor caminho."
+      }
+    },
+    {
+      "name": "PeriodNotes.weekNoteField",
+      "path": "periodNotes.ts",
+      "line": 51,
+      "module": "liga.leitura",
+      "summary": "um campo do frontmatter da nota da semana (cru); sem nota ou sem o campo, `undefined`.",
+      "card": {
+        "does": "um campo do frontmatter da nota da semana (cru); sem nota ou sem o campo, `undefined`."
+      }
+    },
+    {
+      "name": "PeriodNotes.weekNotes",
+      "path": "periodNotes.ts",
+      "line": 58,
+      "module": "liga.leitura",
+      "summary": "as notas de semana das semanas do trimestre, com o estado e o `quarter` que cada uma diz.",
+      "card": {
+        "does": "as notas de semana das semanas do trimestre, com o estado e o `quarter` que cada uma diz."
+      }
+    },
+    {
+      "name": "PeriodNotes.focus",
+      "path": "periodNotes.ts",
+      "line": 68,
+      "module": "liga.leitura",
+      "summary": "a semana em foco do trimestre, com o rótulo do caso (`chooseFocusWeek`).",
+      "card": {
+        "does": "a semana em foco do trimestre, com o rótulo do caso (`chooseFocusWeek`)."
+      }
+    },
+    {
+      "name": "PeriodNotes.focusWeek",
+      "path": "periodNotes.ts",
+      "line": 73,
+      "module": "liga.leitura",
+      "summary": "só a semana em foco do trimestre.",
+      "card": {
+        "does": "só a semana em foco do trimestre."
+      }
+    }
+  ]
+}

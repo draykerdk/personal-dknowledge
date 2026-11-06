@@ -212,7 +212,9 @@ function conferirLinha(m: MissaoModelo, raw: Record<string, unknown>, valor: str
     const onde = m.noDaNota(nota!)?.titulo ?? valor;
     return {
         acao: 'linha', tarefa: null, nota: nota!, alvo, titulo: linha, secao, linha, porque,
-        texto: `Escrever em ${onde}, ${secao.replace(/^#+\s*/, '')}: "${linha}"`,
+        // O texto diz só o lugar (o porquê vem ao lado): a linha já é o título da proposta (a percorrida de 06/11 a
+        // leu duas vezes, no título e no texto).
+        texto: `Escrever em ${onde}, ${secao.replace(/^#+\s*/, '')}`,
     };
 }
 

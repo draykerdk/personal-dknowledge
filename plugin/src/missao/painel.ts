@@ -20,6 +20,8 @@ export interface ContextoDosNos {
     porAlvo: Map<string, Sinal[]>;
     /** A próxima ação real de um projeto, a do modelo (02/11); sem ela, o cartão não a mostra. */
     proxima?: (id: string) => ProximaAcao | null;
+    /** A linha do centro do módulo de aprendizado (05/11); sem ela, o cartão não a mostra. */
+    aprendizado?: (id: string) => string | null;
 }
 
 /**
@@ -31,7 +33,12 @@ export interface ContextoDosNos {
  * Erro e ataque: sem sinais, o mapa vem vazio; os registros são os do índice, como vieram.
  * Prova: tests/missao/painel.test.ts.
  */
-export function contextoDoPainel(modelo: Pick<MissaoModelo, 'indice' | 'sinais' | 'proximaAcao'>): ContextoDosNos {
+export function contextoDoPainel(modelo: Pick<MissaoModelo, 'indice' | 'sinais' | 'proximaAcao' | 'aprendizadoDoProjeto'>): ContextoDosNos {
     const proxima = modelo.proximaAcao;
-    return { indice: modelo.indice, registros: modelo.indice.registros as BlockTask[], porAlvo: sinaisPorAlvo(modelo.sinais), ...(proxima ? { proxima: (id: string) => proxima(id) } : {}) };
+    const centro = modelo.aprendizadoDoProjeto;
+    return {
+        indice: modelo.indice, registros: modelo.indice.registros as BlockTask[], porAlvo: sinaisPorAlvo(modelo.sinais),
+        ...(proxima ? { proxima: (id: string) => proxima(id) } : {}),
+        ...(centro ? { aprendizado: (id: string) => centro(id)?.linhaDoCartao ?? null } : {}),
+    };
 }

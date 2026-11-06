@@ -1,7 +1,7 @@
 {
     "id": "dfm-system",
     "name": "The Personal Dknowledge",
-    "version": "2.8.0",
+    "version": "2.9.0",
     "minAppVersion": "1.12.2",
     "description": "Experimental, very early version of The Personal Dknowledge: an Obsidian vault organized by DFM, with the Mission view, guided protocols and the system definitions in the plugin settings. Requires TaskNotes and Dataview; the full system also uses DSH as the local agent.",
     "author": "Hyadhuad",

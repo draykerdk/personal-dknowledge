@@ -1,0 +1,144 @@
+{
+  "dfm": 1,
+  "system": "project",
+  "purpose": "Os canvas de projeto do dfm-system (`src/project`): todo projeto tem um canvas, e o canvas gerencia as tarefas do projeto (a zona gerida das SMART e das ações, sincronizada quando uma TaskNote muda). O modelo daqui é também a árvore do projeto que a Missão, o quadro e o motor leem. Este mapa declara os módulos e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "default_grade": "G1",
+  "effects": [
+    "app.vault.*",
+    "app.metadataCache.*",
+    "app.workspace.*",
+    "this.app.*",
+    "new Notice"
+  ],
+  "modules": [
+    {
+      "id": "base",
+      "paths": [
+        "projectCanvasPath.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O chão: onde fica o canvas de um projeto ou departamento, numa regra só.",
+      "why": "O gerente do canvas, o índice de canvas do painel, a Árvore e a nota do trimestre têm de achar o mesmo arquivo (correção L9 do plano do canvas de 13/10/2026).",
+      "proof": [
+        "cd ../.. && npx vitest run tests/project/projectCanvasPath.test.ts"
+      ]
+    },
+    {
+      "id": "fn.modelo",
+      "paths": [
+        "projectCanvasModel.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. A árvore do projeto pelo contrato do Kernel (a SMART com `projects: [[Projeto]]`, a ação com `projects: [[SMART mãe]]`): o fold, o link, o progresso, as chaves, as filhas de uma SMART e o plano da zona gerida do canvas.",
+      "why": "Uma árvore só para o canvas, a Missão (cerca de 25 importações), o quadro e o motor; a conta fica testável sem o Obsidian.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/canvas/managedZone.test.ts tests/canvas/taskGraph.test.ts tests/missao/borboleta.test.ts tests/project/projectCanvasManager.test.ts tests/project/projectCanvasModel.test.ts"
+      ]
+    },
+    {
+      "id": "liga.gerente",
+      "paths": [
+        "projectCanvasManager.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Sincroniza a zona gerida do canvas de um projeto quando uma TaskNote do projeto muda (criada, concluída, religada, apagada), abre e cria os canvas e registra os comandos dos canvas de projeto.",
+      "why": "Os efeitos (o vault, os eventos, os comandos) ficam fora do modelo, num lugar só.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/project/projectCanvasManager.test.ts"
+      ]
+    },
+    {
+      "id": "ext.board",
+      "role": "external",
+      "does": "Fora desta pasta: o quadro e o painel do Mission Control (`src/board`), com o mapa deles: o MissionBoard, a conclusão de uma tarefa, os menus do canvas.",
+      "why": "As gravações de tarefa e os menus passam pelo quadro, com a conclusão de sempre."
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "does": "Fora desta pasta: a camada de canvas (`src/canvas`), com o mapa dela: os ids e a zona gerida, as setas que gravam campos, a cor e o cartão da tarefa.",
+      "why": "Quem desenha num canvas usa a mesma zona gerida e a mesma tabela das setas."
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia."
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "does": "Fora desta pasta: o plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; nada aqui importa o main em execução."
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "does": "Fora desta pasta: a Missão (`src/missao`), com o mapa e o guarda dela: o estado da tela, as intenções, os gestos, as gravações e os hospedeiros.",
+      "why": "O sistema antigo abre e grava pela Missão o que ela já faz, em vez de manter a cópia."
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo."
+    }
+  ],
+  "connections": [
+    {
+      "from": "fn.modelo",
+      "to": "base",
+      "carries": "insideNestedRepo"
+    },
+    {
+      "from": "fn.modelo",
+      "to": "ext.canvas",
+      "carries": "dependencyEdges, isManagedId, operatorEdges, progressLine, taskColor; tipos: KeepEdge"
+    },
+    {
+      "from": "fn.modelo",
+      "to": "ext.engine",
+      "carries": "grammarCounts, grammarText, workHorizon; tipos: GrammarCounts, GrammarPeriod"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "base",
+      "carries": "AREAS_ROOT, areaRootOf, conventionalCanvasPath, projectCanvasPath"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "ext.board",
+      "carries": "BoardCanvasMenus; tipos: MissionBoard"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "ext.canvas",
+      "carries": "applyCanvasPlan, canvasWritesAllowed, motherLink, patchFor, revealCanvas; tipos: EdgeLinkWatcher, ManagedScope, ProjectRef"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "ext.engine",
+      "carries": "currentQuarter, ehSemana, quarterPeriod, shortWeek"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "ext.missao",
+      "carries": "projetoAtual"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "ext.obsidian",
+      "carries": "Menu, Notice, TFile, normalizePath"
+    },
+    {
+      "from": "liga.gerente",
+      "to": "fn.modelo",
+      "carries": "PROJECT_HEAD_ID, TERMINAL, ZONE_GROUP_ID, collectProjectTasks, fold, gitmodulePaths, insideNestedRepo, newProjectCanvas, offersLinkToSmart, planProjectCanvas, projectKeys, projectProgress, smartOptionsFor; tipos: NavRef, PlanResult, ProjectHeader, ProjectInfo, ProjectProgress, TaskInfo"
+    }
+  ]
+}

@@ -183,6 +183,27 @@
         "fornecedores"
       ],
       "porque": "o passo a passo para ligar o modo nomeia os pacotes npm do DSH de que ele depende (a declaração do preset e o bundle do app web); é uma dependência citada, não uma assinatura"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Config/ramos/projetos.json",
+      "categorias": [
+        "ids_protocolo"
+      ],
+      "porque": "o Novo do ramo oferece a peça de criação pelo tipo dela, que se chama como um protocolo do cofre de origem que o pacote não traz (aqui é só o `tipo` do Novo); nenhum protocolo da pessoa é chamado neste arquivo"
+    },
+    {
+      "caminho": "cofre-modelo/200 - FUNCTIONS/Protocolos/ingles_de_hoje.json",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "a `fase` do protocolo (a do ciclo em que ele roda) é uma palavra comum que é também o id de um protocolo do cofre de origem; nenhum protocolo é chamado por ela"
+    },
+    {
+      "caminho": "plugin/main.js",
+      "categorias": [
+        "ids_genericos"
+      ],
+      "porque": "o arquivo que o build gera junta o código de plugin/src, e com ele o id de palavra comum do filtro do quadro (a exceção de plugin/src/board/boardModel.ts); o .gitignore o barra, e ele nunca entra num commit"
     }
   ]
 }

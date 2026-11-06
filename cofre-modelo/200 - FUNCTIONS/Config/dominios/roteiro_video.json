@@ -1,6 +1,6 @@
 {
   "dominio": "roteiro_video",
-  "descricao": "A peça de criação: um conteúdo em qualquer formato, da ideia ao revisado. O vídeo é o primeiro formato (o longo, o short e o corte); os outros entram pelo mesmo campo `formato` (o artigo, o carrossel, a imagem, o post e o e-mail), e cada um declara a publicação dele no bloco `formatos`, com os campos que ela pede (a plataforma, o dia e o link) e o estado em que a peça está publicada (no ar). Os campos, na ordem do painel: o canal onde a peça vai ao ar; a frente que ela divulga (`projects`, o projeto ou o departamento acima); o formato; o padrão que o roteiro segue; a peça de onde ela desdobra (`de`: o corte de um longo, o post que sai de um artigo); a ideia de origem; o estado; o dia de ir ao ar (`publicar_em`, que põe a peça na semana e no dia); a plataforma; onde está publicada (`link`); as cenas e o teleprompter, só do vídeo; e o que ela trouxe (`resultado`), anotado na revisão. Os estados seguem o caminho da peça: ideia → roteiro → pronto para gravar → gravado → editado → no ar → revisado; o arquivado é neutro e fica fora da conta. A peça nasce pelo Novo da Missão, como nota em `candidatos.pasta`. A lista de canais e a de padrões são suas: troque o exemplo pelos seus canais e pelos padrões que você usa.",
+  "descricao": "A peça de criação: um conteúdo em qualquer formato, da ideia ao revisado. O vídeo é o primeiro formato (o longo, o short e o corte); os outros entram pelo mesmo campo `formato` (o artigo, o carrossel, a imagem, o post e o e-mail), e cada um declara a publicação dele no bloco `formatos`, com os campos que ela pede (os destinos, o dia e o link) e o estado em que a peça está publicada (no ar). Os campos, na ordem do painel: o canal onde a peça vai ao ar; a frente que ela divulga (`projects`, o projeto ou o departamento acima); o formato; o padrão que o roteiro segue; a peça de onde ela desdobra (`de`: o corte de um longo, o post que sai de um artigo); a ideia de origem; o estado; o dia de ir ao ar (`publicar_em`, que põe a peça na semana e no dia); os destinos (os perfis do canal para onde a peça vai, com a regra de cada formato lida da nota do canal); onde está publicada (`link`, e `links`, um por destino); o link da campanha (`link_cta`, que separa o que cada peça trouxe); as cenas e o teleprompter, só do vídeo; e o que ela trouxe (`resultado`), anotado na revisão. Os estados seguem o caminho da peça: ideia → roteiro → pronto para gravar → gravado → editado → aprovado → no ar → revisado; o aprovado é a peça editada, assistida e conferida, pronta para ir ao ar (a que não passa volta para editado); o arquivado é neutro e fica fora da conta. A gravação é o primeiro estado com `habito`: o 🎥 Para gravar hoje da Day mostra a peça pronta para gravar e a fala do teleprompter dela. Os `sinais` mostram o canal sem peça publicada na semana, o corte sem a peça-mãe e a peça editada ou aprovada sem destino. A peça nasce pelo Novo da Missão, como nota em `candidatos.pasta`. A lista de canais, a de padrões e o hábito da gravação são seus: troque o exemplo pelos seus.",
   "candidatos": {
     "pasta": "400 - MEMORY/200 - WEEKLY/Roteiros",
     "type": "roteiro_video"
@@ -93,6 +93,7 @@
         "pronto_para_gravar",
         "gravado",
         "editado",
+        "aprovado",
         "no_ar",
         "revisado",
         "arquivado"
@@ -115,12 +116,17 @@
       "vazio": "a definir"
     },
     {
-      "nome": "plataforma",
-      "rotulo": "Plataforma",
-      "tipo": "texto",
-      "formato": "curto",
+      "nome": "destinos",
+      "rotulo": "Destinos",
+      "tipo": "lista",
       "dono": "nota",
-      "vazio": "a escolher"
+      "vazio": "sem destino",
+      "opcoes": {
+        "de": "canal",
+        "lista": "perfis",
+        "regra": "destino_por_formato",
+        "por": "formato"
+      }
     },
     {
       "nome": "link",
@@ -128,6 +134,21 @@
       "tipo": "texto",
       "formato": "curto",
       "dono": "nota"
+    },
+    {
+      "nome": "links",
+      "rotulo": "Link por destino",
+      "tipo": "lista",
+      "dono": "nota",
+      "vazio": "um link só (o de cima)"
+    },
+    {
+      "nome": "link_cta",
+      "rotulo": "Link da campanha",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "vazio": "sem link próprio"
     },
     {
       "nome": "bancada",
@@ -189,26 +210,38 @@
       "valor": "gravado",
       "estado": "gravado",
       "rotulo": "gravado",
-      "mostrar": "contorno"
+      "mostrar": "contorno",
+      "habito": "200 - FUNCTIONS/Habits/Tracker/04 - Gravar uma peça.md"
     },
     {
       "valor": "editado",
       "estado": "editado",
       "rotulo": "editado",
-      "mostrar": "contorno"
+      "mostrar": "contorno",
+      "habito": "200 - FUNCTIONS/Habits/Tracker/04 - Gravar uma peça.md"
+    },
+    {
+      "valor": "aprovado",
+      "estado": "aprovado",
+      "rotulo": "aprovado para publicar",
+      "mostrar": "contorno",
+      "marca": "✓",
+      "habito": "200 - FUNCTIONS/Habits/Tracker/04 - Gravar uma peça.md"
     },
     {
       "valor": "no_ar",
       "estado": "no_ar",
       "rotulo": "no ar",
       "mostrar": "cheio",
-      "marca": "📤"
+      "marca": "📤",
+      "habito": "200 - FUNCTIONS/Habits/Tracker/04 - Gravar uma peça.md"
     },
     {
       "valor": "revisado",
       "estado": "revisado",
       "rotulo": "revisado",
-      "mostrar": "cheio"
+      "mostrar": "cheio",
+      "habito": "200 - FUNCTIONS/Habits/Tracker/04 - Gravar uma peça.md"
     },
     {
       "valor": "arquivado",
@@ -224,9 +257,10 @@
         "id": "video",
         "rotulo": "publicação de vídeo",
         "campos": [
-          "plataforma",
+          "destinos",
           "publicar_em",
-          "link"
+          "link",
+          "links"
         ],
         "estado": "no_ar"
       },
@@ -234,9 +268,10 @@
         "id": "artigo",
         "rotulo": "publicação de artigo",
         "campos": [
-          "plataforma",
+          "destinos",
           "publicar_em",
-          "link"
+          "link",
+          "links"
         ],
         "estado": "no_ar"
       },
@@ -244,9 +279,10 @@
         "id": "imagem",
         "rotulo": "publicação de imagem",
         "campos": [
-          "plataforma",
+          "destinos",
           "publicar_em",
-          "link"
+          "link",
+          "links"
         ],
         "estado": "no_ar"
       },
@@ -254,9 +290,10 @@
         "id": "texto",
         "rotulo": "publicação de texto",
         "campos": [
-          "plataforma",
+          "destinos",
           "publicar_em",
-          "link"
+          "link",
+          "links"
         ],
         "estado": "no_ar"
       },
@@ -264,9 +301,10 @@
         "id": "email",
         "rotulo": "envio de e-mail",
         "campos": [
-          "plataforma",
+          "destinos",
           "publicar_em",
-          "link"
+          "link",
+          "links"
         ],
         "estado": "no_ar"
       }
@@ -389,6 +427,36 @@
           "bancada",
           "teleprompter"
         ]
+      }
+    ]
+  },
+  "sinais": {
+    "cadencias": [
+      {
+        "type": "roteiro_video",
+        "por": "canal",
+        "fato": "o canal {valor} está sem peça publicada nesta semana"
+      }
+    ],
+    "origens": [
+      {
+        "type": "roteiro_video",
+        "campo": "de",
+        "formatos": [
+          "corte"
+        ],
+        "fato": "corte sem a peça-mãe"
+      }
+    ],
+    "vazios": [
+      {
+        "type": "roteiro_video",
+        "campo": "destinos",
+        "estados": [
+          "editado",
+          "aprovado"
+        ],
+        "fato": "peça editada ou aprovada sem destino"
       }
     ]
   }

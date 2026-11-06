@@ -1,0 +1,310 @@
+{
+  "dfm": 1,
+  "system": "canvas",
+  "purpose": "A camada de canvas do dfm-system (`src/canvas`): quem é dono de cada pedaço de um canvas (a zona gerida ou o operador), a aplicação de um plano a um canvas, a seta desenhada como dado da tarefa e o cartão de tarefa no nó do canvas. A Missão grava pelos mesmos patches que a seta grava. Este mapa declara os módulos e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "default_grade": "G1",
+  "effects": [
+    "app.vault.*",
+    "app.metadataCache.*",
+    "app.workspace.*",
+    "this.app.*",
+    "new Notice"
+  ],
+  "modules": [
+    {
+      "id": "base",
+      "paths": [
+        "managedIds.ts",
+        "taskColor.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O chão: os ids da zona gerida (`dfm-pc-` do canvas de projeto, `dfm-q` do trimestre) e quem é dono de cada nó (managedIds), e a cor de uma tarefa pelo lugar dela no fluxo (taskColor).",
+      "why": "O formatador, a zona gerida e as setas decidem pelo mesmo dono e pela mesma cor; antes, essas regras moravam espalhadas.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/canvas/managedIds.test.ts tests/canvas/taskGraph.test.ts tests/engine/canvasSyncCanvasLink.test.ts tests/project/projectCanvasModel.test.ts"
+      ]
+    },
+    {
+      "id": "fn.setas",
+      "paths": [
+        "edgeLinks.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. A seta desenhada como dado da tarefa: dos pares que gravam (tarefa → SMART, SMART → projeto, bloqueio), o patch do campo (`projects`, `blockedBy`, a SMART mãe) e o link a gravar.",
+      "why": "Decisão 1 do plano do canvas (14/10/2026): a seta é dado; a Missão usa os mesmos patchFor, motherLink e linkFor, então a regra mora num lugar só e sem Obsidian.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/panelNav.test.ts tests/canvas/edgeLinkWatcher.test.ts tests/canvas/edgeLinks.test.ts tests/engine/diaNosLeitores.test.ts tests/missao/adicionar.test.ts tests/missao/escolher.test.ts tests/missao/gestos.test.ts tests/missao/gestosEquivalencia.test.ts tests/missao/ligarGrava.test.ts tests/missao/missaoWrites.test.ts tests/missao/novo.test.ts tests/missao/novoWrites.test.ts tests/project/projectCanvasModel.test.ts"
+      ]
+    },
+    {
+      "id": "fn.cartao",
+      "paths": [
+        "taskCardModel.ts",
+        "taskGraph.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. O que o cartão de tarefa mostra (a linha de cima, a forma de mostrar, os botões pela tabela dos pesos; taskCardModel) e as setas de dependência da zona gerida do canvas de projeto (taskGraph).",
+      "why": "O nó de tarefa da arquitetura universal (19/10, 4.7) é uma instância da unidade; a conta é testável sem o Obsidian.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskMenus.test.ts tests/canvas/doNowGesture.test.ts tests/canvas/taskCardModel.test.ts tests/canvas/taskCardNovaAcao.test.ts tests/canvas/taskGraph.test.ts tests/project/projectCanvasModel.test.ts"
+      ]
+    },
+    {
+      "id": "liga.zona",
+      "paths": [
+        "managedZone.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Aplica um plano a um canvas pelo mesmo caminho para toda zona gerida: no canvas aberto, `getData` → plano → `setData` e `requestSave` (o Ctrl+Z desfaz); no fechado, pelo arquivo.",
+      "why": "Um caminho só de gravação de canvas, para o canvas de projeto, a Missão e o menu da tarefa.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/canvas/managedZone.test.ts"
+      ]
+    },
+    {
+      "id": "vista.cartao",
+      "paths": [
+        "taskCard.ts"
+      ],
+      "role": "module",
+      "does": "Vista. Desenha o cartão de tarefa no nó de arquivo de uma TaskNote, com o modelo pronto do fn.cartao, e liga os botões aos callbacks que recebe.",
+      "why": "O desenho fica separado da conta e dos fios do plugin.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/canvas/taskCardNovaAcao.test.ts"
+      ]
+    },
+    {
+      "id": "liga.setas",
+      "paths": [
+        "edgeLinkWatcher.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Escuta a seta desenhada numa vista aberta deste aparelho (o gesto, D12) e grava o campo da tarefa pelo patch do fn.setas.",
+      "why": "A decisão é do fn.setas (puro); aqui ficam os fios: o evento, a leitura do canvas e a gravação.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/canvas/edgeLinkWatcher.test.ts"
+      ]
+    },
+    {
+      "id": "liga.cartoes",
+      "paths": [
+        "taskCards.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Monta o cartão de tarefa em cada nó que é TaskNote: os dados do índice, os pesos da tabela única, as ações do quadro, os menus e o gesto.",
+      "why": "O formatador de canvas chama `mount(node, file)`; o cartão recebe o plugin por aqui e não o conhece.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskCompletion.test.ts"
+      ]
+    },
+    {
+      "id": "ext.board",
+      "role": "external",
+      "does": "Fora desta pasta: o quadro e o painel do Mission Control (`src/board`), com o mapa deles: o MissionBoard, a conclusão de uma tarefa, os menus do canvas.",
+      "why": "As gravações de tarefa e os menus passam pelo quadro, com a conclusão de sempre."
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia."
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "does": "Fora desta pasta: o plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; nada aqui importa o main em execução."
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "does": "Fora desta pasta: a Missão (`src/missao`), com o mapa e o guarda dela: o estado da tela, as intenções, os gestos, as gravações e os hospedeiros.",
+      "why": "O sistema antigo abre e grava pela Missão o que ela já faz, em vez de manter a cópia."
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo."
+    },
+    {
+      "id": "ext.project",
+      "role": "external",
+      "does": "Fora desta pasta: os canvas de projeto (`src/project`), com o mapa deles: o caminho, o modelo e o gerente do canvas de um projeto.",
+      "why": "O projeto tem uma árvore só (SMART, ações, progresso), lida do mesmo modelo."
+    },
+    {
+      "id": "ext.tasks",
+      "role": "external",
+      "does": "Fora desta pasta: o registro e o índice das TaskNotes (`src/tasks`).",
+      "why": "A tarefa tem um formato só no plugin."
+    }
+  ],
+  "connections": [
+    {
+      "from": "base",
+      "to": "ext.engine",
+      "carries": "SMART_HORIZON, showGrammar"
+    },
+    {
+      "from": "fn.setas",
+      "to": "base",
+      "carries": "isManagedId; tipos: KeepEdge"
+    },
+    {
+      "from": "fn.setas",
+      "to": "ext.engine",
+      "carries": "dayLabel, isoWeekOf, shortWeek"
+    },
+    {
+      "from": "fn.setas",
+      "to": "ext.project",
+      "carries": "fold, linkTarget"
+    },
+    {
+      "from": "fn.setas",
+      "to": "ext.tasks",
+      "carries": "listOf"
+    },
+    {
+      "from": "fn.cartao",
+      "to": "base",
+      "carries": "childProgress"
+    },
+    {
+      "from": "fn.cartao",
+      "to": "ext.board",
+      "carries": "fold"
+    },
+    {
+      "from": "fn.cartao",
+      "to": "ext.engine",
+      "carries": "SMART_HORIZON, formatPoints, grammarCounts, grammarText, isClosedUnit, isoWeekOf, scoreTask, showGrammar; tipos: DecisionContext, GrammarCounts, GrammarUnit, Papel, TaskRelations, TaskScore, TaskUnit, WeightReason, WeightTable"
+    },
+    {
+      "from": "fn.cartao",
+      "to": "ext.project",
+      "carries": "tipos: CanvasEdge"
+    },
+    {
+      "from": "fn.cartao",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "liga.zona",
+      "to": "base",
+      "carries": "unmanagedSignature"
+    },
+    {
+      "from": "liga.zona",
+      "to": "ext.obsidian",
+      "carries": "Keymap, Platform, TFile; tipos: App"
+    },
+    {
+      "from": "liga.zona",
+      "to": "ext.project",
+      "carries": "sameCanvas; tipos: CanvasData"
+    },
+    {
+      "from": "vista.cartao",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "vista.cartao",
+      "to": "fn.cartao",
+      "carries": "minutesText; tipos: TaskCardModel"
+    },
+    {
+      "from": "liga.setas",
+      "to": "base",
+      "carries": "tipos: KeepEdge"
+    },
+    {
+      "from": "liga.setas",
+      "to": "ext.board",
+      "carries": "tipos: MissionBoard"
+    },
+    {
+      "from": "liga.setas",
+      "to": "ext.engine",
+      "carries": "DIA, semanaOuVazio"
+    },
+    {
+      "from": "liga.setas",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.setas",
+      "to": "ext.missao",
+      "carries": "patchDeDesfazer"
+    },
+    {
+      "from": "liga.setas",
+      "to": "ext.obsidian",
+      "carries": "Notice, TFile; tipos: Menu, WorkspaceLeaf"
+    },
+    {
+      "from": "liga.setas",
+      "to": "ext.project",
+      "carries": "fold"
+    },
+    {
+      "from": "liga.setas",
+      "to": "fn.setas",
+      "carries": "annotationEdge, diffLinks, endOf, freshEdges, goneEdges, linkFor, linkLabel, meaninglessLabel, patchFor, unlinkLabel, unpatchFor; tipos: CanvasLike, EdgeContext, Link, ManagedScope, NoteRef, Patch"
+    },
+    {
+      "from": "liga.setas",
+      "to": "liga.zona",
+      "carries": "canvasWritesAllowed"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "base",
+      "carries": "isManagedId"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "ext.board",
+      "carries": "DateModal, statusWriter; tipos: MissionBoard, TaskMenus"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "ext.engine",
+      "carries": "buildTaskRelations; tipos: WeightReason"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "ext.obsidian",
+      "carries": "Menu, Notice, Platform, TFile"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "ext.project",
+      "carries": "smartChildren"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "ext.tasks",
+      "carries": "tipos: TaskRecord"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "fn.cartao",
+      "carries": "DO_NOW_PAPEL, STATUS_VIEW, doNowVariables, focusOf, postponeUpdates, reasonsByPath, reasonsView, taskCardModel"
+    },
+    {
+      "from": "liga.cartoes",
+      "to": "vista.cartao",
+      "carries": "mountTaskCard; tipos: TaskCardActions"
+    }
+  ]
+}

@@ -1,11 +1,14 @@
 import { TFile } from 'obsidian';
 import type DFMPlugin from '../main';
 import { DIA, diaNoTexto } from './dia';
+import { toggleEntry } from './habits';
+import { inserirNaDay, linhaDaMarcaDoHabito, PASTA_DA_DAY, secaoDoRegistro, semAMarcaDoHabito } from './escritorDaDay';
 
 /**
  * O registro dos hábitos marcados pelo próprio DFM: o protocolo concluído (`isHabit`,
  * `habitGroup`, `habitAlso`), o Pomodoro, o Comando do Dia, o bloco do agora e o 📖 Pelo
- * diário. Cada marca é uma data em `entries` da nota do hábito, uma por dia.
+ * diário. Cada marca é uma data em `entries` da nota do hábito, uma por dia, e uma linha na Day do dia marcado,
+ * com a hora (06/11, `linhaNaDay`); a marca à mão (as três vistas) passa por `alternarDia`.
  *
  * Por quê aqui: o registro morava dentro do `GamificationManager`, mas não é pontuação.
  * Quando a gamificação foi arquivada (29/10/2026), ele saiu de lá sem
@@ -161,7 +164,8 @@ protocol_id: "${protocolId}"
 
 > 🤖 *Este arquivo mestre de tracking é sincronizado automaticamente pelo DFM Engine.*
 `;
-                await this.plugin.app.vault.create(filePath, fileContent);
+                const criada = await this.plugin.app.vault.create(filePath, fileContent);
+                if (criada instanceof TFile) await this.linhaNaDay(criada, today, true, tracking.label);
             }
 
             if (createdFile) {
@@ -219,7 +223,9 @@ protocol_id: "${protocolId}"
 
         const today = habitDay(date);
         let recorded = false;
+        let titulo = '';
         await this.plugin.app.fileManager.processFrontMatter(file, (fm: any) => {
+            titulo = typeof fm.title === 'string' ? fm.title : '';
             const entries = Array.isArray(fm.entries) ? fm.entries : (fm.entries ? [fm.entries] : []);
             const normalized = entries
                 .map((entry: any) => diaNoTexto(String(entry ?? '')))
@@ -229,6 +235,67 @@ protocol_id: "${protocolId}"
             fm.entries = [...new Set([...normalized, today])].sort();
             recorded = true;
         });
+        if (recorded) await this.linhaNaDay(file, today, true, titulo);
         return recorded;
+    }
+
+    /**
+     * O que faz: a marca à mão de um dia (a célula clicada no tracker da Day, no painel dos hábitos e no quadro):
+     * marca ou desmarca o dia em `entries` (`toggleEntry`) e põe ou tira a linha da marca na Day (`linhaNaDay`).
+     * Por quê: 06/11, a hora da marca do hábito: as marcas à mão tinham três cópias do mesmo `processFrontMatter`,
+     * e a linha da Day precisa de uma porta só para as duas origens (o sistema e a mão). A decisão do clique (o
+     * protocolo de hoje, o automático, o dia futuro) continua com quem chama (`resolveClick`).
+     * Entra → sai: o caminho do hábito e o dia → `'marcou'`, `'desmarcou'` ou `null` (a nota não existe).
+     * Erro e ataque: a falha ao escrever a Day só vai ao console; a marca do dia já entrou.
+     * Prova: tests/engine/habitLog.test.ts ("a marca à mão").
+     */
+    async alternarDia(filePath: string, date: string): Promise<'marcou' | 'desmarcou' | null> {
+        const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
+        if (!(file instanceof TFile)) return null;
+        let marcou = false;
+        let titulo = '';
+        await this.plugin.app.fileManager.processFrontMatter(file, (fm: any) => {
+            titulo = typeof fm.title === 'string' ? fm.title : '';
+            fm.entries = toggleEntry(fm.entries, date);
+            marcou = fm.entries.includes(date);
+        });
+        await this.linhaNaDay(file, date, marcou, titulo);
+        return marcou ? 'marcou' : 'desmarcou';
+    }
+
+    /**
+     * O que faz: a linha da marca do hábito na Day do dia marcado, pelo escritor da Day (`secaoDoRegistro` +
+     * `inserirNaDay`, os mesmos do registro dos protocolos): marcar põe `**[HH:mm] Hábito marcado:** [[hábito]]` com a
+     * marca do id (a hora só quando o dia marcado é hoje; senão, "marcado depois"); desmarcar tira a linha.
+     * Por quê: 06/11, a reputação contextual quer a hora da marca, e a lista `entries` só guarda dias. A Day de hoje
+     * que falta nasce como no registro dos protocolos (`createDailyNote`); a de outro dia não nasce só por uma marca.
+     * Entra → sai: o arquivo do hábito, o dia, se marcou e o título → nada (a Day muda ou não).
+     * Erro e ataque: o mesmo dia não repete a linha (a marca do id); a falha de leitura ou de escrita só vai ao
+     * console, porque a marca do dia em `entries` já entrou e é ela que conta.
+     */
+    async linhaNaDay(file: TFile, dia: string, marcou: boolean, titulo = ''): Promise<void> {
+        try {
+            const moment = (window as any).moment;
+            const hoje = moment().format('YYYY-MM-DD');
+            const vault = this.plugin.app.vault;
+            let day: any = vault.getAbstractFileByPath(`${PASTA_DA_DAY}/${dia}.md`);
+            if (!(day instanceof TFile)) day = vault.getMarkdownFiles?.().find((f: TFile) => f.name === `${dia}.md`) ?? null;
+            if (!(day instanceof TFile)) {
+                if (!marcou || dia !== hoje || typeof (this.plugin as any).createDailyNote !== 'function') return;
+                day = await (this.plugin as any).createDailyNote(dia);
+                if (!(day instanceof TFile)) return;
+            }
+            const texto = await vault.read(day);
+            if (!marcou) {
+                const sem = semAMarcaDoHabito(texto, file.basename);
+                if (sem.removed) await vault.modify(day, sem.content);
+                return;
+            }
+            const { entry, dedupe } = linhaDaMarcaDoHabito({ nome: file.basename, titulo, hora: dia === hoje ? moment().format('HH:mm') : null });
+            const r = inserirNaDay(texto, secaoDoRegistro(texto), entry, dedupe);
+            if (r.inserted) await vault.modify(day, r.content);
+        } catch (e) {
+            console.warn(`DFM: a linha da marca do hábito na Day de ${dia} não se escreveu`, e);
+        }
     }
 }

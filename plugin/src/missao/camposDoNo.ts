@@ -14,8 +14,9 @@
  *
  * Módulo puro: sem Obsidian e sem DOM. Prova: tests/missao/camposDoNo.test.ts.
  */
-import { camposNoFormato, type DomainField, type DomainModel, type DomainState } from '../engine/domainModel';
+import { camposComApelidos, camposNoFormato, type DomainField, type DomainModel, type DomainState } from '../engine/domainModel';
 import { fieldNumber } from '../engine/choose';
+import { TIPO_DA_TAREFA } from '../engine/tasknotesCreate';
 import { linkTarget } from '../project/projectCanvasModel';
 import { diaEHoraNoInicio, minutosTexto, reais } from './formatos';
 import { dentro } from './entrada';
@@ -63,6 +64,7 @@ const listaDe = (v: unknown): unknown[] => (Array.isArray(v) ? v : v === null ||
  * Erro e ataque: nota longe de toda casa, `type` de outro tipo ou sem `type` numa casa
  * que dois modelos dividem dão `null`: o painel não mostra campo de outro tipo. A nota
  * arquivada ao lado da casa (`TaskNotes/Archive`), com o `type` de um modelo só, acha o dele.
+ * A exceção (06/11): sem `type` em `TaskNotes/`, vale a tarefa (`task`), como no registro da tarefa.
  */
 export function modeloDaNota(caminho: string, campos: Record<string, unknown> | null | undefined, modelos: readonly DomainModel[]): DomainModel | null {
     const path = String(caminho ?? '');
@@ -70,7 +72,11 @@ export function modeloDaNota(caminho: string, campos: Record<string, unknown> | 
     const naCasa = modelos.filter(m => dentro(path, m.candidatos.pasta) || m.candidatos.pasta === path);
     const type = texto(campos?.type);
     if (type) return naCasa.find(m => m.candidatos.type === type) ?? arquivadaAoLado(path, type, modelos);
-    return naCasa.length === 1 ? naCasa[0] : null;
+    if (naCasa.length === 1) return naCasa[0];
+    // Sem `type` em `TaskNotes/` (06/11): vale a tarefa, a mesma regra do registro da tarefa (`toTaskRecord`: a nota
+    // sem `type` é `task`); a tarefa nascida no formulário do TaskNotes fora do DFM acha o modelo dela. Só com o
+    // frontmatter lido: sem ele (`null`), não se sabe se falta o `type`, e nada se decide.
+    return campos && path.startsWith('TaskNotes/') ? naCasa.find(m => m.candidatos.type === TIPO_DA_TAREFA) ?? null : null;
 }
 
 /** O que faz: a pasta de cima de uma casa (`TaskNotes/Tasks` → `TaskNotes`); a casa de primeiro nível não tem (`null`). */
@@ -225,7 +231,8 @@ export function camposCrus(campos: Record<string, unknown> | null | undefined): 
 export function camposDoNo(caminho: string | null | undefined, campos: Record<string, unknown> | null | undefined, modelos: readonly DomainModel[], rotulos: RotulosDosVocabularios = {}): CamposDoNo {
     const modelo = caminho ? modeloDaNota(caminho, campos, modelos) : null;
     if (!modelo) return { tipo: null, campos: [], antigos: [] };
-    const fm = campos ?? {};
+    // Os nomes antigos dos campos (05/11: o `plataforma` da peça é lido como `destinos`), sem migrar a nota.
+    const fm = camposComApelidos(modelo, campos ?? {});
     const linhas: LinhaDeCampo[] = [];
     // Os campos como valem no formato da nota (03/11, o ramo Criação): sem formatos, os do modelo.
     for (const campo of camposNoFormato(modelo, fm)) {

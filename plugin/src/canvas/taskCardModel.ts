@@ -243,6 +243,11 @@ export function pecaView(peca: unknown): TaskCardModel['peca'] {
     return null;
 }
 
+/**
+ * O que faz: o que o cartão de uma tarefa mostra: o tipo, a linha de cima, a forma de mostrar, a cor e os botões.
+ * Por quê: o nó de tarefa da arquitetura universal (19/10, 4.7) sai de uma conta só, testável sem o Obsidian.
+ * Prova: tests/canvas/taskCardModel.test.ts.
+ */
 export function taskCardModel(
     task: TaskRecord,
     today: string,

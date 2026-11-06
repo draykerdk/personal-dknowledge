@@ -32,15 +32,17 @@ import { triageCandidates, DEFAULT_INBOX_FOLDER } from '../engine/inboxRules';
 import type { TaskRecord } from '../tasks/taskRecord';
 import {
     CASAS_PADRAO, caminhoImporta, dentro, entradaVazia, excluido, periodoDaNota,
-    type CasasDaMissao, type MarcaDoRamo, type MissaoEntrada, type NotaComCampos, type ParDaSemana, type ProjetoEntrada,
+    type CasasDaMissao, type ChavesDaTrilha, type ConferenciaLida, type EntradaDaTrilha, type MarcaDoRamo, type MissaoEntrada, type NotaComCampos, type ParDaSemana, type ProjetoEntrada,
 } from './entrada';
 import { modeloDaMissao } from './borboleta';
 import type { ItemDaTriagem, MissaoFiltros, MissaoModelo } from './tipos';
 import { comPropostas, tiposDaIdeia } from './triagem';
 import { filtrosPadrao, type ContextoDosFiltros } from './filtros';
-import { addWeeks, chaveDeHoje } from './tempo';
+import { addDays, addWeeks, chaveDeHoje } from './tempo';
 import { quarterWeeks } from '../engine/calendario';
 import { DOMAIN_MODELS_FOLDER, parseDomainModel, type DomainModel, type DomainState } from '../engine/domainModel';
+import { itensDaSecao } from '../engine/secaoDaNota';
+import { novasDeHojeNaDay } from '../engine/repeticao';
 import { chavesDoLegado, tabelasVazias, type TabelasDaMissao } from './estados';
 import { DECISION_WEIGHTS_PATH, dayOf, type TaskScore } from '../engine/decisionWeights';
 import { parsePanelWeights } from '../engine/panelWeights';
@@ -52,6 +54,7 @@ import { chaveDaFonte } from './colecoes';
 import { lerRamoPrincipal, PASTA_DOS_RAMOS, type RamoPrincipal } from './ramoPrincipal';
 import type { Papel, TabelaDosPapeis } from '../engine/papeisDeProtocolo';
 import { DEFINICOES_PADRAO } from '../definicoes';
+import { protocolosDaDay } from '../engine/usoDosGestos';
 
 /** O domínio das estadias (30/10): a casa e o `type` vêm do modelo dele, nunca daqui. */
 export const DOMINIO_DA_ESTADIA = 'estadia';
@@ -106,6 +109,11 @@ export interface DependenciasDoLeitor {
     pesos?: (hoje: string) => Promise<ReadonlyMap<string, TaskScore> | null>;
     /** As propostas do agente que esperam na triagem (02/11/2026, `board.propostas`); sem ela, nenhuma. */
     propostas?: () => readonly ItemDaTriagem[];
+    /**
+     * A trilha de uso (05/11/2026): o caminho do arquivo dela, as chaves das definições e as marcas que a Missão
+     * guardou no salvamento do plugin; sem a função, a trilha não aparece.
+     */
+    trilha?: () => { caminho: string; chaves: ChavesDaTrilha; marcas: Record<string, string[]> } | null;
     /** O relógio: hoje em `AAAA-MM-DD`, no fuso local; o lugar o dá (`hosts/relogio.ts`), os testes dão o deles. */
     hoje: () => string;
     setTimer?: (fn: () => void, ms: number) => any;
@@ -365,6 +373,10 @@ export class MissaoService {
         // As estadias (30/10): a casa e o `type` são os do modelo dela.
         const daEstadia = entrada.tabelas.tipos.find(m => m.dominio === DOMINIO_DA_ESTADIA) ?? null;
         const estadias: NotaComCampos[] = [];
+        // O aprendizado (05/11): o `type` de cada modelo que declara o `aprendizado` e o das peças dele, na casa do modelo.
+        const doAprendizado = entrada.tabelas.tipos.filter(m => m.aprendizado && m.candidatos.type)
+            .flatMap(m => [m.candidatos.type!, ...(m.aprendizado!.pecas ? [m.aprendizado!.pecas] : [])].map(type => ({ type, pasta: m.candidatos.pasta })));
+        const aprendizado: NotaComCampos[] = [];
         entrada.tarefas = this.deps.tarefas();
         const { projetos, areas } = this.lerPortfolio(casas);
         entrada.projetos = projetos;
@@ -415,6 +427,7 @@ export class MissaoService {
             else {
                 if (dentro(path, casas.cidades) && type === 'hub_cidade') entrada.cidades.push(nota);
                 if (daEstadia && dentro(path, daEstadia.candidatos.pasta) && type === daEstadia.candidatos.type) estadias.push(nota);
+                if (doAprendizado.some(a => a.type === type && dentro(path, a.pasta))) aprendizado.push(nota);
                 if (dentro(path, casas.paises) && type === 'hub_pais') entrada.paises.push(nota);
                 if (dentro(path, casas.visao) && type === 'visao') entrada.visoes.push(nota);
                 if (dentro(path, casas.pessoas) && type === 'person_profile') entrada.pessoas.push(nota);
@@ -426,7 +439,12 @@ export class MissaoService {
         }
         entrada.notasDosRamos = notasDosRamos;
         entrada.estadias = estadias;
+        entrada.aprendizado = aprendizado;
+        entrada.novasDeHoje = await this.lerNovasDeHoje(hoje, entrada.dias, entrada.tabelas.tipos);
+        entrada.conferencias = await this.lerConferencias(entrada.tarefas, entrada.tabelas.sinais?.conferencias ?? []);
         entrada.marcasDosRamos = [...this.marcasLidas];
+        const trilha = await this.lerTrilha(hoje, entrada.dias);
+        if (trilha) entrada.trilha = trilha;
         // A SMART do modelo velho (`legado` de smart.json): "modelo antigo", e não é reescrita (0f).
         entrada.tarefasAntigas = entrada.tarefas
             .filter(r => r.type === 'tarefa_smart' && chavesDoLegado(this.fm(this.arquivo(r.path)), legado.smart).length > 0)
@@ -453,6 +471,83 @@ export class MissaoService {
             }
         }
         return entrada;
+    }
+
+    /**
+     * O que faz: as frases novas que a Day de hoje já registra, por `type` de cada modelo com `aprendizado`: a soma de
+     * `novasDeHojeNaDay` pelos protocolos do modelo com o papel `usa` (o 🗣️ Inglês de hoje).
+     * Por quê: 06/11, a conferência de ponta a ponta: o centro do módulo dizia "hoje: 1 nova" depois de 3 novas no
+     * dia; a fila do gesto já contava pela Day, e o centro precisa da mesma conta.
+     * Erro e ataque: sem a Day de hoje, ou sem o modelo do aprendizado, nada (o centro conta zero, como antes); a Day
+     * que não se lê também; só lê.
+     */
+    private async lerNovasDeHoje(hoje: string, dias: MissaoEntrada['dias'], tipos: readonly DomainModel[]): Promise<Record<string, number>> {
+        const nota = dias?.[hoje];
+        const file = nota ? this.arquivo(nota.caminho) : null;
+        const modelos = tipos.filter(m => m.aprendizado && m.candidatos.type);
+        if (!file || !modelos.length) return {};
+        let texto = '';
+        try { texto = await this.deps.app.vault.cachedRead(file); } catch (e) { return {}; }
+        const out: Record<string, number> = {};
+        for (const m of modelos) {
+            const n = m.protocolos.filter(p => p.papel === 'usa').reduce((soma, p) => soma + novasDeHojeNaDay(texto, p.id), 0);
+            if (n > 0) out[m.candidatos.type!] = n;
+        }
+        return out;
+    }
+
+    /**
+     * O que faz: o que a trilha de uso lê (05/11): o arquivo dela, cru, e os protocolos que rodaram em cada Day da
+     * janela do arquivo (as linhas do motor, `protocolosDaDay`), mais as chaves e as marcas que o plugin dá.
+     * Por quê: o gesto da semana se marca pelo uso real, e o índice das notas de período só tem o frontmatter; só
+     * as Days da janela se leem (oito semanas, ou o que o arquivo diz).
+     * Erro e ataque: sem a função do plugin, nada; o arquivo que não se lê vira `config: null` (a trilha não
+     * aparece, e o aviso vai ao console); a Day que não se lê fica sem protocolos; só lê.
+     */
+    private async lerTrilha(hoje: string, dias: MissaoEntrada['dias']): Promise<EntradaDaTrilha | null> {
+        const dada = this.deps.trilha?.();
+        if (!dada) return null;
+        let config: unknown = null;
+        try { config = JSON.parse(await this.deps.lerArquivo(dada.caminho)); } catch (e) { console.warn(`DFM Missão: a trilha ${dada.caminho} não se lê`, e); }
+        const janela = (config as { janela_dias?: unknown } | null)?.janela_dias;
+        const desde = addDays(hoje, -((typeof janela === 'number' && janela >= 1 && janela <= 366 ? Math.floor(janela) : 56) - 1));
+        const protocolosPorDia: Record<string, string[]> = {};
+        for (const [dia, nota] of Object.entries(dias ?? {})) {
+            if (dia < desde || dia > hoje) continue;
+            const file = this.arquivo(nota.caminho);
+            if (!file) continue;
+            try {
+                const ids = protocolosDaDay(await this.deps.app.vault.cachedRead(file));
+                if (ids.length) protocolosPorDia[dia] = ids;
+            } catch (e) { /* a Day que não se lê fica sem protocolos */ }
+        }
+        return { config, protocolosPorDia, marcas: dada.marcas ?? {}, chaves: dada.chaves };
+    }
+
+    /**
+     * O que faz: a conferência das tarefas de pesquisa (05/11): para cada tarefa com a tag de uma declaração
+     * (`sinais.conferencias` do modelo), os itens da seção dela na nota (os abertos e o total), pela leitura única da
+     * seção (`itensDaSecao`); a tarefa sem a seção, ou sem item nela, fica de fora.
+     * Por quê: o sinal da pesquisa sem a conferência e o da concluída com item aberto (`sinaisDasConferencias`) leem
+     * o texto da nota, que o índice das tarefas não tem; só as notas com a tag se leem.
+     * Erro e ataque: a nota que não se lê fica de fora (a conferência dela não se conta, e o aviso vai ao console);
+     * sem declaração, nada se lê e a lista vem vazia; só lê.
+     */
+    private async lerConferencias(tarefas: readonly TaskRecord[], declaradas: ReadonlyArray<{ tag: string; secao: string }>): Promise<ConferenciaLida[]> {
+        const out: ConferenciaLida[] = [];
+        for (const r of tarefas) {
+            const minhas = declaradas.filter(d => (r.tags ?? []).includes(d.tag));
+            if (!minhas.length) continue;
+            const file = this.arquivo(r.path);
+            if (!file) continue;
+            let texto: string;
+            try { texto = await this.deps.app.vault.cachedRead(file); } catch (e) { console.warn(`DFM Missão: a conferência de ${r.path} não se lê`, e); continue; }
+            for (const d of minhas) {
+                const itens = itensDaSecao(texto, d.secao);
+                if (itens.length) out.push({ caminho: r.path, secao: d.secao, abertos: itens.filter(i => !i.feito).length, total: itens.length });
+            }
+        }
+        return out;
     }
 
     /**

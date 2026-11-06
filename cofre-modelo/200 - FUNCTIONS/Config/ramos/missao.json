@@ -2,12 +2,6 @@
   "id": "missao",
   "titulo": "Missão",
   "descricao": "Visão geral do período (dia, semana, trimestre ou ano): das tarefas, SMART, projetos e áreas à semana, ao trimestre e à visão.",
-  "escalas": [
-    "dia",
-    "semana",
-    "trimestre",
-    "ano"
-  ],
   "centro": {
     "fonte": "centro",
     "rotulo": {
@@ -74,7 +68,13 @@
         "ano": "minmax(150px,1.05fr)"
       },
       "celular": 1,
-      "painel": "smart"
+      "painel": "smart",
+      "vazio": {
+        "texto": "sem SMART",
+        "novos": [
+          "smart"
+        ]
+      }
     },
     {
       "id": "tarefas",
@@ -242,6 +242,16 @@
         "tipo": "funcao",
         "rotulo": "Função",
         "titulo": "Nova função"
+      },
+      {
+        "tipo": "cartao",
+        "rotulo": "Cartão",
+        "titulo": "Novo cartão"
+      },
+      {
+        "tipo": "peca_logica",
+        "rotulo": "Peça lógica",
+        "titulo": "Nova peça lógica"
       }
     ],
     "no": {

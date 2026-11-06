@@ -245,7 +245,22 @@ export interface DomainField {
      * continua livre, e outro valor também vale.
      */
     conhecidos?: string[];
+    /**
+     * Os nomes antigos do campo (05/11: o `plataforma` da peça virou `destinos`): a leitura usa o primeiro que a nota
+     * tem quando ela não tem o campo, sem migrar a nota (`camposComApelidos`); a gravação usa só o nome de agora.
+     */
+    antes?: string[];
+    /** `lista`: as opções e o valor inicial que vêm de outra nota (os perfis do canal da peça, `opcoesDaOutraNota`). */
+    opcoes?: OpcoesDeOutraNota;
 }
+
+/**
+ * As opções de um campo lista que vêm de outra nota (05/11, o gerenciamento dos destinos): `de` é o campo desta nota
+ * que nomeia a outra (o `canal`); `lista`, o campo lista da outra que dá as opções (os `perfis`); e, juntos, `regra`, o
+ * campo lista da outra com as linhas "<valor> → <opção>" (o `destino_por_formato`), e `por`, o campo desta nota cujo
+ * valor escolhe as linhas da regra (o `formato`): elas dão o valor inicial.
+ */
+export interface OpcoesDeOutraNota { de: string; lista: string; regra?: string; por?: string }
 
 /**
  * As variáveis de data que o motor dos protocolos lê como a data da rodada (§5.3, item 6: "as
@@ -331,6 +346,33 @@ export interface DomainModel {
     formacao?: FormacaoDeclarada;
     /** Os formatos (03/11, o ramo Criação): cada um com a publicação dele; sem a chave, o tipo não tem formatos. */
     formatos?: DomainFormats;
+    /** O módulo especial do aprendizado (05/11, o cartão de idioma): a escada e a fila; sem a chave, o tipo não se repete. */
+    aprendizado?: DomainLearning;
+}
+
+/**
+ * Os campos que o tipo com `aprendizado` precisa ter (05/11, o módulo de idiomas): o módulo acima, o nível, a `ordem`
+ * na trilha (06/11: a fila traz as novas por ela), o estado da repetição, o intervalo em dias, a próxima revisão e as Days do uso de verdade. Os nomes são o esquema do cartão,
+ * o mesmo em toda língua: o `lingua` diz a língua, e nada no código é de uma língua.
+ */
+export const CAMPOS_DO_APRENDIZADO = ['modulo', 'nivel', 'ordem', 'estado', 'intervalo', 'proxima_revisao', 'usado_em'] as const;
+/** Os três estados da repetição, na ordem: a frase nova, a que se aprende e a consolidada (o intervalo na marca). */
+export const ESTADOS_DO_APRENDIZADO = ['nova', 'aprendendo', 'consolidada'] as const;
+export type EstadoDoAprendizado = typeof ESTADOS_DO_APRENDIZADO[number];
+
+/** A fila do dia: as novas de partida, o teto das novas e o teto das revisões vencidas. */
+export interface FilaDoAprendizado { novas: number; maxNovas: number; maxRevisoes: number }
+
+/**
+ * O módulo especial do aprendizado (05/11): a escada dos intervalos em dias (1·3·7·14·30·60·120), o intervalo a partir
+ * do qual a frase está consolidada e a fila do dia. Os números são dele e moram no modelo, não no código.
+ */
+export interface DomainLearning {
+    escada: number[];
+    consolidada: number;
+    fila: FilaDoAprendizado;
+    /** O `type` das peças lógicas do módulo (a peça que o centro mostra por nível); sem a chave, o centro não as lista. */
+    pecas?: string;
 }
 
 /**
@@ -365,6 +407,21 @@ export const TIPOS_DE_SINAL = [
     'pronto-para-exposicao', 'sem-condicao-de-fim',
     /** 02/11 (o 🔄 Revisar o trecho na SMART do trecho): a SMART do trecho concluída e ainda sem `revisado`. */
     'trecho-sem-revisao',
+    /**
+     * 05/11 (a conferência de uma pesquisa, declarada no `sinais.conferencias` do modelo): a tarefa de pesquisa
+     * aberta sem a seção da conferência, e a concluída com item da conferência ainda aberto.
+     */
+    'pesquisa-sem-conferencia', 'conferencia-aberta',
+    /**
+     * 05/11 (a campanha da semana), só informativos: o valor de um campo (o canal) sem nota publicada na semana de hoje
+     * (`cadencias` no modelo) e a nota que precisa da de origem e não a tem (o corte sem a peça-mãe, `origens`).
+     */
+    'sem-peca-publicada', 'sem-peca-mae',
+    /**
+     * 05/11 (o gerenciamento dos destinos), só informativo: a nota do tipo, num dos estados declarados, com o campo
+     * vazio (a peça editada ou aprovada sem destino, `vazios` no modelo).
+     */
+    'campo-vazio',
 ] as const;
 
 /** O prefixo da condição pelo estado do tipo (`estado:<estado>`, o `estado` de uma linha da tabela). */
@@ -375,7 +432,15 @@ export const QUANDO_ESTADO = 'estado:';
  * `estado:<estado>` da tabela do tipo; `situacao` é uma parada do 🧭 (`<router>.<passo>`); `protocolos` é o
  * recorte dos destinos dela que sobe no nó (o juiz confere que cada um é destino daquela parada).
  */
-export interface DomainSituation { quando: string; situacao: string; protocolos: string[] }
+export interface DomainSituation {
+    quando: string; situacao: string; protocolos: string[];
+    /**
+     * As respostas com que cada protocolo do recorte abre a partir do nó (06/11), como o `preencher` do bloco
+     * `protocolos`: protocolo → passo → ficha (`{{no.nome}}`, `{{no.caminho}}`, `{{no.<campo>}}`). O 🔄 que a tarefa
+     * em curso sobe abre com a tarefa do nó, e não com a do dia.
+     */
+    preencher?: Record<string, Record<string, string>>;
+}
 
 /**
  * A publicação de um formato (03/11, o ramo Criação): o tipo neutro (`video`, `artigo`, `imagem`…), o rótulo, os
@@ -417,7 +482,9 @@ export function hasChoice(modelo: DomainModel | null | undefined): modelo is Cho
 const SNAKE = /^[a-z][a-z0-9_]*$/;
 /** A chave de uma resposta do protocolo: o id do passo, ou uma variável do motor (`_context_date`). */
 const ANSWER_KEY = /^_?[a-z][a-z0-9_]*$/;
-const MODEL_KEYS = ['dominio', 'descricao', 'candidatos', 'escolher', 'registros', 'contagens', 'estados', 'legado', 'campos', 'criar', 'protocolos', 'situacoes', 'sinais', 'formacao', 'formatos'];
+const MODEL_KEYS = ['dominio', 'descricao', 'candidatos', 'escolher', 'registros', 'contagens', 'estados', 'legado', 'campos', 'criar', 'protocolos', 'situacoes', 'sinais', 'formacao', 'formatos', 'aprendizado'];
+const LEARNING_KEYS = ['escada', 'consolidada', 'fila', 'pecas'];
+const LEARNING_QUEUE_KEYS = ['novas', 'maxNovas', 'maxRevisoes'];
 const FORMATS_KEYS = ['campo', 'valores', 'publicacoes'];
 const FORMAT_KEYS = ['valor', 'rotulo', 'publicacao', 'desdobramentos', 'habitos', 'fora', 'campos'];
 const FORMAT_FIELD_KEYS = ['rotulo', 'vazio'];
@@ -432,11 +499,13 @@ export const COLUNA_DO_CENTRO = 'centro';
  * nomeia também vai para ela.
  */
 export const COLUNA_DO_LADO = 'lado';
-const FIELD_KEYS = ['nome', 'rotulo', 'tipo', 'formato', 'valores', 'alvo', 'multiplo', 'ramo', 'obrigatorio', 'sugestao', 'dono', 'editar', 'criar', 'vazio', 'planejado', 'conhecidos'];
+const FIELD_KEYS = ['nome', 'rotulo', 'tipo', 'formato', 'valores', 'alvo', 'multiplo', 'ramo', 'obrigatorio', 'sugestao', 'dono', 'editar', 'criar', 'vazio', 'planejado', 'conhecidos', 'antes', 'opcoes'];
+/** As chaves das opções que vêm de outra nota (`opcoes`, 05/11). */
+const OPCOES_KEYS = ['de', 'lista', 'regra', 'por'];
 const SUGGESTION_KEYS = ['de', 'valor', 'caminho'];
 const CREATE_KEYS = ['via', 'protocolo', 'completo', 'passos', 'nome', 'datas', 'titulo', 'casa', 'molde'];
 const HOME_KEYS = ['campo', 'subpasta'];
-const SITUATION_KEYS = ['quando', 'situacao', 'protocolos'];
+const SITUATION_KEYS = ['quando', 'situacao', 'protocolos', 'preencher'];
 /** A parada do 🧭: o id do router e o id do passo. */
 const STOP = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/;
 const OWNER = /^(nota|derivado|protocolo:[a-z][a-z0-9_]*(#[a-z][a-z0-9_]*)?)$/;
@@ -625,6 +694,7 @@ export function parseDomainModel(raw: unknown, fileStem?: string): { modelo: Dom
     else if (isObject(raw.sinais)) problemas.push(...signalProblems(raw.sinais));
     const formacao = parseFormacao(raw.formacao, problemas);
     const formatos = parseFormats(raw.formatos, campos, estados, problemas);
+    const aprendizado = parseLearning(raw.aprendizado, campos, problemas);
 
     if (!isText(dominio) || !SNAKE.test(dominio) || !candidatos || !isText(candidatos.pasta)) return { modelo: null, problemas, categorias };
     return {
@@ -649,9 +719,50 @@ export function parseDomainModel(raw: unknown, fileStem?: string): { modelo: Dom
             sinais: isObject(raw.sinais) ? { ...raw.sinais } : {},
             ...(formacao ? { formacao } : {}),
             ...(formatos ? { formatos } : {}),
+            ...(aprendizado ? { aprendizado } : {}),
         },
         problemas,
     };
+}
+
+/**
+ * O que faz: confere o bloco `aprendizado` de um modelo (05/11, o módulo de idiomas) e devolve a escada e a fila.
+ * Por quê: o cartão e a peça lógica são tipos próprios do aprendizado; o que é próprio de um domínio vira módulo
+ * especial, declarado no modelo, e os números da repetição (a escada, o consolidado, a fila) são dele. O juiz em Python (`_learning_problems`)
+ * diz as mesmas mensagens, na mesma ordem.
+ * Entra → sai: o bloco cru, os campos já lidos e a lista de problemas (acrescida) → `DomainLearning`, ou `undefined`
+ * sem a chave (ou com o bloco ruim).
+ * Erro e ataque: a escada vazia, fora de ordem, com zero, número quebrado ou texto; o consolidado fora da escada; a
+ * fila com número que não é inteiro, as novas acima do teto; o modelo sem um dos campos do esquema, ou com o `estado`
+ * sem os três estados: o problema é dito e o bloco fica de fora.
+ * Prova: os casos compartilhados com o juiz (`tests/fixtures/dominio/casos.json`) e tests/engine/repeticao.test.ts.
+ */
+function parseLearning(raw: unknown, campos: readonly DomainField[], problemas: string[]): DomainLearning | undefined {
+    if (raw === undefined) return undefined;
+    if (!isObject(raw)) { problemas.push('aprendizado: precisa ser um objeto { escada, consolidada, fila }'); return undefined; }
+    const antes = problemas.length;
+    problemas.push(...unknownKeys(raw, LEARNING_KEYS, 'aprendizado'));
+    const inteiro = (v: unknown, min: number) => typeof v === 'number' && Number.isInteger(v) && v >= min;
+    const escada = Array.isArray(raw.escada) ? raw.escada : null;
+    if (!escada || !escada.length || !escada.every(v => inteiro(v, 1))) problemas.push('aprendizado: `escada` precisa ser uma lista de dias inteiros de 1 para cima');
+    else if (escada.some((v, i) => i > 0 && v <= escada[i - 1])) problemas.push('aprendizado: `escada` precisa crescer a cada degrau');
+    else if (!escada.includes(raw.consolidada)) problemas.push('aprendizado: `consolidada` precisa ser um degrau da `escada`');
+    const fila = isObject(raw.fila) ? raw.fila : null;
+    if (!fila) problemas.push('aprendizado: `fila` precisa ser um objeto { novas, maxNovas, maxRevisoes }');
+    else {
+        problemas.push(...unknownKeys(fila, LEARNING_QUEUE_KEYS, 'aprendizado.fila'));
+        for (const k of LEARNING_QUEUE_KEYS) if (!inteiro(fila[k], 0)) problemas.push(`aprendizado.fila: \`${k}\` precisa ser um inteiro de 0 para cima`);
+        if (inteiro(fila.novas, 0) && inteiro(fila.maxNovas, 0) && fila.novas > fila.maxNovas) problemas.push('aprendizado.fila: `novas` passa do `maxNovas`');
+    }
+    if (raw.pecas !== undefined && (!isText(raw.pecas) || !SNAKE.test(raw.pecas))) problemas.push('aprendizado: `pecas` precisa ser o `type` das peças, em snake_case');
+    const nomes = new Set(campos.map(c => c.nome));
+    const faltam = CAMPOS_DO_APRENDIZADO.filter(n => !nomes.has(n));
+    if (faltam.length) problemas.push(`aprendizado: o modelo precisa dos campos ${faltam.map(n => `'${n}'`).join(', ')}`);
+    const estado = campos.find(c => c.nome === 'estado');
+    const valores = estado && Array.isArray(estado.valores) ? estado.valores : [];
+    if (estado && ESTADOS_DO_APRENDIZADO.some(e => !valores.includes(e))) problemas.push(`aprendizado: o campo 'estado' precisa ter os valores ${ESTADOS_DO_APRENDIZADO.join(', ')}`);
+    if (problemas.length > antes) return undefined;
+    return { escada: [...(escada as number[])], consolidada: raw.consolidada as number, fila: { novas: fila!.novas, maxNovas: fila!.maxNovas, maxRevisoes: fila!.maxRevisoes }, ...(isText(raw.pecas) ? { pecas: raw.pecas } : {}) };
 }
 
 /**
@@ -746,6 +857,51 @@ export function formatoDaNota(formatos: DomainFormats | undefined, campos: Recor
 }
 
 /**
+ * O que faz: diz se uma nota está publicada pelo modelo do tipo: o estado dela (o `status`, pela tabela) é o estado da
+ * publicação do formato dela ou um que vem depois dele na tabela, e não é um estado oculto (o arquivado).
+ * Por quê: 05/11, a campanha da semana: a frente, o 📅 e o sinal de cadência contam "publicada" do mesmo jeito, pelo
+ * que o modelo já declara (o "no ar" de cada publicação e a ordem dos estados: o revisado vem depois do no ar), e não
+ * por uma lista de estados no código.
+ * Entra → sai: o modelo (a tabela de estados e os formatos) e o frontmatter → publicada ou não.
+ * Erro e ataque: sem formatos, sem o formato da nota, sem publicação nele, o estado que a tabela não tem ou o status
+ * vazio: não publicada; o status em maiúsculas casa igual.
+ * Prova: tests/engine/publicadaPeloModelo.test.ts.
+ */
+export function publicadaPeloModelo(modelo: Pick<DomainModel, 'estados' | 'formatos'>, campos: Record<string, unknown> | null | undefined): boolean {
+    const publicacao = formatoDaNota(modelo.formatos, campos)?.publicacao;
+    if (!publicacao) return false;
+    const valor = String(campos?.status ?? '').trim().toLowerCase();
+    const i = modelo.estados.findIndex(e => e.valor.toLowerCase() === valor);
+    const desde = modelo.estados.findIndex(e => e.valor === publicacao.estado);
+    return i >= 0 && desde >= 0 && i >= desde && modelo.estados[i].mostrar !== 'oculto';
+}
+
+/**
+ * O que faz: os valores livres do campo `por` nas cadências declaradas no bloco `sinais` de um modelo (o `livres`).
+ * Por quê: 05/11, o canal pessoal de testes ("sem obrigação"): ele não tem cadência, e nem o sinal da semana nem a conta
+ * do publicado no 📅 o cobram quando não tem peça; uma leitura só para os dois.
+ * Entra → sai: o bloco `sinais` e o nome do campo → os valores livres (texto, sem vazio).
+ * Prova: tests/missao/sinaisDaCampanha.test.ts, tests/engine/publicadoDaSemana.test.ts.
+ */
+export function valoresLivres(sinais: Record<string, unknown> | undefined, por: string): string[] {
+    const cadencias = Array.isArray(sinais?.cadencias) ? sinais.cadencias as Array<Record<string, unknown>> : [];
+    return cadencias
+        .filter(c => String(c?.por ?? '').trim() === por)
+        .flatMap(c => (Array.isArray(c?.livres) ? c.livres : []).map(x => String(x ?? '').trim()).filter(Boolean));
+}
+
+/**
+ * O que faz: o campo de data da publicação de um modelo com formatos: o primeiro campo `data` que alguma publicação pede
+ * (o "vai ao ar em"), ou `null`.
+ * Por quê: 05/11: a contagem do publicado na semana lê o dia de ir ao ar pelo que o modelo declara, sem o nome no código.
+ * Prova: tests/engine/publicadaPeloModelo.test.ts.
+ */
+export function campoDaDataDePublicacao(modelo: Pick<DomainModel, 'campos' | 'formatos'>): string | null {
+    const pedidos = new Set((modelo.formatos?.publicacoes ?? []).flatMap(p => p.campos));
+    return modelo.campos.find(c => c.tipo === 'data' && pedidos.has(c.nome))?.nome ?? null;
+}
+
+/**
  * O que faz: os campos do modelo como valem para uma nota, pelo formato dela: sem os do `fora` do formato, sem os campos
  * de publicação que a publicação dele não pede, com o rótulo e o vazio próprios do formato, e o rótulo do campo de
  * formato dizendo a publicação ("Formato · publicação de vídeo"); sem formatos, ou com o formato que nenhum declara,
@@ -771,6 +927,55 @@ export function camposNoFormato(modelo: Pick<DomainModel, 'campos' | 'formatos'>
         out.push({ ...campo, rotulo, ...(proprio?.vazio ? { vazio: proprio.vazio } : {}) });
     }
     return out;
+}
+
+/**
+ * O que faz: o frontmatter de uma nota com os nomes antigos dos campos lidos: o campo do modelo que a nota não tem (ou
+ * tem vazio) toma o valor do primeiro nome do `antes` dele que a nota tem.
+ * Por quê: 05/11, o gerenciamento dos destinos: o `plataforma` da peça virou `destinos` (uma lista), e as notas antigas
+ * continuam valendo sem migrar; quem lê (o cartão, o painel, os sinais) lê pelo nome de agora.
+ * Entra → sai: o modelo (os campos) e o frontmatter → uma cópia rasa com os campos preenchidos (a entrada não muda; sem
+ * nada a ler, o mesmo objeto). O texto solto do nome antigo, no campo lista, vira a lista de um item.
+ * Erro e ataque: o valor vazio (o texto em branco, a lista vazia) do nome antigo não conta; o campo que já tem valor
+ * não muda; o nome antigo fica na nota como está (nada se grava).
+ * Prova: tests/engine/destinosDaPeca.test.ts.
+ */
+export function camposComApelidos(modelo: Pick<DomainModel, 'campos'> | null | undefined, campos: Record<string, unknown>): Record<string, unknown> {
+    const vazio = (v: unknown) => v === undefined || v === null || (typeof v === 'string' && !v.trim()) || (Array.isArray(v) && !v.length);
+    let out: Record<string, unknown> | null = null;
+    for (const campo of modelo?.campos ?? []) {
+        if (!campo.antes?.length || !vazio(campos[campo.nome])) continue;
+        const antigo = campo.antes.find(a => !vazio(campos[a]));
+        if (!antigo) continue;
+        const v = campos[antigo];
+        (out ??= { ...campos })[campo.nome] = campo.tipo === 'lista' && !Array.isArray(v) ? [v] : v;
+    }
+    return out ?? campos;
+}
+
+/**
+ * O que faz: as opções e o valor inicial de um campo lista pela outra nota (`opcoes`): as opções são a lista dela (os
+ * perfis do canal); o inicial são as opções das linhas da regra dela ("<valor> → <opção>") cujo valor é o desta nota no
+ * campo `por` (o formato), na ordem da regra, e o porquê em palavras.
+ * Por quê: 05/11, o gerenciamento dos destinos: "para qual perfil ou rede vai cada conteúdo"; o canal diz os perfis e
+ * para onde vai cada formato, e a peça parte disso (o operador tira ou põe um).
+ * Entra → sai: o campo (com `opcoes`), o frontmatter desta nota, o da outra (ou `null`) e o nome dela → `{ opcoes,
+ * inicial, porque }`, ou `null` (sem `opcoes`, ou sem a outra nota).
+ * Erro e ataque: a linha da regra sem "→", ou com o valor de outro formato, não entra; a comparação ignora caixa,
+ * acento e espaços; a opção da regra que a lista não tem entra assim mesmo (a regra é do operador); repetida, uma vez.
+ * Prova: tests/engine/destinosDaPeca.test.ts.
+ */
+export function opcoesDaOutraNota(campo: Pick<DomainField, 'opcoes'>, campos: Record<string, unknown>, outra: Record<string, unknown> | null | undefined, nomeDaOutra = ''): { opcoes: string[]; inicial: string[]; porque: string } | null {
+    const o = campo.opcoes;
+    if (!o || !outra) return null;
+    const textos = (v: unknown) => (Array.isArray(v) ? v : v === undefined || v === null ? [] : [v]).map(x => String(x ?? '').trim()).filter(Boolean);
+    const dobra = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const sem = (lista: string[]) => lista.filter((x, i) => lista.findIndex(y => dobra(y) === dobra(x)) === i);
+    const opcoes = sem(textos(outra[o.lista]));
+    const valor = o.por ? dobra(textos(campos[o.por])[0] ?? '') : '';
+    const inicial = !o.regra || !valor ? [] : sem(textos(outra[o.regra]).map(l => l.split('→')).filter(p => p.length === 2 && dobra(p[0]) === valor).map(p => p[1].trim()).filter(Boolean));
+    const quem = nomeDaOutra || textos(campos[o.de])[0] || o.de;
+    return { opcoes, inicial, porque: inicial.length ? `a regra de ${quem} para ${textos(campos[o.por!])[0]}` : `os perfis de ${quem}` };
 }
 
 /**
@@ -869,6 +1074,16 @@ const SIGNAL_LISTS: Record<string, { obrigatorias: string[]; opcionais: string[]
     // 02/11: as datas de notas seguidas (as estadias): a entrada (`de`), a saída (`ate`), o campo do estado, os
     // estados que contam na sequência (`conta`) e os da reserva aberta (`aberta`), listas de textos.
     datas: { obrigatorias: ['type', 'de', 'ate', 'estado', 'fato'], opcionais: ['conta', 'aberta', 'passo'], listas: ['conta', 'aberta'] },
+    // 05/11: a conferência de uma pesquisa: a tag da tarefa de pesquisa e a seção da nota dela onde mora a lista.
+    conferencias: { obrigatorias: ['tag', 'secao', 'fato'], opcionais: ['passo'] },
+    // 05/11 (a campanha da semana): a cadência (cada valor do campo `por` sem nota publicada na semana de hoje; o `fato`
+    // diz o valor por `{valor}`; os `livres` não têm cadência, como o canal pessoal de testes) e a origem (a nota dos
+    // `formatos` sem a de origem no `campo`, ou com ela inexistente).
+    cadencias: { obrigatorias: ['type', 'por', 'fato'], opcionais: ['livres', 'passo'], listas: ['livres'] },
+    origens: { obrigatorias: ['type', 'campo', 'fato'], opcionais: ['formatos', 'passo'], listas: ['formatos'] },
+    // 05/11 (o gerenciamento dos destinos): a nota do tipo, num dos `estados` (sem eles, em qualquer um que não é oculto),
+    // com o `campo` vazio.
+    vazios: { obrigatorias: ['type', 'campo', 'fato'], opcionais: ['estados', 'passo'], listas: ['estados'] },
 };
 
 /**
@@ -877,7 +1092,8 @@ const SIGNAL_LISTS: Record<string, { obrigatorias: string[]; opcionais: string[]
  * campo de uma nota do `type`, de hoje em diante, vira sinal), `limites` (a data de um campo,
  * `ate`, ou os dias de outro, `dias`, contados da chegada no lugar que o campo `lugar` diz, viram o
  * último dia; ao menos um dos dois) e `datas` (02/11: a entrada e a saída das notas do `type`, em
- * sequência, conferidas; `conta` é a lista dos estados que entram, `aberta` a das reservas abertas).
+ * sequência, conferidas; `conta` é a lista dos estados que entram, `aberta` a das reservas abertas) e
+ * `conferencias` (05/11: a tag da tarefa de pesquisa e a seção da nota dela onde mora a lista de verificação).
  * Por quê: §8.8, os sinais por uma função só (`missao/sinais.ts`), declarados no modelo e não no
  * código; o juiz (`_signal_problems`) diz o mesmo, com as mesmas mensagens.
  * Entra → sai: o bloco (objeto) → os problemas.
@@ -947,6 +1163,8 @@ function parseFields(raw: unknown, legado: readonly string[], problemas: string[
     if (!Array.isArray(raw) || raw.length === 0) { problemas.push('modelo: `campos` precisa ser uma lista com ao menos um campo'); return []; }
     const out: DomainField[] = [];
     const seen = new Set<string>();
+    // Os nomes dos campos do modelo, para o `antes` e as `opcoes` (05/11) citarem só o que existe.
+    const nomes = raw.filter(isObject).map((f: any) => f.nome).filter(isText);
     for (const [index, f] of raw.entries()) {
         const where = `campo ${index + 1}`;
         if (!isObject(f)) { problemas.push(`${where}: precisa ser um objeto`); continue; }
@@ -1003,6 +1221,17 @@ function parseFields(raw: unknown, legado: readonly string[], problemas: string[
             if (tipo !== 'texto') bad('`conhecidos` só vale no tipo texto');
             else if (!isTextList(f.conhecidos) || !f.conhecidos.length) bad('`conhecidos` precisa ser uma lista de textos');
         }
+        if (f.antes !== undefined) {
+            if (!isTextList(f.antes) || !f.antes.length || !f.antes.every((a: string) => SNAKE.test(a))) bad('`antes` precisa ser uma lista de nomes de campo');
+            else if (f.antes.some((a: string) => nomes.includes(a))) bad('`antes` não pode citar um campo do modelo');
+        }
+        if (f.opcoes !== undefined) {
+            const o = f.opcoes;
+            if (tipo !== 'lista') bad('`opcoes` só vale no tipo lista');
+            else if (!isObject(o) || !isText(o.de) || !isText(o.lista) || Object.keys(o).some(k => !OPCOES_KEYS.includes(k))) bad('`opcoes` precisa ser { de, lista, regra, por }, com de e lista em texto');
+            else if ((o.regra === undefined) !== (o.por === undefined) || (o.regra !== undefined && (!isText(o.regra) || !isText(o.por)))) bad('`opcoes`: `regra` e `por` vão juntos, em texto');
+            else for (const k of ['de', 'por'] as const) if (o[k] !== undefined && !nomes.includes(o[k])) bad(`\`opcoes.${k}\` precisa ser um campo do modelo`);
+        }
         if (!ok) continue;
         out.push({
             nome: f.nome, rotulo: f.rotulo, tipo, dono: f.dono,
@@ -1018,6 +1247,8 @@ function parseFields(raw: unknown, legado: readonly string[], problemas: string[
             ...(f.vazio !== undefined ? { vazio: f.vazio } : {}),
             ...(f.planejado !== undefined ? { planejado: f.planejado } : {}),
             ...(f.conhecidos !== undefined ? { conhecidos: [...f.conhecidos] } : {}),
+            ...(f.antes !== undefined ? { antes: [...f.antes] } : {}),
+            ...(f.opcoes !== undefined ? { opcoes: { de: f.opcoes.de, lista: f.opcoes.lista, ...(f.opcoes.regra !== undefined ? { regra: f.opcoes.regra, por: f.opcoes.por } : {}) } } : {}),
         });
     }
     return out;
@@ -1124,7 +1355,12 @@ function parseSituations(raw: unknown, estados: readonly DomainState[], problema
         if (!isText(s.situacao) || !STOP.test(s.situacao)) { problemas.push(`${where}: \`situacao\` precisa ser uma parada do 🧭, <router>.<passo>`); ok = false; }
         if (!Array.isArray(s.protocolos) || !s.protocolos.length || !s.protocolos.every((id: unknown) => isText(id) && SNAKE.test(id))) { problemas.push(`${where}: \`protocolos\` precisa ser uma lista de ids de protocolo`); ok = false; }
         else if (new Set(s.protocolos).size !== s.protocolos.length) { problemas.push(`${where}: \`protocolos\` tem id repetido`); ok = false; }
-        if (ok) out.push({ quando, situacao: s.situacao, protocolos: [...s.protocolos] });
+        // `preencher` (06/11): protocolo do recorte → passo → texto, a mesma forma do `preencher` do bloco `protocolos`.
+        const doRecorte = Array.isArray(s.protocolos) ? s.protocolos : [];
+        if (s.preencher !== undefined && !(isObject(s.preencher) && Object.entries(s.preencher).every(([id, fichas]) => doRecorte.includes(id) && isObject(fichas) && Object.entries(fichas).every(([k, v]) => ANSWER_KEY.test(k) && isText(v))))) {
+            problemas.push(`${where}: \`preencher\` precisa ser um objeto de protocolo do recorte → { passo: texto }`); ok = false;
+        }
+        if (ok) out.push({ quando, situacao: s.situacao, protocolos: [...s.protocolos], ...(isObject(s.preencher) ? { preencher: Object.fromEntries(Object.entries(s.preencher).map(([id, f]) => [id, { ...(f as Record<string, string>) }])) } : {}) });
     }
     return out;
 }

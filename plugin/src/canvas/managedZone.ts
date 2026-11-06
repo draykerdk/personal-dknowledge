@@ -149,6 +149,13 @@ export interface ApplyDeps {
 
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
+/**
+ * O que faz: aplica um plano ao canvas de `path`: aberto, pela vista (`getData` → plano → `setData` e
+ * `requestSave`, que o Ctrl+Z desfaz); fechado, pelo arquivo.
+ * Por quê: um caminho só de gravação de canvas para toda zona gerida.
+ * Erro e ataque: sem permissão de gravar neste aparelho (`writesAllowed`), não grava.
+ * Prova: tests/canvas/managedZone.test.ts.
+ */
 export async function applyCanvasPlan(
     app: App,
     engine: any,

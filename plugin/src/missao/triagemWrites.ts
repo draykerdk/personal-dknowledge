@@ -21,6 +21,7 @@ import type { Patch } from '../canvas/edgeLinks';
 import {
     HISTORY_FOLDER, TASKNOTES_FOLDER, captureTaskFrontMatter, isDeadFolder, sideQuestFrontMatter, targetPathFor,
 } from '../engine/inboxRules';
+import { frontmatterDaTarefaNova } from '../engine/tasknotesCreate';
 import { patchDeDesfazer } from './gestos';
 import type { Gravado, PilhaDoDesfazer } from './missaoWrites';
 import type { Avisar, ResultadoDaGravacao } from './tipos';
@@ -57,7 +58,15 @@ export interface DepsDaTriagem {
     refrescar(): void;
     /** Hoje (`AAAA-MM-DD`). */
     hoje(): string;
+    /**
+     * O carimbo de agora na forma do TaskNotes (`dia.carimboDoMomento`): o `dateCreated` da nota que vira
+     * tarefa, como o de toda tarefa que nasce (o criador único, 05/11). Sem ele, o dia de hoje.
+     */
+    carimbo?(): string;
 }
+
+/** O que a triagem acerta na nota que vira tarefa pela forma única (as outras chaves dela ficam como estão). */
+const CHAVES_DA_TAREFA_NA_TRIAGEM: readonly string[] = ['type', 'tags', 'status', 'priority', 'dateCreated'];
 
 /** O rótulo de cada destino da Caixa, para o aviso. */
 export const ROTULO_DA_CAIXA: Readonly<Record<DestinoDaCaixa, string>> = {
@@ -65,7 +74,7 @@ export const ROTULO_DA_CAIXA: Readonly<Record<DestinoDaCaixa, string>> = {
 };
 
 /** Os campos da ideia que o 🗂️ grava (`updateSelectedNote.properties`); o Desfazer volta só estes. */
-export const CAMPOS_DA_IDEIA: readonly string[] = ['destino', 'para_qual_contexto', 'porque_fora'];
+export const CAMPOS_DA_IDEIA: readonly string[] = ['destino', 'destino_em', 'para_qual_contexto', 'porque_fora'];
 
 /**
  * O que faz: a pasta de um destino da Caixa: a fixa (Histórico, Side Quest, Virar tarefa) ou
@@ -130,11 +139,18 @@ export class GravacoesDaTriagem {
         let antes: Record<string, unknown> = {};
         let gravado: Patch | null = null;
         if (destino === 'sidequest' || destino === 'tarefa') {
-            const hoje = this.deps.hoje();
+            const quando = this.deps.carimbo?.() || this.deps.hoje();
             const r = await this.deps.atualizarNota(caminho, fm => {
-                const p = destino === 'sidequest' ? sideQuestFrontMatter(fm, hoje) : captureTaskFrontMatter(fm, hoje);
+                // A captura nasce com o dia em `created` (o nome das notas); a tarefa o guarda em `dateCreated`
+                // (o nome do TaskNotes; o `created` numa TaskNote é aposentado, convenções), e ele não se perde.
+                const doDia = typeof fm.created === 'string' && fm.created.trim() && !fm.dateCreated ? { ...fm, dateCreated: fm.created.trim() } : fm;
+                const p = destino === 'sidequest' ? sideQuestFrontMatter(doDia, quando) : captureTaskFrontMatter(doDia, quando);
+                // A forma única de toda tarefa (o criador único, D5, 05/11), sem trocar a data de criação
+                // que a nota já tem: a nota existe, e só vira tarefa.
+                const { created: _criada, ...unica } = frontmatterDaTarefaNova({ ...doDia, ...p }, quando, { criacao: 'manter' });
                 const patch: Patch = {};
-                for (const [k, v] of Object.entries(p)) if (v !== undefined && !same(fm[k], v)) patch[k] = v;
+                for (const k of CHAVES_DA_TAREFA_NA_TRIAGEM) if (unica[k] !== undefined && !same(fm[k], unica[k])) patch[k] = unica[k];
+                if (fm.created !== undefined) patch.created = null;
                 gravado = Object.keys(patch).length ? patch : null;
                 return gravado;
             });

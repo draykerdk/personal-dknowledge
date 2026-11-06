@@ -30,7 +30,7 @@ export class InputModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        renderStepHeader(contentEl, this.promptText, this.info);
+        renderStepHeader(contentEl, this.promptText, this.info, this.app as any);
 
         const input = contentEl.createEl("input", { type: "text" });
         input.placeholder = this.placeholder || "";
@@ -95,7 +95,7 @@ export class TextAreaModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        renderStepHeader(contentEl, this.promptText, this.info);
+        renderStepHeader(contentEl, this.promptText, this.info, this.app as any);
 
         const input = new TextAreaComponent(contentEl);
         input.setPlaceholder(this.placeholder || "");
@@ -182,7 +182,7 @@ export class MultiSelectModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        renderStepHeader(contentEl, this.promptText, this.info);
+        renderStepHeader(contentEl, this.promptText, this.info, this.app as any);
 
         const listEl = contentEl.createDiv({ cls: "dfm-multiselect-list" });
 

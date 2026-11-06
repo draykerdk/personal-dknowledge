@@ -95,6 +95,11 @@ export class ProjectCanvasManager {
     private get engine(): any { return (this.plugin as any).canvasEngine; }
     private autoSync(): boolean { return (this.plugin.settings as any).projectCanvasAutoSync !== false; }
 
+    /**
+     * O que faz: registra os comandos dos canvas de projeto e as escutas das TaskNotes que sincronizam a zona.
+     * Por quê: o canvas acompanha a tarefa que muda, sem o operador pedir.
+     * Prova: tests/project/projectCanvasManager.test.ts.
+     */
     register(): void {
         const plugin = this.plugin;
 
@@ -160,6 +165,10 @@ export class ProjectCanvasManager {
         return this.board.tasks.read(file);
     }
 
+    /**
+     * O que faz: as tarefas do índice do quadro, a entrada da árvore do projeto.
+     * Prova: tests/project/projectCanvasManager.test.ts.
+     */
     readTasks(): TaskInfo[] {
         return this.board.tasks.all();
     }
@@ -420,6 +429,11 @@ export class ProjectCanvasManager {
         return `${project.name}: ${parts.join(' · ')}`;
     }
 
+    /**
+     * O que faz: sincroniza os canvas de projeto que já têm zona e avisa quantos.
+     * Por quê: o canvas de departamento feito à mão continua como está.
+     * Prova: tests/project/projectCanvasManager.test.ts.
+     */
     async syncAll(): Promise<void> {
         let count = 0;
         // Os canvas que já têm zona; o de departamento feito à mão continua como está.
@@ -482,6 +496,11 @@ export class ProjectCanvasManager {
         if (project) await this.openOrCreate(project);
     }
 
+    /**
+     * O que faz: cria o canvas dos projetos que ainda não têm, só no computador.
+     * Por quê: no celular os canvas geridos não são gravados.
+     * Prova: tests/project/projectCanvasManager.test.ts.
+     */
     async createMissing(): Promise<void> {
         if (!canvasWritesAllowed()) {
             new Notice('No celular os canvas geridos não são criados; crie no computador.');
@@ -522,6 +541,10 @@ export class ProjectCanvasManager {
         return this.projectOf(file.path);
     }
 
+    /**
+     * O que faz: o projeto de um caminho: o do canvas dele, ou o da pasta que contém a nota; senão, `null`.
+     * Prova: tests/project/projectCanvasManager.test.ts.
+     */
     async projectOf(path: string): Promise<ProjectInfo | null> {
         const projects = await this.projects();
         return projects.find(p => this.canvasPathFor(p) === path)

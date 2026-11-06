@@ -111,7 +111,7 @@ export const BOARD_CATALOG: ReadonlyArray<BoardCatalogEntry> = [
     { kind: 'protocolos-avisos', label: 'Protocolos · avisos', description: 'Becos, órfãos, fase desconhecida, objetivo que falta, JSON com erro; e a bancada completa', icon: 'alert-triangle', size: { width: 460, height: 420 }, defaultLimit: 12 },
     { kind: 'protocolos-ferramentas', label: 'Protocolos · ferramentas', description: 'Gerar o mapa do 🧭, abrir o mapa e o inventário, rodar a bancada', icon: 'wrench', size: { width: 560, height: 260 }, defaultLimit: 4 },
     { kind: 'consulta', label: 'Consulta', description: 'Tarefas deste canvas (ou do projeto, semana, trimestre) filtradas e mostradas como lista, contagem, progresso, kanban ou grupos', icon: 'search', size: { width: 460, height: 360 }, defaultLimit: 10 },
-    { kind: 'missao', label: 'Missão', description: 'Linha do tempo fractal em borboleta', icon: 'compass', size: { width: 900, height: 600 }, defaultLimit: 1 },
+    { kind: 'missao', label: 'Missão', description: 'Atalho: abre a Missão com o zoom no projeto do canvas, ou no período dele', icon: 'compass', size: { width: 320, height: 160 }, defaultLimit: 1 },
 ];
 
 export const TASK_FILTERS: ReadonlyArray<{ id: BoardTaskFilter; label: string }> = [

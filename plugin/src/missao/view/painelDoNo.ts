@@ -28,7 +28,7 @@ import { linhaDoEstado, secaoDeAcoes, secaoDeLigacoes, secaoMoverPara, secoesDos
 import { linhaDeCampo, rotulosDoCatalogo, valorDeLinks, valorEmSpan } from './campos';
 import { cicloEl, noEl, tracos } from './nos';
 import type { Contexto } from './contrato';
-import { CHECKLIST, FRASES, PAINEL, PAPEIS_DO_PROTOCOLO as PAPEIS, PROTOCOLOS, REGISTRO, REPUTACAO, SUBTAREFAS } from '../frases';
+import { APRENDIZADO, CHECKLIST, FRASES, PAINEL, PAPEIS_DO_PROTOCOLO as PAPEIS, PROTOCOLOS, REGISTRO, REPUTACAO, SUBTAREFAS } from '../frases';
 import { checklistDoTexto, idDoItem, textoLimpoDoItem } from '../checklist';
 import { linhaDaPessoa, PREFIXO_DA_PESSOA } from '../pessoas';
 import { destinosDoFeito } from '../registro';
@@ -103,7 +103,9 @@ function secoesDosCampos(ctx: Contexto, id: string, dica: string): HTMLElement[]
         const f = el(ctx.doc, 'div', 'fields');
         for (const linha of c.campos) {
             const valor = linha.links?.length ? valorDeLinks(ctx, linha.links, nota) : valorEmSpan(ctx, linha.valor, linha.vazio);
-            linhaDeCampo(ctx, f, linha.rotulo, valor, { campo: linha.nome });
+            // O campo vazio com as opções de outra nota (05/11, os destinos pelo canal) diz o que a regra sugere.
+            const sugerido = linha.vazio ? ctx.modelo.opcoesPelaOutraNota?.(nota, fm ?? {}, linha.nome) ?? null : null;
+            linhaDeCampo(ctx, f, linha.rotulo, valor, { campo: linha.nome, ...(sugerido ? { origem: PAINEL.sugeridoPelaOutraNota(sugerido) } : {}) });
         }
         sec.appendChild(f);
         sec.appendChild(el(ctx.doc, 'p', 'hint', null, dica));
@@ -431,7 +433,6 @@ function painelDoDetalhe(ctx: Contexto, id: string, det: DetalheDoNo, corpo: HTM
         corpo.appendChild(s);
     } else if (a) corpo.appendChild(a);
     if (det.linhas.length) { const s = secao(ctx, 'Detalhes'); s.appendChild(campos(ctx, det.linhas)); corpo.appendChild(s); }
-    sinaisDoNo(ctx, id, corpo);
     if (det.ligadas.length) {
         const s = secao(ctx, 'Ligadas');
         for (const n of det.ligadas) {
@@ -631,7 +632,6 @@ function painelDoLugar(ctx: Contexto, id: string, lugar: LugarDoNo, corpo: HTMLE
     const se = secao(ctx, PAINEL.passagens);
     se.appendChild(lugar.passagens.length ? atalhosDasPassagens(ctx, lugar.passagens, !lugar.cidade) : el(doc, 'p', 'empty', null, PAINEL.semPassagem));
     corpo.appendChild(se);
-    sinaisDoNo(ctx, id, corpo);
     // O que o ramo sabe da nota (os detalhes da fonte, as que a seguem), sem repetir as cidades.
     const det = modelo.detalhe(id);
     if (det?.linhas.length && det.nota) { const s = secao(ctx, 'Detalhes'); s.appendChild(campos(ctx, det.linhas)); corpo.appendChild(s); }
@@ -704,6 +704,9 @@ function corpoDoPainel(ctx: Contexto, id: string): HTMLElement {
         // O estado e o ⋯ Status embaixo do título (02/11), no mesmo lugar em todo nó com estados; e de onde veio.
         const st = linhaDoEstado(ctx, id);
         if (st) corpo.appendChild(st);
+        // Os sinais logo abaixo do título, em todo tipo (06/11, a simetria): no fim de um painel longo, o sinal da
+        // pesquisa sem a conferência ficava fora da vista.
+        sinaisDoNo(ctx, id, corpo);
     };
 
     const t = indice.porId.get(id);
@@ -728,7 +731,6 @@ function corpoDoPainel(ctx: Contexto, id: string): HTMLElement {
             const l = secaoDeLigacoes(ctx, t);
             if (l) corpo.appendChild(l);
         }
-        sinaisDoNo(ctx, id, corpo);
         if (t.tipo === 'smart') {
             const filhos = indice.vivas.filter(x => x.smart === t.id).map(x => ctx.modelo.noDaTarefaNoPainel(x));
             const no = ctx.modelo.noDaTarefaNoPainel(t);
@@ -779,7 +781,8 @@ function corpoDoPainel(ctx: Contexto, id: string): HTMLElement {
         }
         const px = proximaDoProjeto(ctx, id);
         if (px) corpo.appendChild(px);
-        sinaisDoNo(ctx, id, corpo);
+        const ap = aprendizadoDoModulo(ctx, id);
+        if (ap) corpo.appendChild(ap);
         const aux = [...indice.projetos.values()].filter(x => x.papel === 'auxiliar' && x.central === proj.nome);
         if (aux.length) { const s = secao(ctx, 'Auxiliares'); s.appendChild(cadeia(ctx, aux.map(x => [x.id, x.nome] as [string, string]))); corpo.appendChild(s); }
         const tarefas = indice.vivas.filter(x => x.projeto === id).sort((x, y) => (x.tipo === y.tipo ? (x.feita === y.feita ? 0 : x.feita ? 1 : -1) : x.tipo === 'smart' ? -1 : 1)).slice(0, 40);
@@ -848,7 +851,6 @@ function corpoDoPainel(ctx: Contexto, id: string): HTMLElement {
             sd.appendChild(el(doc, 'p', 'hint', null, 'Pelo que entrou e saiu em cada Day da passagem; nada é estimado.'));
             corpo.appendChild(sd);
         }
-        sinaisDoNo(ctx, id, corpo);
         const daPassagem = modelo.pessoasDoLugar(id);
         if (daPassagem.length) { const sp = secao(ctx, REGISTRO.pessoasDaPassagem); sp.appendChild(filaDePessoas(ctx, daPassagem)); corpo.appendChild(sp); }
         const ids = modelo.linhagem(id, 'dia');
@@ -959,7 +961,6 @@ function corpoDoPainel(ctx: Contexto, id: string): HTMLElement {
         // O registro do dia e o saldo do trimestre (P9), pelo registro do ramo.
         const registro = linha.especial ? null : periodo.escala === 'dia' ? registroDoDia(ctx, periodo.chave) : null;
         if (registro) corpo.appendChild(registro);
-        sinaisDoNo(ctx, id, corpo);
         corpo.append(...camposDoPeriodo);
         if (linha.habitos.length && ctx.ramoPrincipal.centro.habitos !== false) {
             const sh = secao(ctx, 'Hábitos do dia');
@@ -1033,6 +1034,42 @@ function secaoDaReputacao(ctx: Contexto, id: string): HTMLElement | null {
     linhaDeCampo(ctx, f, REPUTACAO.rotulo, valorEmSpan(ctx, r.nivel), { origem: r.porque });
     s.appendChild(f);
     s.appendChild(el(ctx.doc, 'p', 'hint', null, REPUTACAO.dica));
+    return s;
+}
+
+/**
+ * O que faz: a seção Aprendizado do painel do módulo (05/11, o módulo de idiomas): a fila de hoje (as revisões
+ * vencidas e a nova, cada cartão com o porquê), o nível em curso na forma de mostrar, com os traços e os usos de
+ * campo, os outros níveis e as peças do nível. O gesto do dia é o botão da seção Protocolos (o modelo do tipo).
+ * Entra → sai: o contexto e o id → a seção, ou `null` (o módulo sem notas de aprendizado).
+ */
+function aprendizadoDoModulo(ctx: Contexto, id: string): HTMLElement | null {
+    const c = ctx.modelo.aprendizadoDoProjeto?.(id) ?? null;
+    if (!c) return null;
+    const { doc } = ctx;
+    const s = secao(ctx, APRENDIZADO.secao);
+    s.setAttribute('data-secao', 'aprendizado');
+    const notaNo = (caminho: string, titulo: string, linha: string): MissaoNo => ({ id: `n:${caminho}`, tipo: 'nota', titulo, linha, ramo: -1 });
+    s.appendChild(el(doc, 'p', 'big-line', null, `${APRENDIZADO.hoje}: ${c.linhaDaFila}`));
+    if (c.fila.length) s.appendChild(lista(ctx, c.fila.map(i => notaNo(i.caminho, i.nome, i.motivo)), APRENDIZADO.filaVazia));
+    s.appendChild(el(doc, 'p', 'hint', null, APRENDIZADO.dicaDaFila));
+    if (c.nivel) {
+        const p = el(doc, 'p', 'big-line');
+        const tr = tracos(doc, c.nivel.contagens, 18);
+        if (tr) p.append(tr, ' ');
+        p.append(`${APRENDIZADO.nivel(c.nivel.nivel)}: ${c.nivel.linha}${c.nivel.usos ? ` · ${APRENDIZADO.usos(c.nivel.usos)}` : ''}`);
+        s.appendChild(p);
+    }
+    if (c.niveis.length > 1) {
+        const f = el(doc, 'div', 'fields');
+        for (const n of c.niveis) linhaDeCampo(ctx, f, n.nivel, valorEmSpan(ctx, n.linha));
+        s.appendChild(el(doc, 'p', 'hint', null, APRENDIZADO.niveis));
+        s.appendChild(f);
+    }
+    if (c.pecas.length) {
+        s.appendChild(el(doc, 'p', 'hint', null, APRENDIZADO.pecas));
+        s.appendChild(lista(ctx, c.pecas.map(x => notaNo(x.caminho, x.nome, c.nivel?.nivel ?? '')), ''));
+    }
     return s;
 }
 

@@ -1,13 +1,19 @@
 import { App, Notice, TFile } from 'obsidian';
 import type DFMPlugin from '../main';
 import { marcaDoProtocolo } from './protocolGroups';
+import { inserirNaDay, PASTA_DA_DAY, secaoDoRegistro, trechoDaSecao } from './escritorDaDay';
 import { isTerminalStatus } from './taskSemantics';
 import { InputModal, TextAreaModal, MultiSelectModal } from '../ui/modals';
 import { DFM_Suggester, NoteSuggester, TaskSuggester, noteLinkName } from '../ui/suggesters';
 import { contextDayOf } from './contextDate';
 import { planWeekStart, renderTemplateTokens, resolveClockTokens, resolveDateTokens, resolveWeekdayTokens, targetQuarterStart, targetWeekStart, weekStartFromValue, type TokenClock } from './templateTokens';
 import { completeTaskFrontmatter } from './tasknotesAdapter';
-import { TASK_CONTEXTS, TASK_CONTEXT_INFO, TASK_CONTEXT_QUESTION, TASK_CONTEXT_SKIP, taskContextsFrom, taskContextsYaml } from './taskContexts';
+import {
+    frontmatterDaTarefaNova, PASTA_DAS_TAREFAS, pedidoDoFrontmatter, PRIORIDADE_DA_TAREFA_NOVA, valoresDoModelo, STATUS_DA_TAREFA_NOVA, TAG_DA_TAREFA, textoDaTarefa,
+    TIPO_DA_TAREFA,
+} from './tasknotesCreate';
+import { createTaskViaApi } from './tasknotesBridge';
+import { TASK_CONTEXTS, TASK_CONTEXT_INFO, TASK_CONTEXT_QUESTION, TASK_CONTEXT_SKIP, taskContextsFrom } from './taskContexts';
 import { NOW_NEW_TASK_LABEL, NOW_PLACE_INFO, NOW_PLACE_PROMPT, NOW_TIME_INFO, NOW_TIME_PROMPT, nowReasonLine, placeOptions, timeChoiceOf, timeOptions } from './nowTree';
 import { commitmentNoteName, lastLeftCommitment, leftWhenLabel } from './commitmentLeft';
 import { COMMONS_FOLDER, expandCommonSteps, parseCommon, type CommonDef } from './commonSteps';
@@ -17,25 +23,28 @@ import { HABIT_TRACKER_FOLDER } from './habits';
 import { chosenDiaryLabels, diaryNoticeText, diaryOptions } from './diaryService';
 import { opcoesComDestino, rankOptions, rankableTargets, stepTargets, type RankedOptions } from './protocolRank';
 import { aberturaDoPasso, declaraSugestao, defaultSourcesOf, fontesDaAbertura, listFromAnswer, ORIGEM_DO_FORMULARIO, type Abertura, type ResolvedorDeSugestao } from './stepDefault';
-import { sugestaoDoPasso, type ContextoDaSugestao, type PontosDaTarefa } from './sugestoesDoPasso';
+import { sugestaoDoPasso, type ContextoDaSugestao, type PecasDoModelo, type PontosDaTarefa } from './sugestoesDoPasso';
+import { DOMAIN_MODELS_FOLDER, opcoesDaOutraNota, parseDomainModel } from './domainModel';
 import { buildTaskRelations, isClosedUnit, scoreTask, taskUnitFrom } from './decisionWeights';
 import { estadias as lerEstadias } from '../missao/lugares';
 import { temporadaFrom } from './temporada';
 import type { ContextoDaRodada, LeitorDoFormulario } from './protocolForm';
 import { avisoDoProblema, chavesDaResposta, condicaoDoPasso, conditionMatches, ehPassoDeContextoGenerico, passosContinuados, problemaDaResposta, pulaNoSeletorDeNota, respondidoNoFormulario, respondidosDe, valoresIniciaisDe, RESPONDIDOS, VALORES_INICIAIS } from './stepRules';
-import { acrescentarNaSecao } from './secaoDaNota';
+import { acrescentarNaSecao, comSecao, itensDaSecao, textoDaSecao } from './secaoDaNota';
+import { filaDoDia, nomeDoCartao, novasDeHojeNaDay, ondeNaTrilha, proximoPasso, TIPO_DA_NOVA, type CartaoLido } from './repeticao';
 import { herancaDoFoco, herancaText, quarterLogContent, quarterReviewOf, shiftQuarter } from './quarterHandoff';
 import { focoDoTrimestre, linkNames } from './temporada';
 import { quarterOfWeek } from './calendario';
 import { linhasDoRegistro } from '../missao/registrarFeito';
-import { DIA, diaNoInicio } from './dia';
+import { carimboDoMomento, DIA, diaNoInicio } from './dia';
 import { avisoDasFaltas, teleprompterDoRoteiro } from './teleprompter';
 import { ehSemana, ehTrimestre, semanaOuVazio, trimestreOuVazio } from './periodo';
 import { aplicarInicializacao, definicoesDaRodada, definicoesRespondidas, fraseDoRelatorio, MODELO_DA_AREA, MODELO_DO_VALOR, PASTA_DAS_AREAS, pastasDasAreas, planoDaInicializacao, type CofreDaInicializacao, type RelatorioDaInicializacao } from './inicializacao';
 import { ehDoPapel, protocoloDoPapel, type Papel, type TabelaDosPapeis } from './papeisDeProtocolo';
 import { DEFINICOES_PADRAO, chaveDoNivelPessoal, definicoesDe, lerDefinicoes } from '../definicoes';
+import { motherLink, patchFor, type LinkTask } from '../canvas/edgeLinks';
 
-const CANONICAL_DAYMISS_DIR = "300 - RUNTIME/302 - Daymiss/Day";
+const CANONICAL_DAYMISS_DIR = PASTA_DA_DAY;
 const QUARTERLY_DIR = "300 - RUNTIME/302 - Daymiss/Quarterly";
 const LEGACY_DAYMISS_DIR = "300 - RUNTIME/302 - Daymiss";
 
@@ -233,6 +242,19 @@ export function withOpeningInfo(info: unknown, opening: { value: any; origem: st
 /** Os tipos de passo que `comoLista: true` grava como lista (`listStepAnswer`). */
 const LIST_STEP_TYPES = new Set(['multiselect_note', 'multiselect', 'textarea', 'text']);
 
+/**
+ * O que faz: a rodada que não deixa linha na Day: o protocolo declara `preservadaSemRegistro: true` e a nota que ele
+ * gravaria já existia e foi preservada (`_notePreserved`, do `overwriteExisting: false`).
+ * Por quê: 06/11, a conferência de ponta a ponta: o 🗣️ Frase nova com uma frase repetida preservava o cartão que
+ * existe, mas a Day registrava "executado", e a frase repetida contava como nova.
+ * Entra → sai: o JSON do protocolo e as variáveis da rodada → se a Day fica sem a linha.
+ * Erro e ataque: sem a chave, nada muda (os outros protocolos que preservam a nota continuam registrando).
+ * Prova: tests/engine/inglesDeHoje.test.ts ("a frase repetida").
+ */
+export function preservadaSemRegistro(def: any, variables: any): boolean {
+    return def?.preservadaSemRegistro === true && variables?._notePreserved === true;
+}
+
 export const VARIANT_KEYS = ['targetFolder', 'filename', 'template', 'templateFile', 'properties', 'onExisting', 'overwriteExisting'] as const;
 
 /**
@@ -348,7 +370,11 @@ export function strategicCanvasKindFor(path: string, basename: string, parentNam
 export interface TaskNoteInput {
     title: string;
     answer?: string;
-    tag?: string;
+    /**
+     * A etiqueta da tarefa (além da `task`), ou a lista delas: a do assunto e a do ramo juntas (05/11, o
+     * ramo Criação: a peça da ideia de vídeo leva `ideia` e `video`, e aparece no recorte do ramo).
+     */
+    tag?: string | string[];
     status?: string;
     priority?: string;
     impacto?: string | number;
@@ -375,47 +401,79 @@ export interface TaskNoteInput {
 }
 
 /**
- * Monta a nota da tarefa no mesmo formato que o TaskNotes produziria.
- *
- * Antes o frontmatter era montado à mão com cinco campos fixos, e a tarefa nascia sem
- * `title`, sem datas, sem estimativa e com o corpo vazio — visivelmente diferente das
- * criadas pela UI do TaskNotes. Dois campos que PARECEM redundantes continuam aqui de
- * propósito: `type: task` é lido por `day_context.js` para montar a Execução da semana,
- * e a tag `task` é como o TaskNotes identifica a nota (`taskIdentificationMethod: tag`).
- *
- * Campo opcional não declarado é OMITIDO em vez de gravado vazio: chave vazia polui o
- * Kanban ("No estimate" é diferente de `timeEstimate: `).
+ * O que faz: as etiquetas da tarefa criada por protocolo: a `task` primeiro e depois a do protocolo (uma
+ * ou a lista), sem repetir, sem `#` e sem a vazia; sem nenhuma, só a `task` (o criador único, 05/11: a
+ * `protocolo` saiu, nada a lê).
+ * Por quê: 05/11, a direção dos ramos: a tarefa que nasce da ideia de vídeo levava só `ideia`, e o recorte
+ * do ramo Criação (`criacao`, `video`) não a achava. A etiqueta do ramo entra como dado no protocolo.
+ * Entra → sai: o `tag` do `createTask` (texto, lista ou nada) → a lista das etiquetas.
+ * Erro e ataque: o que não é texto sai; `task` repetida conta uma vez.
+ * Prova: tests/engine/direcaoDosRamos.test.ts.
+ */
+export function etiquetasDaTarefa(tag: unknown): string[] {
+    const lista = (Array.isArray(tag) ? tag : [tag])
+        .filter((t): t is string => typeof t === 'string')
+        .map(t => t.trim().replace(/^#/, ''))
+        .filter(t => t && t !== 'task');
+    const unicas = [...new Set(lista)];
+    return ['task', ...unicas];
+}
+
+/**
+ * O que faz: o frontmatter de uma tarefa do protocolo (o `createTask`), das respostas já resolvidas:
+ * `type: task`, as tags (`task` e a do protocolo), o status e a prioridade (com os padrões), o impacto,
+ * as datas, a semana, a estimativa, onde dá para fazer, o projeto (`projects: ["[[nome]]"]`), o lugar, a
+ * peça e o bloqueio. Campo opcional sem valor não vai (chave vazia polui o Kanban: "No estimate" é
+ * diferente de `timeEstimate: `).
+ * Por quê: o criador único (D5, 05/11): a tarefa do protocolo nasce pela borda única
+ * (`tasknotesBridge.createTaskViaApi`), com o mesmo frontmatter que o Novo dá; o `type: task` é lido por
+ * `day_context.js` e pela Missão, e a tag `task` é como o TaskNotes a reconhece. A tag `protocolo`, que o
+ * `createTask` punha quando o protocolo não dizia a dele, saiu: nada a lê, e a mesma ação pelo Novo, pelo ⚡
+ * e pelo passo nascia só com `task`. O `title` vai para o pedido; a borda o tira do arquivo quando o nome
+ * dele já é o título (`storeTitleInFilename`).
+ * Entra → sai: as respostas resolvidas (`TaskNoteInput`) → o frontmatter (sem o `dateCreated`, que é da
+ * borda).
+ * Erro e ataque: peça fora do contrato não entra; lugar sem nome não entra; contexto fora do vocabulário
+ * sai; `timeEstimate` zero não vai.
+ * Prova: tests/engine/taskCreation.test.ts, tests/engine/criadorUnico.test.ts.
+ */
+export function camposDaTarefaDoProtocolo(input: TaskNoteInput): Record<string, unknown> {
+    const fm: Record<string, unknown> = { type: TIPO_DA_TAREFA };
+    const por = (chave: string, valor: unknown) => {
+        if (valor === undefined || valor === null || valor === '' || valor === 0) return;
+        fm[chave] = valor;
+    };
+    por('status', input.status || STATUS_DA_TAREFA_NOVA);
+    // Ausência de urgência explícita nasce normal. `high` é reservado para pressão
+    // operacional real; a importância estratégica vive separada, em `impacto`.
+    por('priority', input.priority || PRIORIDADE_DA_TAREFA_NOVA);
+    por('impacto', input.impacto);
+    por('due', input.due);
+    por('scheduled', input.scheduled);
+    por('week', input.week);
+    por('timeEstimate', input.timeEstimate);
+    const contexts = taskContextsFrom(input.contexts);
+    if (contexts.length) fm.contexts = contexts;
+    if (input.projects) fm.projects = [`[[${input.projects}]]`];
+    const lugar = taskPlaceYaml(input.lugar);
+    if (lugar) fm.lugar = JSON.parse(lugar);
+    if (input.peca === 'ignicao' || input.peca === 'soltar') fm.peca = input.peca;
+    if (input.blockedBy) fm.blockedBy = [`[[${String(input.blockedBy)}]]`];
+    fm.tags = etiquetasDaTarefa(input.tag);
+    fm.title = String(input.title ?? '');
+    return fm;
+}
+
+/**
+ * O que faz: o texto da nota de uma tarefa do protocolo, como a borda única a grava pela volta (sem o
+ * TaskNotes): o frontmatter na forma única (`frontmatterDaTarefaNova`, com o `now` como carimbo) e o
+ * corpo (o modelo do TaskNotes com a resposta inteira e a origem).
+ * Por quê: a mesma composição que o `createTask` usa, para os contratos que leem o texto da tarefa.
+ * Entra → sai: as respostas resolvidas → o texto.
  */
 export function buildTaskNoteContent(input: TaskNoteInput): string {
-    const linhas: string[] = ['type: task'];
-    const push = (chave: string, valor: any) => {
-        if (valor === undefined || valor === null || valor === '' || valor === 0) return;
-        linhas.push(`${chave}: ${valor}`);
-    };
-
-    linhas.push(`status: ${input.status || 'next-action'}`);
-    // Ausencia de urgencia explicita nasce normal. `high` e reservado para pressao
-    // operacional real; importancia estrategica vive separadamente em `impacto`.
-    linhas.push(`priority: ${input.priority || 'normal'}`);
-    push('impacto', input.impacto);
-    push('due', input.due);
-    push('scheduled', input.scheduled);
-    push('week', input.week);
-    push('timeEstimate', input.timeEstimate);
-    push('contexts', taskContextsYaml(taskContextsFrom(input.contexts)));
-    push('projects', input.projects ? `["[[${input.projects}]]"]` : '');
-    push('lugar', taskPlaceYaml(input.lugar));
-    push('peca', input.peca === 'ignicao' || input.peca === 'soltar' ? input.peca : '');
-    push('blockedBy', input.blockedBy ? `["[[${String(input.blockedBy).replace(/"/g, '\\"')}]]"]` : '');
-    linhas.push(`title: "${String(input.title).replace(/"/g, '\\"')}"`);
-    push('dateCreated', input.now);
-    push('dateModified', input.now);
-
-    const tagExtra = input.tag && input.tag !== 'task' ? `, ${input.tag}` : ', protocolo';
-    linhas.push(`tags: [task${tagExtra}]`);
-
-    const corpo = buildTaskBody(input);
-    return `---\n${linhas.join('\n')}\n---\n\n${corpo}`;
+    const { title: _titulo, ...fm } = frontmatterDaTarefaNova(camposDaTarefaDoProtocolo(input), String(input.now ?? ''));
+    return textoDaTarefa(fm, buildTaskBody(input));
 }
 
 /**
@@ -477,6 +535,53 @@ export function tarefaAbertaDeMesmoTitulo(titulo: string, tarefas: readonly Tare
     if (!alvo) return null;
     const achada = tarefas.find(t => base(t.titulo) === alvo && !isTerminalStatus(String(t.status ?? '').trim()));
     return achada ? achada.caminho : null;
+}
+
+/**
+ * O que faz: a semana e o impacto da tarefa que o `createTask` cria com uma SMART no `project`: o patch da
+ * mãe (`edgeLinks.patchFor` com `motherLink`, a mesma regra da seta, do "Ligar a uma SMART…" e do Novo)
+ * sobre a tarefa ainda sem a semana de hoje; a semana do protocolo fica só onde a mãe não tem semana, ou
+ * quando a tarefa tem dia (o dia e a semana juntos). Sem SMART, a semana e o impacto do protocolo.
+ * Por quê: o diagnóstico do fluxo SMART (02/11, §3.2 e D5, aplicado em 05/11): a ideia que vira peça de uma
+ * SMART ganhava a semana de hoje e nenhum impacto, e a mesma ação pelo Novo ou pelo ⚡ ganhava os da SMART.
+ * Entra → sai: o título, a semana e o impacto que o protocolo daria, o dia (`AAAA-MM-DD` ou vazio) e a
+ * SMART lida agora (ou `null`) → `{ week, impacto }`.
+ * Erro e ataque: o impacto do protocolo vence o da mãe (o patch só enche o vazio); a SMART sem semana deixa
+ * a do protocolo; a entrada não muda.
+ * Prova: tests/engine/fluxoSmartD2aD6.test.ts ("D5").
+ */
+export function herancaDaMae(
+    tarefa: { title: string; week: string; impacto: unknown; scheduled: string },
+    smart: LinkTask | null,
+): { week: string; impacto: unknown } {
+    if (!smart) return { week: tarefa.week, impacto: tarefa.impacto };
+    const fm: Record<string, unknown> = { projects: [`[[${smart.basename}]]`] };
+    if (tarefa.scheduled && tarefa.week) fm.week = tarefa.week;
+    if (tarefa.impacto !== undefined) fm.impacto = tarefa.impacto;
+    const patch = patchFor(fm, motherLink({ path: '', basename: tarefa.title }, smart)) ?? {};
+    const week = typeof patch.week === 'string' && patch.week ? patch.week : tarefa.week;
+    const impacto = patch.impacto !== undefined && patch.impacto !== null && patch.impacto !== '' ? patch.impacto : tarefa.impacto;
+    return { week, impacto };
+}
+
+/**
+ * O que faz: o dia novo de um campo de data com a hora que o campo já tinha (`2026-10-20T09:30` e o dia
+ * `2026-10-28` dão `2026-10-28T09:30`); sem hora no valor de antes, ou sem valor, o dia novo como veio.
+ * Por quê: o diagnóstico do fluxo SMART (02/11, D2, aplicado em 05/11): o ▶️ passa para hoje a tarefa que
+ * estava em outro dia pela regra do "Mover para…" (`edgeLinks.patchFor`, `scheduled`: o dia muda, a hora
+ * fica), e o `keepTime` do `updateSelectedNote` é essa regra no motor.
+ * Entra → sai: o valor novo (texto) e o valor de antes (cru do frontmatter) → o valor a gravar.
+ * Erro e ataque: valor novo que não é só um dia (já traz hora, ou não é data) passa como veio; a hora de
+ * antes só vale quando o valor de antes começa por um dia; lista pega o primeiro item.
+ * Prova: tests/engine/fluxoSmartD2aD6.test.ts ("D2").
+ */
+export function diaComAHoraDeAntes(novo: string, antes: unknown): string {
+    const dia = String(novo ?? '').trim();
+    if (!DIA.test(dia)) return novo;
+    const anterior = String((Array.isArray(antes) ? antes[0] : antes) ?? '');
+    const doAnterior = diaNoInicio(anterior);
+    const resto = doAnterior ? anterior.slice(doAnterior.length) : '';
+    return resto.startsWith('T') ? `${dia}${resto}` : dia;
 }
 
 /**
@@ -1231,7 +1336,8 @@ export class JSONProtocol {
                     ? await this.suggest(uiStep.options, uiStep.prompt, showBack, uiStep.info, montado.notaDoPadrao ? { [montado.padrao]: montado.notaDoPadrao } : {}, montado.padrao)
                     : await this.suggest(uiStep.options, uiStep.prompt, showBack, uiStep.info);
             } else if (step.type === 'suggest_note') {
-                result = await this.suggestNote(montado.passoDaNota, showBack);
+                // `fila` (05/11, o 🗣️ Inglês de hoje): a nota não se escolhe; vem a próxima da fila do dia.
+                result = step.fila ? await this.proximoDaFila(step, variables) : await this.suggestNote(montado.passoDaNota, showBack);
             } else if (step.type === 'suggest_task') {
                 result = await this.suggestTask(uiStep, showBack);
             } else if (step.type === 'multiselect' && step.fromDiary) {
@@ -1244,7 +1350,13 @@ export class JSONProtocol {
                 }
             } else if (step.type === 'multiselect') {
                 const opening = montado.abertura!;
-                result = await this.multiSelect(uiStep.options, uiStep.prompt, showBack, opening.value, withOpeningInfo(uiStep.info, opening));
+                if (step.opcoesDe && !uiStep.options?.length) {
+                    // A outra nota não deu opção (o canal sem nota, ou sem perfis): o passo segue vazio, com o aviso.
+                    if (step.emptyMessage) new Notice(String(step.emptyMessage), 6000);
+                    result = { status: 'submit', value: 'Nenhum' };
+                } else {
+                    result = await this.multiSelect(uiStep.options, uiStep.prompt, showBack, opening.value, withOpeningInfo(uiStep.info, opening));
+                }
             } else if (step.type === 'multiselect_note') {
                 const options = montado.opcoes!;
                 const opening = montado.abertura!;
@@ -1383,6 +1495,11 @@ export class JSONProtocol {
             // 📱 `teleprompter: { notaVar }` (03/11): a fala da nota escolhida, em linhas curtas, vira as variáveis
             // `teleprompter_texto` e `teleprompter_faltas` antes do modelo; o roteiro sem as seções da fala para aqui.
             if (this.def.teleprompter && !(await this.prepararTeleprompter(this.def.teleprompter, variables))) return;
+
+            // `repeticao` (05/11, o 🗣️ Inglês de hoje): a resposta do cartão grava o degrau da escada, a próxima revisão,
+            // o estado e, no uso de verdade, a Day; antes do modelo, porque a linha da Day diz a próxima revisão
+            // (`{{repeticao_proxima}}`; a percorrida de 06/11 achou a linha com a data vazia, o modelo era lido antes).
+            if (this.def.repeticao && !(await this.aplicarRepeticao(this.def.repeticao, variables))) return;
 
             // 🔀 Mudei de frente (`pauseFront`, arquitetura 4.3): qual frente fica em pausa
             // (a do bloco aberto, ou a do pomodoro em curso), lida ANTES do template para a
@@ -1533,6 +1650,12 @@ export class JSONProtocol {
             }
 
             // 5. Log to Daily Note
+            // `preservadaSemRegistro` (06/11, o 🗣️ Frase nova): a nota que já existia e foi preservada não é uma nota
+            // nova, e a Day não ganha a linha de "executado" (a frase repetida não conta como nova).
+            if (preservadaSemRegistro(this.def, variables)) {
+                new Notice(`ℹ️ ${filename.replace(/\.md$/, '')} já existe: nada novo foi criado, e a Day não registra.`, 6000);
+                return;
+            }
             try {
                 await this.logToDailyNote(skipFile ? null : filename, content, variables);
 
@@ -1670,6 +1793,9 @@ export class JSONProtocol {
                     this.contextDateOverride = savedOverride;
                 }
             }
+
+            // 10.6b `nextTask`: o próximo passo de uma tarefa escolhida nasce pelo Novo, na SMART dela (o 🔄, D3).
+            if (this.def.nextTask) await this.nextTaskFromConfig(this.def.nextTask, variables);
 
             // 10.7 `registrarFeito: { linhasVar }`: cada linha da resposta vira o registro do que
             // foi feito fora do plano, no dia desta rodada, pela função única (a pergunta do 🌙).
@@ -1867,6 +1993,8 @@ export class JSONProtocol {
         // `herancaDoTrimestre`: o passo mostra a revisão e os projetos do trimestre
         // anterior antes da primeira pergunta do 🧭 (proposta de 27/10, 4.2, passo 0).
         if (step.herancaDoTrimestre) builtStep = this.withQuarterInheritance(builtStep, variables);
+        // `trilha` (06/11, o 🧩 Construir uma ideia): a linha de onde ele está na trilha do aprendizado.
+        if (step.trilha) builtStep = await this.comATrilha(builtStep, step.trilha);
         const ui = opts.preChosenNow
             ? { ...builtStep, nowPreChosen: { value: variables[step.id], display: variables[`${step.id}_display`], path: variables[`${step.id}_path`] } }
             : builtStep;
@@ -1906,6 +2034,17 @@ export class JSONProtocol {
             const abertura = this.openingAnswer(step, variables, undefined, null, sugestaoDe?.(null));
             const padrao = abertura.fonte === 'defaultFrom' ? noteNameOf(abertura.value) : '';
             return { ui, passoDaNota: padrao ? withNoteDefault(daNota, padrao, abertura.origem) : daNota };
+        }
+        if (step.type === 'multiselect' && !step.fromDiary && step.opcoesDe) {
+            // `opcoesDe` (06/11, os destinos do 🎬): as opções e as marcadas de início vêm da outra nota, pela função do
+            // painel da peça (`opcoesDaOutraNota`); a resposta anterior (Voltar) vale por cima.
+            const o = await this.opcoesDaOutraNotaDoPasso(step.opcoesDe, variables);
+            const comOpcoes = { ...ui, options: o?.opcoes ?? [] };
+            const anterior = this.openingAnswer(step, variables, previousValue, comOpcoes.options, null);
+            const abertura = anterior.fonte === 'anterior' || !o?.inicial.length
+                ? anterior
+                : { value: o.inicial.join(', '), origem: `pela ${o.porque}`, kind: 'multiselect', fonte: 'defaultFrom' as const };
+            return { ui: comOpcoes, abertura };
         }
         if (step.type === 'multiselect' && !step.fromDiary) {
             return { ui, abertura: this.openingAnswer(step, variables, previousValue, ui.options, sugestaoDe?.(ui.options)) };
@@ -1961,6 +2100,8 @@ export class JSONProtocol {
      */
     gravarResposta(step: any, uiStep: any, result: any, variables: any): void {
         variables[step.id] = result.value;
+        // `comoNome: true` (05/11, o 🗣️ Frase nova): a frase também como nome de nota, sem `?` nem `/` (`{id}_nome`).
+        if (step.comoNome === true && typeof result.value === 'string') variables[`${step.id}_nome`] = nomeDoCartao(result.value);
         // A nota escolhida foi criada agora (allowCreate)? Uma escolha nova no Voltar
         // limpa a marca, para o `ifCreated` não valer para uma tarefa que já existia.
         if (step.type === 'suggest_note') {
@@ -2601,16 +2742,206 @@ export class JSONProtocol {
     }
 
     /**
+     * O que faz: o modelo de um tipo pelo nome do domínio (`Config/dominios/<dominio>.json`), só quando ele declara o
+     * `aprendizado`; senão `null`, com o aviso.
+     * Por quê: o passo `fila` e o `repeticao` (05/11) leem os números da repetição do modelo do tipo, nunca do protocolo.
+     */
+    async modeloDoAprendizado(dominio: unknown): Promise<ReturnType<typeof parseDomainModel>['modelo']> {
+        const nome = typeof dominio === 'string' ? dominio.trim() : '';
+        const file = nome ? this.app.vault.getAbstractFileByPath(`${DOMAIN_MODELS_FOLDER}/${nome}.json`) : null;
+        try {
+            const modelo = file instanceof TFile ? parseDomainModel(JSON.parse(await this.app.vault.read(file)), nome).modelo : null;
+            if (modelo?.aprendizado && modelo.candidatos.type) return modelo;
+        } catch (e) {
+            console.warn(`DFM aprendizado: o modelo ${nome} não se leu`, e);
+        }
+        new Notice(`⚠️ O modelo "${nome}" não declara o aprendizado: a fila e a escada não se leem.`, 8000);
+        return null;
+    }
+
+    /**
+     * O que faz: as opções de um passo `multiselect` pela outra nota (`opcoesDe: { modelo, campo, outra }`, 06/11): o
+     * campo lista do modelo do tipo (`campo`, com o `opcoes` dele: `de`, `lista`, `regra`, `por`), os valores desta
+     * nota como o protocolo os grava (as `properties` do JSON com as respostas da rodada, no `de` e no `por`), a nota do
+     * modelo `outra` cujo campo `de` (ou o nome) é o valor desta, e a função do painel da peça (`opcoesDaOutraNota`).
+     * Por quê: o 🎬 Roteiro de Vídeo pergunta os destinos depois do canal e do formato, com os perfis do canal e o
+     * `destino_por_formato` marcados de início, sem outra conta além da do painel.
+     * Entra → sai: a configuração do passo e as variáveis da rodada → `{ opcoes, inicial, porque }`, ou `null`.
+     * Erro e ataque: o modelo que não se lê, o campo sem `opcoes`, a outra nota que não se acha: `null` (o passo
+     * segue vazio, com o aviso); a nota da outra só vale dentro da casa do modelo dela, com o `type` dele.
+     * Prova: tests/engine/destinosNoRoteiro.test.ts.
+     */
+    async opcoesDaOutraNotaDoPasso(cfg: any, variables: any): Promise<{ opcoes: string[]; inicial: string[]; porque: string } | null> {
+        const ler = async (nome: unknown) => {
+            const n = typeof nome === 'string' ? nome.trim() : '';
+            const file = n ? this.app.vault.getAbstractFileByPath(`${DOMAIN_MODELS_FOLDER}/${n}.json`) : null;
+            try { return file instanceof TFile ? parseDomainModel(JSON.parse(await this.app.vault.read(file)), n).modelo : null; } catch (e) { return null; }
+        };
+        const modelo = await ler(cfg?.modelo);
+        const campo = modelo?.campos.find(c => c.nome === cfg?.campo);
+        const outra = await ler(cfg?.outra);
+        if (!campo?.opcoes || !outra?.candidatos.type) return null;
+        const props = this.def?.properties ?? {};
+        const campos: Record<string, unknown> = {};
+        for (const k of [campo.opcoes.de, campo.opcoes.por].filter((x): x is string => !!x)) {
+            if (typeof props[k] === 'string') campos[k] = this.processTemplate(props[k], variables).replace(/^"|"$/g, '').trim();
+        }
+        const dobra = (x: unknown) => String(x ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+        const valor = dobra(campos[campo.opcoes.de]);
+        if (!valor) return null;
+        const pasta = outra.candidatos.pasta.replace(/\/+$/, '');
+        const fmDe = (f: TFile) => this.app.metadataCache.getFileCache(f)?.frontmatter || {};
+        const nota = (this.app.vault.getMarkdownFiles?.() || []).find((f: TFile) => f.path.startsWith(`${pasta}/`)
+            && String(fmDe(f).type ?? '').trim() === outra.candidatos.type
+            && (dobra(fmDe(f)[campo.opcoes!.de]) === valor || dobra(f.basename) === valor));
+        return nota ? opcoesDaOutraNota(campo, campos, fmDe(nota), nota.basename) : null;
+    }
+
+    /**
+     * O que faz: o passo `suggest_note` com `fila: { modelo, lingua? }` (05/11, o 🗣️ Inglês de hoje): a próxima nota
+     * da fila do dia (`filaDoDia`), sem modal: as notas do `type` do modelo na pasta do passo, a fila do modelo, e o
+     * que a rodada já sabe (`_fila_novas_vistas`, `_fila_pedido: "mais_nova"`, `_fila_vistos`, que o `carry` do
+     * protocolo leva de uma volta à seguinte). Devolve a nota como o seletor devolveria, com os derivados
+     * `{id}_frase` (o nome), `{id}_como_funciona` (a seção da nota), `{id}_tipo`, `{id}_motivo`, `{id}_restantes`,
+     * `{id}_novas_vistas`, `{id}_vistos` e `{id}_depois` (o que o passo seguinte oferece: `proxima_e_nova`,
+     * `so_proxima`, `so_nova` ou `nada`).
+     * Por quê: a fila do dia não se escolhe: "para cada cartão: mostra o diga, e você produz a frase antes de ver"; o
+     * motor não tinha fila dinâmica (o seletor de notas só filtra por campo igual).
+     * Erro e ataque: sem o modelo do aprendizado, ou com a fila vazia, o aviso do passo (`emptyMessage`) e a rodada
+     * termina limpa (`end`), sem gravar nada; a nota fora da pasta do passo não entra.
+     * Prova: tests/engine/inglesDeHoje.test.ts.
+     */
+    async proximoDaFila(step: any, variables: any): Promise<any> {
+        const modelo = await this.modeloDoAprendizado(step?.fila?.modelo);
+        if (!modelo?.aprendizado) return { status: 'end' };
+        const pasta = String(this.resolveFolderFilter(step.folder) || modelo.candidatos.pasta).replace(/\/+$/, '');
+        const fmDe = (f: TFile) => this.app.metadataCache.getFileCache(f)?.frontmatter || {};
+        const files: TFile[] = (this.app.vault.getMarkdownFiles?.() || []).filter((f: TFile) => f.path.startsWith(`${pasta}/`) && String(fmDe(f).type ?? '').trim() === modelo.candidatos.type);
+        const cartoes: CartaoLido[] = files.map(f => ({ caminho: f.path, nome: f.basename, campos: fmDe(f) }));
+        const vistas = Number.parseInt(String(variables?._fila_novas_vistas ?? '0'), 10);
+        const vistos = String(variables?._fila_vistos ?? '').split('|').map(x => x.trim()).filter(Boolean);
+        const hoje = this.getContextDate().format('YYYY-MM-DD');
+        // As novas de hoje (06/11: "o hábito é uma por dia, mas se pode continuar com outras até umas 5"): as que a
+        // Day de hoje já registra contam junto com as da rodada; abrir o gesto de novo no mesmo dia não traz outra nova.
+        const day = this.getDailyNoteFile(hoje);
+        let naDay = 0;
+        try { naDay = day instanceof TFile ? novasDeHojeNaDay(await this.app.vault.read(day), this.id) : 0; } catch (e) { naDay = 0; }
+        const rodada = { novasVistas: Math.max(Number.isFinite(vistas) ? vistas : 0, naDay), maisUmaNova: variables?._fila_pedido === 'mais_nova', vistos };
+        const lingua = typeof step.fila.lingua === 'string' ? step.fila.lingua : undefined;
+        const fila = filaDoDia(cartoes, hoje, modelo.aprendizado.fila, rodada, { lingua });
+        const primeiro = fila.itens[0];
+        const file = primeiro ? this.app.vault.getAbstractFileByPath(primeiro.caminho) : null;
+        if (!primeiro || !(file instanceof TFile)) {
+            new Notice(step.emptyMessage || 'A fila de hoje está vazia.', 9000);
+            return { status: 'end' };
+        }
+        const nova = primeiro.tipo === 'nova';
+        const novasVistas = rodada.novasVistas + (nova ? 1 : 0);
+        const restantes = fila.itens.length - 1;
+        const outraNova = fila.novas - (nova ? 1 : 0) - fila.itens.slice(1).filter(i => i.tipo === 'nova').length > 0 && novasVistas < modelo.aprendizado.fila.maxNovas;
+        const depois = restantes > 0 ? (outraNova ? 'proxima_e_nova' : 'so_proxima') : (outraNova ? 'so_nova' : 'nada');
+        let comoFunciona = '';
+        // 06/11: a seção é a do método (`## A construção`, as quatro camadas), e o `limite` do passo diz quanto dela cabe.
+        const limite = Number.isInteger(step.fila.limite) && step.fila.limite > 0 ? step.fila.limite : 700;
+        try { comoFunciona = textoDaSecao(await this.app.vault.read(file), String(step.fila.secao || '## Como funciona'), limite); } catch (e) { comoFunciona = ''; }
+        new Notice(`🗣️ ${nova ? 'Frase nova' : 'Revisão'}: ${primeiro.motivo}${restantes > 0 ? ` · ${restantes} na fila depois desta` : ''}`, 4000);
+        return {
+            status: 'submit', value: file.basename, display: `[[${file.basename}]]`, item: file,
+            vars: {
+                frase: file.basename, como_funciona: comoFunciona, tipo: nova ? TIPO_DA_NOVA : 'revisão', motivo: primeiro.motivo,
+                restantes: String(restantes), novas_vistas: String(novasVistas), vistos: [...vistos, file.path].join('|'), depois,
+            },
+        };
+    }
+
+    /**
+     * O que faz: o passo com `trilha: { modelo, lingua?, label, vazio? }` (06/11, o 🧩 Construir uma ideia) ganha, no
+     * fim da pergunta, a linha de onde ele está na trilha: as notas do `type` do modelo na pasta dos candidatos dele
+     * (`ondeNaTrilha`) e o `label` com `{acesas}`, `{total}`, `{ultima}` (a última peça acesa) e `{proxima}` (a próxima);
+     * sem peça acesa, o `vazio`.
+     * Por quê: "cada passo mostra a explicação curta da camada e a peça da trilha onde ele está"; a ideia dele se
+     * constrói com as peças que ele já tem, e o motor não tinha como dizer onde ele está.
+     * Erro e ataque: sem o modelo do aprendizado, o passo volta como estava (o aviso do modelo já foi dado); a trilha
+     * sem cartão também; a leitura só conta notas, nada grava.
+     * Prova: tests/engine/inglesDeHoje.test.ts ("a trilha no passo").
+     */
+    async comATrilha(step: any, cfg: any): Promise<any> {
+        const modelo = await this.modeloDoAprendizado(cfg?.modelo);
+        if (!modelo?.aprendizado) return step;
+        const pasta = String(modelo.candidatos.pasta || '').replace(/\/+$/, '');
+        const fmDe = (f: TFile) => this.app.metadataCache.getFileCache(f)?.frontmatter || {};
+        const cartoes: CartaoLido[] = (this.app.vault.getMarkdownFiles?.() || [])
+            .filter((f: TFile) => (!pasta || f.path.startsWith(`${pasta}/`)) && String(fmDe(f).type ?? '').trim() === modelo.candidatos.type)
+            .map((f: TFile) => ({ caminho: f.path, nome: f.basename, campos: fmDe(f) }));
+        const onde = ondeNaTrilha(cartoes, typeof cfg.lingua === 'string' ? { lingua: cfg.lingua } : {});
+        if (!onde.total) return step;
+        const linha = onde.ultima
+            ? String(cfg.label || '{ultima}').replace(/\{acesas\}/g, String(onde.acesas)).replace(/\{total\}/g, String(onde.total))
+                .replace(/\{ultima\}/g, () => onde.ultima!.peca || onde.ultima!.cartao).replace(/\{proxima\}/g, () => onde.proxima ? (onde.proxima.peca || onde.proxima.cartao) : '—')
+            : String(cfg.vazio || '').replace(/\{total\}/g, String(onde.total)).replace(/\{proxima\}/g, () => onde.proxima ? (onde.proxima.peca || onde.proxima.cartao) : '—');
+        if (!linha) return step;
+        return { ...step, prompt: step.prompt ? `${step.prompt}\n\n${linha}` : linha };
+    }
+
+    /**
+     * O que faz: `repeticao: { cartaoVar, respostaVar, modelo }` (05/11, o 🗣️ Inglês de hoje): a resposta do cartão
+     * (lembrei, quase, nao, usei) grava o próximo passo da escada (`proximoPasso`): `intervalo`, `proxima_revisao`,
+     * `estado` e, no "usei de verdade", a Day da rodada em `usado_em` (sem repetir); põe nas variáveis
+     * `repeticao_intervalo`, `repeticao_proxima` (DD/MM) e `repeticao_estado`, para a linha da Day.
+     * Por quê: a escada 1·3·7·14·30·60·120 do desenho de 19/10, com os números do modelo; o motor não calculava
+     * intervalo, e o `updateSelectedNote` não acrescenta a uma lista.
+     * Erro e ataque: a nota tem que ser do `type` do modelo e estar na casa dele (nunca um editor genérico); a resposta
+     * fora das quatro, a nota que sumiu ou o modelo sem aprendizado: o aviso, e a rodada para sem gravar a Day.
+     * Prova: tests/engine/inglesDeHoje.test.ts.
+     */
+    async aplicarRepeticao(config: any, variables: any): Promise<boolean> {
+        const modelo = await this.modeloDoAprendizado(config?.modelo);
+        if (!modelo?.aprendizado) return false;
+        const path = String(variables?.[`${config?.cartaoVar}_path`] ?? '');
+        const file = path ? this.app.vault.getAbstractFileByPath(path) : null;
+        const fm = file instanceof TFile ? this.app.metadataCache.getFileCache(file)?.frontmatter || {} : null;
+        if (!(file instanceof TFile) || !fm || !path.startsWith(`${modelo.candidatos.pasta}/`) || String(fm.type ?? '').trim() !== modelo.candidatos.type) {
+            new Notice('⚠️ O cartão da rodada não se achou: nada foi gravado.', 6000);
+            return false;
+        }
+        const hoje = this.getContextDate().format('YYYY-MM-DD');
+        const passo = proximoPasso(fm, String(variables?.[config?.respostaVar] ?? ''), hoje, modelo.aprendizado);
+        if (!passo) {
+            new Notice('⚠️ A resposta do cartão não é lembrei, quase, não ou usei: nada foi gravado.', 6000);
+            return false;
+        }
+        await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+            frontmatter.estado = passo.estado;
+            frontmatter.intervalo = passo.intervalo;
+            frontmatter.proxima_revisao = passo.proxima_revisao;
+            if (passo.usou) {
+                const atual = Array.isArray(frontmatter.usado_em) ? frontmatter.usado_em : frontmatter.usado_em ? [frontmatter.usado_em] : [];
+                const dia = `[[${hoje}]]`;
+                if (!atual.some((x: unknown) => String(x ?? '').replace(/[[\]]/g, '').split('|')[0].trim() === hoje)) frontmatter.usado_em = [...atual, dia];
+            }
+        });
+        variables.repeticao_intervalo = String(passo.intervalo);
+        variables.repeticao_proxima = `${passo.proxima_revisao.slice(8, 10)}/${passo.proxima_revisao.slice(5, 7)}`;
+        variables.repeticao_estado = passo.estado;
+        return true;
+    }
+
+    /**
      * O que faz: `appendToSection` (02/11, a revisão do trecho): para cada nota da lista (`path`, dentro da
      * `allowedFolder`), as linhas (`linhas: [{ section, line, condition }]`) que valem nesta rodada entram no fim
      * da lista da seção delas (`acrescentarNaSecao`), numa gravação por nota; devolve os nomes das notas que
      * mudaram.
      * Por quê: a lição de cada função vai para o 🔄 Revisar da nota dela, com a data (proposta da viagem nos
-     * ciclos, §4); a nota e a seção já existem, e a revisão só acrescenta a linha.
+     * ciclos, §4); a nota e a seção já existem, e a revisão só acrescenta a linha. A conferência de uma pesquisa
+     * (05/11): a linha com `checklistDe: { path, section }` no lugar da `line` vira uma linha `- [ ] <item>` por
+     * item da checklist daquela seção da outra nota (o 📋 Planejar da nota de função, copiado para a tarefa), e a
+     * nota com `criarSecao: true` ganha a seção no fim quando ainda não a tem.
      * Erro e ataque: a pasta permitida é obrigatória e o caminho tem que estar nela (nunca um editor genérico do
-     * cofre); a nota que não existe não nasce aqui, e a seção que falta não se cria (o aviso diz qual); a
+     * cofre); a nota que não existe não nasce aqui, e a seção que falta só se cria com `criarSecao` (sem ele, o
+     * aviso diz qual); a nota de onde vem a checklist só se lê, e a que falta, ou sem item, não grava nada; a
      * condição de uma nota ou de uma linha (um objeto ou uma lista, todas valendo) que não vale pula; a linha já
-     * na seção não entra de novo; uma nota que falha não derruba as outras nem o registro da rodada.
+     * na seção não entra de novo, nem o item da checklist já lá, marcado ou não; uma nota que falha não derruba as
+     * outras nem o registro da rodada.
      * Prova: tests/engine/jsonProtocol.test.ts ("appendToSection").
      */
     async appendToSectionFromConfig(config: any, variables: any): Promise<string[]> {
@@ -2633,9 +2964,18 @@ export class JSONProtocol {
                 const antes = await this.app.vault.read(file);
                 let texto = antes;
                 for (const l of linhas) {
-                    const r = acrescentarNaSecao(texto, String(l.section ?? ''), this.processTemplate(String(l.line ?? ''), variables));
-                    if ('texto' in r) texto = r.texto;
-                    else if (r.problema === 'sem-secao') faltou.push(`${file.basename} (${String(l.section ?? '').replace(/^#+\s*/, '')})`);
+                    const secao = String(l.section ?? '');
+                    const novas = l.checklistDe ? await this.linhasDaChecklist(l.checklistDe, variables) : [this.processTemplate(String(l.line ?? ''), variables)];
+                    if (!novas.length) { faltou.push(`${file.basename} (a checklist de ${String(l.checklistDe?.path ?? '').split('/').pop()?.replace(/\.md$/, '')})`); continue; }
+                    if (nota.criarSecao === true) texto = comSecao(texto, secao);
+                    // O item já na seção, marcado ou não, não entra de novo (a conferência rodada duas vezes).
+                    const ja = new Set(itensDaSecao(texto, secao).map(i => i.texto));
+                    for (const nova of novas) {
+                        if (l.checklistDe && ja.has(nova.replace(/^- \[ \] /, ''))) continue;
+                        const r = acrescentarNaSecao(texto, secao, nova);
+                        if ('texto' in r) texto = r.texto;
+                        else if (r.problema === 'sem-secao') { faltou.push(`${file.basename} (${secao.replace(/^#+\s*/, '')})`); break; }
+                    }
                 }
                 if (texto !== antes) {
                     await this.app.vault.modify(file, texto);
@@ -2652,6 +2992,21 @@ export class JSONProtocol {
     }
 
     /**
+     * O que faz: as linhas que a `checklistDe` de uma linha do `appendToSection` dá: `- [ ] <item>` para cada item
+     * da checklist da seção `section` da nota `path` (marcado ou não: a caixa da nota de função é o modelo).
+     * Por quê: a conferência de uma pesquisa (05/11): a lista mora numa nota só, a de função, e cada tarefa recebe
+     * a cópia dela para marcar; nenhuma cópia da lista no protocolo.
+     * Erro e ataque: a nota que não existe, a seção que falta ou a seção sem item dão vazio (nada grava); só lê.
+     * Prova: tests/engine/jsonProtocol.test.ts ("appendToSection").
+     */
+    async linhasDaChecklist(de: any, variables: any): Promise<string[]> {
+        const path = de?.path ? this.processTemplate(String(de.path), variables).trim() : '';
+        const file = path ? this.app.vault.getAbstractFileByPath(path) : null;
+        if (!(file instanceof TFile)) return [];
+        return itensDaSecao(await this.app.vault.read(file), String(de?.section ?? '')).map(i => `- [ ] ${i.texto}`);
+    }
+
+    /**
      * Atualiza somente o frontmatter de uma nota que acabou de ser escolhida por
      * `suggest_note`. A pasta permitida é obrigatória e impede que uma definição
      * de protocolo transforme isto em editor genérico do vault.
@@ -2659,6 +3014,12 @@ export class JSONProtocol {
      * `activeLimit` é opcional e serve para capacidades escassas (ex.: no máximo
      * duas práticas ACT em treino). A nota selecionada é retirada da contagem,
      * portanto reafirmar o estado atual não bloqueia.
+     *
+     * `keepTime: ["scheduled"]` troca o dia e guarda a hora que o campo tinha (`diaComAHoraDeAntes`, a regra
+     * do "Mover para…"); `status: done` numa TaskNote conclui pela conclusão única do quadro
+     * (`board.completeTask`, com o dia da rodada), e sem o quadro grava o frontmatter da conclusão
+     * (`completeTaskFrontmatter`), como o `updateSelectedNotes` (D2 e D3 do diagnóstico do fluxo SMART, 05/11).
+     * Prova: tests/engine/fluxoSmartD2aD6.test.ts.
      */
     async updateSelectedNoteFromVariable(config: any, variables: any): Promise<boolean> {
         try {
@@ -2724,6 +3085,15 @@ export class JSONProtocol {
             const onlyIfEmpty = config.onlyIfEmpty === true
                 ? new Set<string>(Object.keys(properties))
                 : new Set<string>(Array.isArray(config.onlyIfEmpty) ? config.onlyIfEmpty : []);
+            // `keepTime: ["scheduled"]`: o dia muda e a hora que a tarefa tinha fica (a regra do
+            // "Mover para…", D2 do diagnóstico do fluxo SMART, 05/11).
+            const keepTime = new Set<string>(Array.isArray(config.keepTime) ? config.keepTime : []);
+            // `status: done` vai pela conclusão única do quadro (D3, 05/11; a mesma do P1 no
+            // `updateSelectedNotes`): a linha do dia e o registro da reputação saem dela. Sem o quadro, o frontmatter.
+            const board = (this.plugin as any)?.board;
+            const ehTarefa = allowedFolder.startsWith('TaskNotes/');
+            const concluirPeloQuadro = ehTarefa && typeof board?.completeTask === 'function' && (properties as Record<string, unknown>).status === 'done';
+            const today = (window as any).moment().format('YYYY-MM-DD');
 
             await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
                 for (const [key, value] of Object.entries(properties)) {
@@ -2743,9 +3113,20 @@ export class JSONProtocol {
                         continue;
                     }
 
-                    frontmatter[key] = value;
+                    if (ehTarefa && key === 'status' && value === 'done') {
+                        if (concluirPeloQuadro) continue;
+                        if (completeTaskFrontmatter(frontmatter, today).status === 'refused') {
+                            new Notice(`⚠️ ${file.basename} é recorrente: conclua pelo TaskNotes.`);
+                        } else {
+                            frontmatter.dateModified = new Date().toISOString();
+                        }
+                        continue;
+                    }
+
+                    frontmatter[key] = keepTime.has(key) && typeof value === 'string' ? diaComAHoraDeAntes(value, frontmatter[key]) : value;
                 }
             });
+            if (concluirPeloQuadro) await board.completeTask(path, { when: { choice: 'agora', date: this.getContextDate().format('YYYY-MM-DD'), time: null } });
             variables._updatedNotePath = path;
             return true;
         } catch (e) {
@@ -2990,7 +3371,7 @@ export class JSONProtocol {
             const weekTemplate = weekSource
                 ? weekSource.replace(/{{scheduled:(.*?)}}/g, (_: string, format: string) => (scheduled ? window.moment(scheduled, 'YYYY-MM-DD').format(format) : ''))
                 : '';
-            const week = weekTemplate ? this.processTemplate(weekTemplate, variables) : '';
+            const semanaDoProtocolo = weekTemplate ? this.processTemplate(weekTemplate, variables) : '';
 
             // Onde dá para fazer: o passo do protocolo (`contextsVar`), o valor fixo
             // (`contexts`) ou, sem nenhum dos dois, a pergunta na hora de criar.
@@ -3000,17 +3381,16 @@ export class JSONProtocol {
             const timeEstimate = Number.isFinite(rawEstimate) && rawEstimate > 0 ? Math.round(rawEstimate) : undefined;
 
             const rawImpacto = config.impactoVar ? variables[config.impactoVar] : config.impacto;
-            const impacto = rawImpacto === undefined || rawImpacto === null || rawImpacto === ''
+            const impactoDoProtocolo = rawImpacto === undefined || rawImpacto === null || rawImpacto === ''
                 ? undefined
                 : rawImpacto;
 
-            let taskTitle = title;
-            let path = `TaskNotes/Tasks/${taskTitle}.md`;
-            let duplicateNumber = 2;
-            while (this.app.vault.getAbstractFileByPath(path)) {
-                taskTitle = `${title} (${duplicateNumber++})`;
-                path = `TaskNotes/Tasks/${taskTitle}.md`;
-            }
+            // `project` (template) liga a tarefa ao projeto certo; sem ele, o
+            // comportamento antigo (`contexto`) continua valendo.
+            // Sem resposta (passo pulado), volta ao comportamento antigo.
+            const projeto = (config.project ? this.processTemplate(String(config.project), variables).trim() : '') || variables.contexto;
+            // O projeto que é uma SMART é a mãe: a herança dela antes da semana de hoje (D5, 05/11).
+            const { week, impacto } = herancaDaMae({ title, week: semanaDoProtocolo, impacto: impactoDoProtocolo, scheduled }, this.smartPeloNome(projeto));
 
             // `bodyVars: { "next_action": "➡️ Próxima ação" }`: outras respostas entram no
             // corpo da tarefa, rotuladas. Sem isto, o "respondo até as 15h" do pedido ficava
@@ -3026,8 +3406,8 @@ export class JSONProtocol {
             const bodyText = typeof config.bodyText === 'string' ? this.processTemplate(config.bodyText, variables).trim() : '';
             const answer = [raw.trim(), ...extras, ...weekLines, ...(bodyText ? ['', bodyText] : [])].join('\n');
 
-            const content = buildTaskNoteContent({
-                title: taskTitle,
+            const entrada: TaskNoteInput = {
+                title,
                 answer,
                 tag: config.tag,
                 // Fix 2026-07-06: 'todo' não existe nos customStatuses do TaskNotes.
@@ -3035,7 +3415,7 @@ export class JSONProtocol {
                 // 'next-action' porque o seletor do Comando do Dia exclui 'inbox'.
                 status: config.status || 'next-action',
                 priority: config.priority || 'normal',
-                impacto,
+                impacto: impacto as string | number | undefined,
                 due,
                 scheduled,
                 week,
@@ -3043,17 +3423,18 @@ export class JSONProtocol {
                 timeEstimate,
                 peca: config.peca,
                 blockedBy: config.blockedByCreated && createdFile ? createdFile.basename : undefined,
-                // `project` (template) liga a tarefa ao projeto certo; sem ele, o
-                // comportamento antigo (`contexto`) continua valendo.
-                // Sem resposta (passo pulado), volta ao comportamento antigo.
-                projects: (config.project ? this.processTemplate(String(config.project), variables).trim() : '') || variables.contexto,
+                projects: projeto,
                 // `lugar` (template): onde a tarefa acontece; sem resposta, a chave não nasce.
                 lugar: config.lugar ? this.processTemplate(String(config.lugar), variables) : '',
                 origin: createdFile ? createdFile.basename : '',
-                now: window.moment().format(),
-                bodyTemplate: await this.readTaskBodyTemplate()
+                bodyTemplate: await this.readTaskBodyTemplate(),
+            };
+            // O criador único (D5, 05/11): a borda única cria pela API do TaskNotes (ou, sem ela, pelo
+            // cofre, com o mesmo frontmatter), dá o nome livre com o " (2)" e põe o corpo do protocolo.
+            const path = await createTaskViaApi(this.app, pedidoDoFrontmatter(camposDaTarefaDoProtocolo(entrada)), { source: 'dfm-protocolo' }, {
+                corpo: nome => buildTaskBody({ ...entrada, title: nome }),
             });
-            await this.app.vault.create(path, content);
+            const taskTitle = path.slice(path.lastIndexOf('/') + 1).replace(/\.md$/, '');
             // Quem escuta `dfm:protocol-complete` acha aqui as tarefas criadas junto.
             variables._createdTasks = [...(Array.isArray(variables._createdTasks) ? variables._createdTasks : []), path];
             // `dailyLinkProperty: "compromisso_act"`: a Day guarda o link da tarefa que
@@ -3212,28 +3593,9 @@ export class JSONProtocol {
         return this.def.dailyLedgerLabel || this.def.name || this.id;
     }
 
+    /** O trecho de uma seção: a função pura do escritor da Day (`trechoDaSecao`). */
     _extractSectionText(content, header) {
-        const lines = content.split("\n");
-        const capture = [];
-        let active = false;
-
-        for (const line of lines) {
-            if (line.trim() === header) {
-                active = true;
-                capture.push(line);
-                continue;
-            }
-
-            if (active && line.startsWith("## ") && line.trim() !== header) {
-                break;
-            }
-
-            if (active) {
-                capture.push(line);
-            }
-        }
-
-        return capture.join("\n");
+        return trechoDaSecao(content, header);
     }
 
     /** Assinatura curta e determinística do conteúdo capturado (djb2). Duas capturas
@@ -3248,48 +3610,9 @@ export class JSONProtocol {
         return hash.toString(36);
     }
 
+    /** A inserção na Day: a função pura do escritor da Day (`inserirNaDay`), a mesma da marca do hábito. */
     _insertIntoDailyHeader(content, targetHeader, entry, dedupeFragment = null) {
-        let updated = content;
-        if (!updated.includes(targetHeader)) {
-            updated = updated.trimEnd() + `\n\n${targetHeader}\n`;
-        }
-
-        const section = this._extractSectionText(updated, targetHeader);
-        if (dedupeFragment && section.includes(dedupeFragment)) {
-            return { content: updated, inserted: false };
-        }
-
-        const lines = updated.split("\n");
-        let headerIndex = -1;
-
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim().toLowerCase() === targetHeader.trim().toLowerCase()) {
-                headerIndex = i;
-                break;
-            }
-        }
-
-        if (headerIndex === -1) {
-            return { content: updated.trimEnd() + `\n\n${targetHeader}\n${entry}\n`, inserted: true };
-        }
-
-        let insertIndex = headerIndex + 1;
-
-        while (insertIndex < lines.length && lines[insertIndex] === "") {
-            insertIndex += 1;
-        }
-
-        if (insertIndex < lines.length && lines[insertIndex].trim().startsWith("```dfm")) {
-            for (let j = insertIndex + 1; j < lines.length; j++) {
-                if (lines[j].trim() === "```") {
-                    insertIndex = j + 1;
-                    break;
-                }
-            }
-        }
-
-        lines.splice(insertIndex, 0, entry);
-        return { content: lines.join("\n"), inserted: true };
+        return inserirNaDay(content, targetHeader, entry, dedupeFragment);
     }
 
     /**
@@ -3301,24 +3624,9 @@ export class JSONProtocol {
      * `### 🌙 Noite` do 🌙). Chave que a Day não tem cai no marcador, como antes.
      */
     resolveDailyNoteSection(content) {
-        const configured = typeof this.def.dailyNoteSection === 'string' ? this.def.dailyNoteSection : '';
-        if (configured.trim()) {
-            const hasConfiguredHeader = content.split("\n").some(line =>
-                line.trim().toLowerCase() === configured.trim().toLowerCase()
-            );
-            if (hasConfiguredHeader) return configured;
-        }
-
-        // O Day compacto mantém o ledger em <details> — aberto por padrão desde
-        // 2026-09-15, porque é onde escrevem os protocolos do loop diário — sem
-        // repetir um cabeçalho Markdown visível. O marcador é o contrato estável de
-        // inserção: funciona para protocolos append, links/embeds e logs de tarefas.
-        const ledgerMarker = "<!-- DFM_LOGS_START -->";
-        if (content.includes(ledgerMarker)) return ledgerMarker;
-
-        // Day sem o marcador (modelo antigo): o ledger técnico fica separado da
-        // escrita livre, numa seção própria.
-        return "## 🗂️ Registros automáticos";
+        // A regra mora no escritor da Day (`secaoDoRegistro`): a seção declarada que a Day tem, senão o
+        // marcador do ledger (o Day compacto o mantém em <details>), senão a seção de registros.
+        return secaoDoRegistro(content, typeof this.def.dailyNoteSection === 'string' ? this.def.dailyNoteSection : '');
     }
 
     /** Data-base da semana sendo PLANEJADA: sex(5)/sáb(6)/dom(7) → segunda da próxima
@@ -3551,6 +3859,72 @@ export class JSONProtocol {
         if (falhas.length) new Notice(`⚠️ ${feitos} de ${linhas.length} registrados como feitos no dia. ${falhas.join(' · ')}`, 8000);
         else new Notice(`✅ ${feitos} ${feitos === 1 ? 'registrado' : 'registrados'} como feito no dia.`, 4000);
         return feitos;
+    }
+
+    /**
+     * O que faz: a SMART com este nome (ou link), como ponta de seta (`LinkTask`, a forma que o patch da mãe lê),
+     * ou `null` quando o nome não é de uma nota `tarefa_smart`.
+     * Por quê: o `createTask` com `project` que é uma SMART herda dela (D5, 05/11); o mesmo `LinkTask` que o
+     * quadro monta para as setas e o Novo (`boardPlugin.linkTaskAt`).
+     */
+    smartPeloNome(nome: unknown): LinkTask | null {
+        const alvo = noteNameOf(String(nome ?? '').replace(/^\[\[|\]\]$/g, '').split('|')[0]);
+        if (!alvo) return null;
+        const cache: any = this.app.metadataCache;
+        const file = cache?.getFirstLinkpathDest?.(alvo, '') ?? null;
+        if (!(file instanceof TFile)) return null;
+        const fm: any = cache?.getFileCache?.(file)?.frontmatter ?? {};
+        if (fm.type !== 'tarefa_smart') return null;
+        return { path: file.path, basename: file.basename, type: 'tarefa_smart', projects: linkNames(fm.projects), week: fm.week, impacto: fm.impacto };
+    }
+
+    /**
+     * O que faz: `nextTask: { titleVar, fromVar, condition }`: a resposta de `titleVar` vira a tarefa seguinte
+     * da TaskNote do caminho `fromVar` (a do bloco): pelo Novo (`board.novo.tarefa`), na SMART mãe dela, com a
+     * herança de sempre (o patch da mãe: a semana e o impacto dela); sem SMART mãe, nos mesmos `projects` dela.
+     * Sem o quadro, o `createTask` do motor, que também herda da SMART (D5). Devolve o caminho criado, ou `null`.
+     * Por quê: o diagnóstico do fluxo SMART (02/11, B2 e D3, aplicado em 05/11): o 🔄 Micro-Review perguntava
+     * o próximo passo e não gravava nada na tarefa; o laço execução → conclusão → próximo passo fecha aqui.
+     * Erro e ataque: a condição que não vale, a resposta curta (menos de 3 letras) ou o caminho fora de
+     * `TaskNotes/` não criam nada; a SMART que não é `tarefa_smart` não conta como mãe; a recusa do Novo vira
+     * o aviso dele e não derruba o registro da rodada.
+     * Prova: tests/engine/fluxoSmartD2aD6.test.ts ("D3").
+     */
+    async nextTaskFromConfig(config: any, variables: any): Promise<string | null> {
+        try {
+            if (config?.condition && !conditionMatches(config.condition, variables)) return null;
+            const raw = String(variables?.[String(config?.titleVar ?? '')] ?? '').trim();
+            if (raw.length < 3) return null;
+            const from = String(variables?.[String(config?.fromVar ?? '')] ?? '');
+            if (!from.startsWith('TaskNotes/')) return null;
+            const file = this.app.vault.getAbstractFileByPath(from);
+            const fm: any = file instanceof TFile ? this.app.metadataCache.getFileCache(file)?.frontmatter ?? {} : {};
+            const maes = linkNames(fm.projects);
+            const smart = maes
+                .map(nome => this.app.metadataCache.getFirstLinkpathDest?.(nome, from) ?? null)
+                .find((f: any) => f instanceof TFile && this.app.metadataCache.getFileCache(f)?.frontmatter?.type === 'tarefa_smart') as TFile | undefined;
+            const title = shortenTaskTitle(raw);
+            const novo = (this.plugin as any)?.board?.novo;
+            if (typeof novo?.tarefa === 'function') {
+                const valores: Record<string, unknown> = { title, status: 'next-action' };
+                if (!smart && maes.length) valores.projects = maes.map(nome => `[[${nome}]]`);
+                if (title !== raw) valores.details = raw;
+                const r = await novo.tarefa(valores, smart ? smart.path : null, (texto: string) => new Notice(texto, 5000));
+                return r?.ok && r.caminho ? String(r.caminho) : null;
+            }
+            const antes = Array.isArray(variables._createdTasks) ? variables._createdTasks.length : 0;
+            await this.createTaskFromVariable({
+                titleVar: config.titleVar,
+                status: 'next-action',
+                week: '{{date:GGGG-[W]WW}}',
+                project: smart ? smart.basename : (maes[0] ?? ''),
+            }, variables, null);
+            const criadas = Array.isArray(variables._createdTasks) ? variables._createdTasks : [];
+            return criadas.length > antes ? String(criadas[criadas.length - 1]) : null;
+        } catch (e) {
+            console.error('DFM nextTask:', e);
+            return null;
+        }
     }
 
     /**
@@ -3835,10 +4209,40 @@ export class JSONProtocol {
             }
         }
         const left = step?.pinFromYesterday ? this.leftCommitment(step.pinFromYesterday) : null;
+        const pecas = await this.pecasDaRodada(arquivos, fmDe);
         return {
             hoje, dia, semanaAlvo, semanaDoDia, tarefas, pontos, temporada, estadias, valorDaSemana,
             deixada: left ? { nome: left.name, quando: left.when } : null,
+            ...(pecas ? { pecas } : {}),
         };
+    }
+
+    /**
+     * O que faz: as peças da rodada (05/11, a campanha da semana): só quando algum passo do protocolo pede o publicado
+     * ou os resultados da semana, as notas de cada modelo de tipo com formatos (`Config/dominios`), na casa e com o
+     * `type` dele.
+     * Por quê: o 📅 conta o publicado por canal e por frente; a casa e o tipo das peças vêm dos modelos, nunca daqui.
+     * Entra → sai: os arquivos do cofre e o leitor do frontmatter → as peças, ou `undefined` (nenhum passo as pede).
+     * Erro e ataque: o modelo que não se lê, ou sem formatos, fica de fora (o problema dele é do juiz).
+     */
+    private async pecasDaRodada(arquivos: TFile[], fmDe: (file: any) => any): Promise<PecasDoModelo[] | undefined> {
+        const pede = (this.def?.steps || []).some((st: any) => (Array.isArray(st?.defaultFrom) ? st.defaultFrom : [st?.defaultFrom])
+            .some((x: any) => x?.sugestao === 'publicadas_da_semana' || x?.sugestao === 'resultados_da_semana'));
+        if (!pede) return undefined;
+        const out: PecasDoModelo[] = [];
+        const jsons: TFile[] = (this.app.vault.getFiles?.() || []).filter((f: TFile) => f.path.startsWith(`${DOMAIN_MODELS_FOLDER}/`) && f.extension === 'json');
+        for (const f of jsons) {
+            try {
+                const modelo = parseDomainModel(JSON.parse(await this.app.vault.read(f)), f.basename).modelo;
+                if (!modelo?.formatos || !modelo.candidatos.type) continue;
+                const notas = arquivos.filter(a => a.path.startsWith(`${modelo.candidatos.pasta}/`) && String(fmDe(a)?.type ?? '').trim() === modelo.candidatos.type)
+                    .map(a => ({ nome: a.basename, campos: fmDe(a) ?? {} }));
+                out.push({ modelo, notas });
+            } catch (e) {
+                console.warn(`DFM sugestões do passo: o modelo ${f.path} não se leu`, e);
+            }
+        }
+        return out;
     }
 
     /**
@@ -3890,17 +4294,23 @@ export class JSONProtocol {
      * Sem valor, cai no `emptyLabel` (ou não escreve nada).
      */
     applyStepContext(step: any, variables: any) {
-        const cfg = step?.contextFrom;
-        if (!cfg?.variable || !cfg?.property) return step;
-
-        const raw = variables[`${cfg.variable}_prop_${cfg.property}`];
-        const hasValue = raw !== undefined && raw !== null && String(raw).trim() !== "";
-        const line = hasValue
-            ? String(cfg.label || "{value}").replace(/\{value\}/g, () => String(raw))
-            : String(cfg.emptyLabel || "");
-        if (!line) return step;
-
-        return { ...step, prompt: step.prompt ? `${step.prompt}\n\n${line}` : line };
+        // Uma lista de contextos (05/11: a frase e o "Como funciona" do cartão) vira uma linha cada, na ordem.
+        const cfgs = Array.isArray(step?.contextFrom) ? step.contextFrom : step?.contextFrom ? [step.contextFrom] : [];
+        const lines: string[] = [];
+        for (const cfg of cfgs) {
+            // `from`: o nome inteiro da variável (o `{passo}_frase` do passo `fila`); sem ele, `{variable}_prop_{property}`.
+            const key = typeof cfg?.from === 'string' && cfg.from ? cfg.from : (cfg?.variable && cfg?.property ? `${cfg.variable}_prop_${cfg.property}` : '');
+            if (!key) continue;
+            const raw = variables[key];
+            const hasValue = raw !== undefined && raw !== null && String(raw).trim() !== "";
+            const line = hasValue
+                ? String(cfg.label || "{value}").replace(/\{value\}/g, () => String(raw))
+                : String(cfg.emptyLabel || "");
+            if (line) lines.push(line);
+        }
+        if (!lines.length) return step;
+        const text = lines.join("\n\n");
+        return { ...step, prompt: step.prompt ? `${step.prompt}\n\n${text}` : text };
     }
 
     /**
@@ -4426,11 +4836,23 @@ export class JSONProtocol {
 
             const localVars = { ...(step.id ? { [step.id]: title } : {}), titulo: title };
             const props: Record<string, any> = this.processProperties(cfg.properties || {}, localVars);
-            // Tarefa criada no meio de um passo (a que falta no ▶️, o compromisso de
-            // amanhã do 🌙, a da sessão de Deep Work) também nasce com onde dá para fazer.
-            if (folder.startsWith('TaskNotes/') && props.contexts === undefined) {
-                const contexts = taskContextsYaml(await this.resolveTaskContexts(cfg, localVars, title));
-                if (contexts) props.contexts = contexts;
+            if (folder === PASTA_DAS_TAREFAS) {
+                // A tarefa criada no meio de um passo (a que falta no ▶️, o compromisso de amanhã do 🌙
+                // e do 🌙 leve, a da sessão de Deep Work) nasce pela borda única (o criador único, D5,
+                // 05/11), com onde dá para fazer e o frontmatter na forma de toda tarefa.
+                const fm = valoresDoModelo(props);
+                fm.title = title;
+                if (fm.contexts === undefined) {
+                    const contexts = await this.resolveTaskContexts(cfg, localVars, title);
+                    if (contexts.length) fm.contexts = contexts;
+                }
+                const criada = await createTaskViaApi(this.app, pedidoDoFrontmatter(fm), { source: 'dfm-passo' }, {
+                    corpo: nome => (cfg.template ? this.processTemplate(cfg.template, { ...localVars, titulo: nome }) : `# ${nome}\n`),
+                });
+                const file = this.app.vault.getAbstractFileByPath(criada);
+                if (!(file instanceof TFile)) return null;
+                new Notice(`✅ Nota criada: ${file.basename}`, 4000);
+                return { file, created: true };
             }
             let content = "---\n";
             for (const [key, value] of Object.entries(props)) {
@@ -4714,7 +5136,14 @@ export class JSONProtocol {
             }
         }
 
-        const mergedProperties = { ...templateProperties, ...properties };
+        let mergedProperties: Record<string, any> = { ...templateProperties, ...properties };
+        // A nota do protocolo que nasce como tarefa (o ⚡ e a 🎯, em `TaskNotes/Tasks`) só troca o
+        // frontmatter pela forma única de toda tarefa (o criador único, D5, 05/11): o corpo é o do
+        // protocolo, e a nota não passa pela API. A que já existe e não ganha sufixo fica como era.
+        const existente = this.app.vault.getAbstractFileByPath(fullPath);
+        if (folderPath === PASTA_DAS_TAREFAS && (!(existente instanceof TFile) || this.saveDef?.onExisting === 'suffix')) {
+            mergedProperties = frontmatterDaTarefaNova(valoresDoModelo(mergedProperties), carimboDoMomento(new Date()));
+        }
 
         // Generate Frontmatter
         let fileContent = "";

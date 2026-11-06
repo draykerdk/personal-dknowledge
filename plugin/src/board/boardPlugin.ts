@@ -8,7 +8,7 @@
 import type { MotorDaGaveta } from '../missao/gavetaDoMotor';
 import type { MarkdownPostProcessorContext, PaneType } from 'obsidian';
 import { App, FuzzySuggestModal, Keymap, MarkdownRenderChild, Menu, Notice, TFile, getFrontMatterInfo, normalizePath, parseYaml, stringifyYaml } from 'obsidian';
-import { parseHabit, resolveClick, reviewPatch, toggleEntry } from '../engine/habits';
+import { parseHabit, resolveClick, reviewPatch } from '../engine/habits';
 import type { HabitReviewChoice } from '../engine/habits';
 import type DFMPlugin from '../main';
 import { BoardStore } from './boardStore';
@@ -16,7 +16,7 @@ import { TaskIndex } from '../tasks/taskIndex';
 import type { ProjectCanvasManager } from '../project/projectCanvasManager';
 import { BOARD_CATALOG, TASK_FILTERS, parseWidgetSpec, widgetBlock } from './boardSpec';
 import type { BoardCatalogEntry, BoardTaskFilter, BoardWidgetSpec } from './boardSpec';
-import { renderBoardError, renderBoardWidget, renderConsulta, renderMissaoStub } from './boardRender';
+import { renderBoardError, renderBoardWidget, renderConsulta, renderMissaoAtalho } from './boardRender';
 import { evaluateQuery } from './queryModel';
 import type { NavInput } from './panelNav';
 import { departmentsInFocus, indexCandidates } from './panelNav';
@@ -29,7 +29,7 @@ import { currentQuarter, isoWeekOf, plannedWeekOf, quarterWeeks } from '../engin
 import { dayOverText } from '../engine/tarefasNoPeriodo';
 import { PeriodNotes } from '../temporal/periodNotes';
 import type { BoardActions } from './boardRender';
-import { projectNames } from './boardModel';
+import { atalhoDaMissao, projectNames, type AtalhoDaMissao } from './boardModel';
 import { BoardCanvasMenus } from './boardCanvasMenus';
 import { TaskMenus } from './taskMenus';
 import { CanvasToolbar } from './canvasToolbar';
@@ -45,7 +45,7 @@ import { MissaoService } from '../missao/missaoService';
 import { hojeLocal } from '../missao/hosts/relogio';
 import { caminhoImporta } from '../missao/entrada';
 import { GravacoesDaMissao, PilhaDoDesfazer, type DepsDaGravacao } from '../missao/missaoWrites';
-import type { Avisar, RegistroDoFeito, ResultadoDaGravacao } from '../missao/tipos';
+import type { Avisar, MissaoModelo, RegistroDoFeito, ResultadoDaGravacao } from '../missao/tipos';
 import { idDoProjeto } from '../missao/linhagem';
 import { portaDoPeriodo, type PortaDoPeriodo } from '../missao/estadoTela';
 import { PORTAS } from '../missao/frases';
@@ -53,7 +53,8 @@ import { capturarNaCaixa, type ResultadoDaCaptura } from '../ui/mission/captureC
 import type { LinkTask } from '../canvas/edgeLinks';
 import { DO_NOW_PAPEL, doNowVariables, scoresByPath } from '../canvas/taskCardModel';
 import type { Papel } from '../engine/papeisDeProtocolo';
-import { definicoesDe } from '../definicoes';
+import { definicoesDe, type TrilhaDefinida } from '../definicoes';
+import { comMarca, estadoDaTrilha, type EstadoDaTrilha } from '../missao/trilha';
 import { buildTaskRelations } from '../engine/decisionWeights';
 import { GravacoesDaTriagem, type DepsDaTriagem } from '../missao/triagemWrites';
 import { ensureFolder } from '../missao/hosts/pastas';
@@ -63,6 +64,7 @@ import { ARQUIVO_DAS_PROPOSTAS, FilaDePropostas } from '../engine/propostasDoAge
 import { notaDoMolde, type PassoDoProtocolo } from '../missao/novo';
 import { planWeekStart, renderTemplateTokens, type TokenClock } from '../engine/templateTokens';
 import { createTaskViaApi, openTaskForm, prefillFromFrontmatter } from '../engine/tasknotesBridge';
+import { carimboDoMomento } from '../engine/dia';
 import { registrarFeito as registrarOFeito, type ResultadoDoRegistro } from '../missao/registrarFeito';
 
 export const BOARD_BLOCK = 'dfm-widget';
@@ -500,6 +502,8 @@ export class MissionBoard {
             // Os pesos da tabela única, pelo mesmo caminho do cartão de tarefa (`TaskCards.refreshReasons`).
             // As propostas do agente esperam no grupo delas da triagem (a fila já lida).
             propostas: () => this.propostas?.itens() ?? [],
+            // A trilha de uso (05/11/2026): o arquivo dos textos, as chaves e as marcas do salvamento.
+            trilha: () => this.trilhaParaOLeitor(),
             pesos: async hoje => {
                 const tree: any = (plugin as any).nowTree;
                 if (!tree?.loadWeights || !tree?.taskUnits || !tree?.decisionContext) return null;
@@ -544,6 +548,9 @@ export class MissionBoard {
         return {
             criarTarefa: pedido => createTaskViaApi(app, pedido, { source: 'dfm-missao-novo' }),
             abrirFormulario: fm => openTaskForm(app, prefillFromFrontmatter(fm)),
+            carimbo: () => carimboDoMomento(new Date()),
+            // A regra D1 (02/11) no "Abrir no TaskNotes" (06/11): a tarefa que herdou a semana sai da entrada.
+            aoGanharLugar: status => statusAoGanharLugar(this.missao.estadosDaTarefa(), status),
             tarefa: path => this.linkTaskAt(path),
             atualizarTarefa: (path, fn) => this.updateTaskWith(path, fn),
             lerTexto: async path => { const f = file(path); return f ? app.vault.read(f) : null; },
@@ -603,6 +610,7 @@ export class MissionBoard {
             lerTexto: async path => { const f = file(path); return f ? app.vault.read(f) : ''; },
             refrescar: () => this.store.scheduleRefresh(),
             hoje: () => (window as any).moment?.().format('YYYY-MM-DD') ?? new Date().toISOString().slice(0, 10),
+            carimbo: () => carimboDoMomento(new Date()),
         };
     }
 
@@ -740,8 +748,9 @@ export class MissionBoard {
                 renderBoardError(root, parsed.error);
                 return;
             }
-            // A Missão no canvas é o P14: até lá, só a frase de onde abrir (sem assinar nada).
-            if (parsed.spec.kind === 'missao') { renderMissaoStub(root, parsed.spec); return; }
+            // O atalho da Missão (item 8): no canvas de projeto, o zoom no projeto; no de um período, o período
+            // (`atalhoDaMissao`); abre pela mesma `openMissao` das portas, sem assinar nada.
+            if (parsed.spec.kind === 'missao') { renderMissaoAtalho(root, parsed.spec, this.atalhoDoLugar(parsed.spec, ctx.sourcePath), this); return; }
             const actions = this.actions(ctx.sourcePath, root);
             if (parsed.spec.kind === 'consulta') ctx.addChild(new QueryWidgetChild(root, parsed.spec, this, ctx.sourcePath, actions));
             else ctx.addChild(new BoardWidgetChild(root, parsed.spec, this.store, actions));
@@ -1156,6 +1165,21 @@ export class MissionBoard {
     }
 
     /**
+     * O que faz: o atalho da Missão do bloco `tipo: missao` pelo lugar dele: o projeto do canvas de projeto e o
+     * nome do arquivo (o canvas ou a nota de um período), lidos aqui; a decisão é do `atalhoDaMissao`.
+     */
+    atalhoDoLugar(spec: BoardWidgetSpec, caminho: string): AtalhoDaMissao {
+        const nome = caminho.slice(caminho.lastIndexOf('/') + 1).replace(/\.(canvas|md)$/, '');
+        const projeto = caminho.endsWith('.canvas') ? this.projectCanvas?.projectForCanvas(caminho)?.name ?? null : null;
+        return atalhoDaMissao(spec, { projeto, nome });
+    }
+
+    /** O que faz: abre o atalho da Missão: o estado dele pela `openMissao` das portas; sem estado, a Missão como estava. */
+    abrirMissao(atalho: AtalhoDaMissao): void {
+        void this.openMissao(atalho.estado ?? undefined);
+    }
+
+    /**
      * O que faz: abre a Missão no período de uma porta (02/11): a escala dele, a linha dele em foco e o nó
      * dele escolhido; a pinça no nó entra no ramo, onde se planeja.
      */
@@ -1218,7 +1242,7 @@ export class MissionBoard {
 
     /**
      * Um dia de hábito, pelo caminho canônico do tracker (`engine/habits.ts`):
-     * `resolveClick` decide, `toggleEntry` calcula e `processFrontMatter` grava.
+     * `resolveClick` decide e `HabitLog.alternarDia` grava (o dia e a linha da marca na Day, 06/11).
      * Guiado de hoje abre o protocolo; futuro e automático só avisam.
      */
     async toggleHabit(path: string, date: string): Promise<void> {
@@ -1239,9 +1263,8 @@ export class MissionBoard {
             (this.app as any).commands?.executeCommandById?.(`dfm-system:dfm-${decision.protocolId}`);
             return;
         }
-        await this.app.fileManager.processFrontMatter(file, fm => {
-            fm.entries = toggleEntry(fm.entries, date);
-        });
+        // A porta única dos hábitos (06/11): o dia em `entries` e a linha da marca na Day.
+        await this.plugin.habitLog.alternarDia(path, date);
         // A pontuação do hábito manual (`scoreHabit`, razão `settings.habitLedger`) saiu em
         // 29/10/2026, com o arquivamento da gamificação: marcar e desmarcar só mudam o dia.
         await this.store.refreshNow();
@@ -1282,6 +1305,83 @@ export class MissionBoard {
             },
         }, avisar);
         return { ok: true, texto: `+1 · ${titulo}` };
+    }
+
+    /* ------------------------------------------------------------ a trilha de uso (05/11/2026) */
+
+    /** Os dias de uso de cada gesto e o índice da última Missão desenhada (o critério `uso` da árvore lê daqui). */
+    private ultimaTrilha: { usos: Readonly<Record<string, number>>; deAntes: ReadonlySet<string> } | null = null;
+
+    /** O que faz: o estado da trilha no salvamento do plugin (`trilhaUso`), lido e limpo. */
+    private estadoDaTrilha(): EstadoDaTrilha {
+        return estadoDaTrilha((this.plugin.settings as any).trilhaUso);
+    }
+
+    /** O que faz: grava o estado da trilha no salvamento e, se pedido, a Missão relê (as marcas entram no uso). */
+    private async gravarTrilha(estado: EstadoDaTrilha, reler: boolean): Promise<void> {
+        (this.plugin.settings as any).trilhaUso = estado;
+        await this.plugin.saveSettings();
+        if (reler) this.missao.agendar();
+    }
+
+    /**
+     * O que faz: o que o leitor da Missão lê da trilha: o arquivo dos textos e as chaves, das definições, e as
+     * marcas do salvamento; sem o arquivo nas definições, nada (a trilha não aparece).
+     */
+    trilhaParaOLeitor(): { caminho: string; chaves: TrilhaDefinida; marcas: Record<string, string[]> } | null {
+        const d = definicoesDe(this.plugin);
+        return d.arquivos.trilha ? { caminho: d.arquivos.trilha, chaves: d.trilha, marcas: this.estadoDaTrilha().marcas } : null;
+    }
+
+    /**
+     * O que faz: marca um gesto da trilha num dia (o que não deixa outro rastro: mover a que ficou de antes,
+     * pôr numa SMART, capturar, decidir na triagem); o mesmo dia de novo não grava.
+     * Erro e ataque: a falha ao gravar só vai ao console (a gravação do gesto já aconteceu).
+     */
+    marcarUso(gesto: string | null, dia: string = today()): void {
+        if (!gesto) return;
+        const novo = comMarca(this.estadoDaTrilha(), gesto, dia);
+        if (novo) void this.gravarTrilha(novo, true).catch(e => console.error('DFM trilha: a marca não gravou', e));
+    }
+
+    /** O que faz: a TaskNote ficou de antes, na última Missão desenhada (a marca do "mover a que ficou para trás"). */
+    tarefaDeAntes(caminho: string): boolean {
+        return !!this.ultimaTrilha?.deAntes.has(caminho);
+    }
+
+    /** O que faz: os dias de uso de um gesto na última Missão desenhada; `null` antes dela (o critério `uso` espera). */
+    usoDoGesto(gesto: string): number | null {
+        const n = this.ultimaTrilha?.usos[gesto];
+        return typeof n === 'number' ? n : null;
+    }
+
+    /** O que faz: as dicas da primeira vez já vistas (o salvamento). */
+    dicasVistas(): string[] {
+        return this.estadoDaTrilha().vistas;
+    }
+
+    /** O que faz: guarda a dica como vista (ela não volta na próxima abertura); a já vista não grava. */
+    verDica(id: string): void {
+        const e = this.estadoDaTrilha();
+        if (!/^[a-z0-9_]+$/.test(id) || e.vistas.includes(id)) return;
+        void this.gravarTrilha({ ...e, vistas: [...e.vistas, id] }, false).catch(err => console.error('DFM trilha: a dica não gravou', err));
+    }
+
+    /**
+     * O que faz: depois de cada modelo da Missão: guarda os usos (o critério `uso` da árvore os lê) e, quando o
+     * gesto da vez muda, guarda o novo e reavalia as árvores: a árvore "Hábito de uso do sistema" desbloqueia o
+     * nível seguinte e propõe a tarefa dele na triagem (nada se cria sem o Y dele).
+     */
+    conferirTrilha(modelo: MissaoModelo): void {
+        const t = modelo.trilha;
+        this.ultimaTrilha = { usos: t?.usos ?? {}, deAntes: new Set(modelo.indice.vivas.filter(x => x.deAntes).map(x => x.caminho)) };
+        const g = t?.gesto;
+        const id = !g ? '' : 'gesto' in g ? g.gesto.id : 'fim';
+        const e = this.estadoDaTrilha();
+        if (!id || id === e.gesto) return;
+        void this.gravarTrilha({ ...e, gesto: id }, false)
+            .then(() => (this.plugin as any).progressionEngine?.reevaluateAll?.(this.plugin.settings.arvoreProgressao))
+            .catch(err => console.error('DFM trilha: a árvore de uso não se reavaliou', err));
     }
 
     /**
@@ -1331,7 +1431,7 @@ export class MissionBoard {
 
     /** O que faz: a 💡 Captura da Missão: a mesma função da Captura rápida do Mission Control (`capturarNaCaixa`). */
     capturar(texto: string): Promise<ResultadoDaCaptura> {
-        return capturarNaCaixa(this.app.vault, definicoesDe(this.plugin).pastas.inbox, texto);
+        return capturarNaCaixa(this.app.vault, definicoesDe(this.plugin).pastas.inbox, texto, (window as any).moment?.().format('YYYY-MM-DD') ?? '');
     }
 
     /**

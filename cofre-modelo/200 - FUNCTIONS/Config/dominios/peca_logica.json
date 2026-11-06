@@ -1,0 +1,81 @@
+{
+  "dominio": "peca_logica",
+  "descricao": "A peça lógica (`type: peca_logica`): o \"como funciona\" da língua, uma nota curta por peça (uma estrutura, um verbo, um modal, uma partícula, o som) e uma por ligação do pensamento (os conectores, `grupo: conector`: soma, contraste, causa, consequência, condição, tempo). A nota de função é o \"como se faz\"; a peça é o \"como funciona\", e as duas não se substituem. Serve a qualquer língua pelo `lingua`. O ramo de cima é o `modulo`; as frases que a usam são os cartões que apontam para ela em `pecas` ou em `conectores` (achados pela ligação e nunca copiados): a seção \"As frases que a usam\" do corpo é a consulta do molde, nunca escrita à mão. O `nivel` diz em que nível a peça entra, e o centro do módulo mostra as peças do nível em curso, na `ordem`, que é o lugar em que a peça acende pela primeira vez na trilha. O corpo tem A regra geradora, O que é, Por que é assim, Como se liga, Os passos na trilha (um título `###` por passo, o que cada cartão acende pelo `introduz`), O contraste com a sua língua, A mesma estrutura em quatro contextos e As frases que a usam. Nasce pelo Novo simples (`via: nota`), na subpasta `Lógica/` do módulo, com o molde.",
+  "candidatos": {
+    "pasta": "100 - AREAS",
+    "type": "peca_logica"
+  },
+  "campos": [
+    {
+      "nome": "lingua",
+      "rotulo": "Língua",
+      "tipo": "texto",
+      "formato": "curto",
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "fixo",
+          "valor": "en"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "modulo",
+      "rotulo": "Módulo",
+      "tipo": "link",
+      "alvo": [
+        "departamento",
+        "projeto"
+      ],
+      "ramo": "acima",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "grupo",
+      "rotulo": "Grupo",
+      "tipo": "escolha",
+      "valores": [
+        "estrutura",
+        "verbo",
+        "modal",
+        "conector",
+        "particula",
+        "som"
+      ],
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "ordem",
+      "rotulo": "Ordem",
+      "tipo": "texto",
+      "formato": "numero",
+      "dono": "nota",
+      "vazio": "sem ordem"
+    },
+    {
+      "nome": "nivel",
+      "rotulo": "Nível",
+      "tipo": "escolha",
+      "valores": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ],
+      "dono": "nota",
+      "vazio": "a escolher"
+    }
+  ],
+  "criar": {
+    "via": "nota",
+    "casa": {
+      "campo": "modulo",
+      "subpasta": "Lógica"
+    },
+    "molde": "200 - FUNCTIONS/Templates/Peca_logica_template.md"
+  }
+}

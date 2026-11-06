@@ -127,7 +127,11 @@ export function especieDoNo(id: string | null | undefined): string | null {
 }
 
 /** O nó como pai de um filho (29/10): o domínio do modelo dele e o nome que o link do filho grava. */
-export interface PaiDoNovo { dominio: string | null; nome: string | null; modelos: readonly DomainModel[] }
+/**
+ * O pai do Novo: o domínio, o nome e os modelos; `aprendizado` (05/11) diz que o módulo já tem notas de aprendizado,
+ * e só então ele oferece os tipos do aprendizado (o "+ Cartão" não aparece em todo projeto e departamento).
+ */
+export interface PaiDoNovo { dominio: string | null; nome: string | null; modelos: readonly DomainModel[]; aprendizado?: boolean }
 
 /**
  * O que faz: os filhos de um tipo pelos modelos: cada tipo com um campo de link `ramo: "acima"`
@@ -160,7 +164,11 @@ export function novosDoNo(ramoPrincipal: Pick<RamoPrincipal, 'novo'>, tipos: rea
     const doRamoPrincipal = (especie ? ramoPrincipal.novo?.no?.[especie] ?? [] : []).filter(n => tipos.some(t => t.dominio === n.tipo));
     if (!pai?.dominio || !pai.nome) return doRamoPrincipal;
     const out = [...doRamoPrincipal];
+    // Os tipos do aprendizado (o que declara o `aprendizado` e o das peças dele) só no módulo que já é de aprendizado.
+    const doAprendizado = new Set(pai.modelos.filter(m => m.aprendizado).flatMap(m => [m.candidatos.type, m.aprendizado!.pecas]).filter(Boolean));
     for (const f of filhosDoTipo(pai.modelos, pai.dominio)) {
+        const tipoDaNota = pai.modelos.find(m => m.dominio === f.tipo)?.candidatos.type;
+        if (!pai.aprendizado && tipoDaNota && doAprendizado.has(tipoDaNota)) continue;
         const t = tipos.find(x => x.dominio === f.tipo);
         if (!t || out.some(n => n.tipo === f.tipo) || !t.campos.some(c => c.campo.nome === f.campo)) continue;
         out.push({ tipo: f.tipo, rotulo: f.tipo === pai.dominio ? `Sub${t.rotulo.toLowerCase()}` : t.rotulo, campo: f.campo, valor: pai.nome });

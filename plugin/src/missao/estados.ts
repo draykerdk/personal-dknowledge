@@ -11,7 +11,7 @@
  *
  * Módulo puro: sem Obsidian e sem DOM. Prova: tests/missao/estados.test.ts.
  */
-import type { DomainModel, DomainState, StatePlace } from '../engine/domainModel';
+import { publicadaPeloModelo, type DomainModel, type DomainState, type StatePlace } from '../engine/domainModel';
 
 /** Os sinais declarados nos modelos dos tipos (o bloco `sinais`, P10b): o passo, o prazo e o limite. */
 export interface PassoDeclarado { protocolo: string; rotulo: string }
@@ -33,7 +33,33 @@ export interface LimiteDeclarado { type: string; ate: string | null; dias: strin
  */
 export interface DatasDeclaradas { type: string; de: string; ate: string; estado: string; conta: string[]; aberta: string[]; fato: string; passo: PassoDeclarado | null }
 
-export interface DeclaracoesDeSinais { prazos: PrazoDeclarado[]; limites: LimiteDeclarado[]; datas?: DatasDeclaradas[] }
+/**
+ * A conferência de uma pesquisa (05/11, `sinais.conferencias` do modelo da tarefa): a tag da tarefa de pesquisa, a
+ * seção da nota dela onde mora a lista de verificação, o sujeito do fato e o protocolo que leva a lista.
+ */
+export interface ConferenciaDeclarada { tag: string; secao: string; fato: string; passo: PassoDeclarado | null }
+
+/**
+ * A cadência (05/11, a campanha da semana): cada valor do campo `por` (os valores da escolha do modelo) sem nota do
+ * `type` publicada na semana de hoje, pelo dia de ir ao ar (`data`, o campo que as publicações pedem) e pelo
+ * modelo (`publicada`). O `fato` diz o valor por `{valor}`. Só informa: nenhum passo cria nada sozinho.
+ */
+export interface CadenciaDeclarada { type: string; por: string; valores: string[]; data: string; publicada: (campos: Record<string, unknown>) => boolean; fato: string; passo: PassoDeclarado | null }
+
+/**
+ * A origem (05/11): a nota do `type` num dos `formatos` (o campo de formato do modelo; sem a lista, todo formato) sem
+ * a nota de origem no `campo` (o corte sem a peça-mãe), ou com a de origem que não é nota do tipo. O estado oculto (o
+ * arquivado) fica de fora.
+ */
+export interface OrigemDeclarada { type: string; campo: string; campoDoFormato: string | null; formatos: string[]; ocultos: string[]; fato: string; passo: PassoDeclarado | null }
+
+/**
+ * O campo vazio (05/11, o gerenciamento dos destinos): a nota do `type` num dos `estados` (sem a lista, em qualquer um
+ * que não é oculto) com o `campo` vazio (a peça editada ou aprovada sem destino). Só informa.
+ */
+export interface VazioDeclarado { type: string; campo: string; estados: string[]; ocultos: string[]; fato: string; passo: PassoDeclarado | null }
+
+export interface DeclaracoesDeSinais { prazos: PrazoDeclarado[]; limites: LimiteDeclarado[]; datas?: DatasDeclaradas[]; conferencias?: ConferenciaDeclarada[]; cadencias?: CadenciaDeclarada[]; origens?: OrigemDeclarada[]; vazios?: VazioDeclarado[] }
 
 /** As tabelas que a Missão lê dos modelos dos tipos (vazias quando o modelo não se lê). */
 export interface TabelasDaMissao {
@@ -126,6 +152,22 @@ export function estadoDaNota(campos: Record<string, unknown> | null | undefined,
     const type = String(campos?.type ?? '').trim();
     const m = type ? modelos.find(x => x.candidatos.type === type) : undefined;
     return m?.estados.length ? estadoDaTarefa(campos?.status, m.estados) : null;
+}
+
+/**
+ * O que faz: diz se uma nota está feita pelo modelo do tipo dela: a de um tipo com formatos (a peça), publicada
+ * (`publicadaPeloModelo`); a outra, no estado que o cartão mostra cheio.
+ * Por quê: 05/11, a campanha da semana: a contagem das coleções conta a feita pelo modelo, e a peça feita é a publicada.
+ * Entra → sai: o frontmatter e os modelos → feita ou não.
+ * Erro e ataque: sem `type`, sem modelo ou sem estado: não feita.
+ * Prova: tests/missao/contaDaColecao.test.ts.
+ */
+export function feitaPeloModelo(campos: Record<string, unknown> | null | undefined, modelos: readonly DomainModel[]): boolean {
+    const type = String(campos?.type ?? '').trim();
+    const m = type ? modelos.find(x => x.candidatos.type === type) : undefined;
+    if (!m) return false;
+    if (m.formatos) return publicadaPeloModelo(m, campos);
+    return estadoDaNota(campos, [m])?.mostrar === 'cheio';
 }
 
 /** A forma do cartão pela forma de mostrar do estado: cheio é feito, claro é algum dia, o resto aberto. */

@@ -1,0 +1,246 @@
+{
+  "dominio": "cartao",
+  "descricao": "O cartão de aprendizado (`type: cartao`): uma frase por nota, a unidade do aprendizado. O tipo é do módulo de aprendizado e serve a qualquer língua pelo campo `lingua` (o código não conhece nenhuma); o nome da nota é a frase na língua (sem `?` nem `/`), e a frente do cartão é o `diga`: a ideia, na sua língua, em uma linha. O método da construção: a ideia vira a frase em quatro camadas (o núcleo, a conexão, o verbo que carrega o tempo ou a atitude, o peso), cada uma com a frase parcial, a peça lógica e o porquê; e os cartões formam uma trilha: cada cartão acende uma peça nova só (`introduz`, o link do passo da peça, `[[Peça#Passo]]`) e reusa as anteriores, na `ordem` da trilha (um inteiro de 1 para cima; o cartão sem ordem fica fora da trilha). O ramo de cima é o `modulo` (o departamento ou o projeto do aprendizado); as ligações são as peças lógicas que a frase usa (`pecas`), os conectores (`conectores`, notas `peca_logica` com `grupo: conector`), a peça que ele acende (`introduz`) e o `gancho`, o próximo cartão da conversa. A casa é a subpasta `Cartões/` do módulo. A repetição (o bloco `aprendizado`): o 🗣️ Inglês de hoje (`ingles_de_hoje`) traz as revisões vencidas e as novas pela `ordem` da trilha, mostra o `diga`, a pessoa produz a frase antes de ver, e depois vê a frase e A construção; a resposta (lembrei, quase, não lembrei, usei de verdade) grava o `intervalo` na escada, a `proxima_revisao`, o `estado` (nova → aprendendo → consolidada, quando o intervalo chega ao degrau consolidado) e, no uso de verdade, a Day em `usado_em`. Nasce pelo + Cartão do módulo na Missão (o Novo simples, com o molde), pelo 🗣️ Frase nova (`frase_nova`) ou pelo 🧩 Construir uma ideia (`construir_ideia`). O `audio` (a frase) e o `audio_resposta` (uma resposta curta) são opcionais: um link para um arquivo de áudio do cofre, que o gesto mostra como player quando revela a frase. Os números da escada e da fila são seus.",
+  "candidatos": {
+    "pasta": "100 - AREAS",
+    "type": "cartao"
+  },
+  "campos": [
+    {
+      "nome": "diga",
+      "rotulo": "Diga",
+      "tipo": "texto",
+      "formato": "longo",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "lingua",
+      "rotulo": "Língua",
+      "tipo": "texto",
+      "formato": "curto",
+      "obrigatorio": true,
+      "sugestao": [
+        {
+          "de": "fixo",
+          "valor": "en"
+        }
+      ],
+      "dono": "nota"
+    },
+    {
+      "nome": "modulo",
+      "rotulo": "Módulo",
+      "tipo": "link",
+      "alvo": [
+        "departamento",
+        "projeto"
+      ],
+      "ramo": "acima",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "categoria",
+      "rotulo": "Categoria",
+      "tipo": "escolha",
+      "valores": [
+        "utilitaria",
+        "pergunta",
+        "assunto",
+        "conhecer",
+        "viagem",
+        "socializar",
+        "trabalho",
+        "conector"
+      ],
+      "dono": "nota",
+      "vazio": "a escolher"
+    },
+    {
+      "nome": "nivel",
+      "rotulo": "Nível",
+      "tipo": "escolha",
+      "valores": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ],
+      "dono": "nota",
+      "vazio": "a escolher"
+    },
+    {
+      "nome": "ordem",
+      "rotulo": "Ordem na trilha",
+      "tipo": "texto",
+      "formato": "numero",
+      "dono": "nota",
+      "vazio": "fora da trilha"
+    },
+    {
+      "nome": "introduz",
+      "rotulo": "Peça que acende",
+      "tipo": "link",
+      "alvo": [
+        "peca_logica"
+      ],
+      "ramo": "lado",
+      "dono": "nota",
+      "vazio": "a ligar"
+    },
+    {
+      "nome": "pecas",
+      "rotulo": "Peças lógicas",
+      "tipo": "link",
+      "alvo": [
+        "peca_logica"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota",
+      "vazio": "a ligar"
+    },
+    {
+      "nome": "conectores",
+      "rotulo": "Conectores",
+      "tipo": "link",
+      "alvo": [
+        "peca_logica"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "nota"
+    },
+    {
+      "nome": "peso",
+      "rotulo": "Peso",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "vazio": "a escrever"
+    },
+    {
+      "nome": "gancho",
+      "rotulo": "Gancho",
+      "tipo": "link",
+      "alvo": [
+        "cartao"
+      ],
+      "ramo": "lado",
+      "dono": "nota"
+    },
+    {
+      "nome": "estado",
+      "rotulo": "Estado",
+      "tipo": "escolha",
+      "valores": [
+        "nova",
+        "aprendendo",
+        "consolidada"
+      ],
+      "sugestao": [
+        {
+          "de": "fixo",
+          "valor": "nova"
+        }
+      ],
+      "dono": "protocolo:ingles_de_hoje",
+      "criar": false
+    },
+    {
+      "nome": "intervalo",
+      "rotulo": "Intervalo (dias)",
+      "tipo": "texto",
+      "formato": "numero",
+      "dono": "protocolo:ingles_de_hoje",
+      "criar": false
+    },
+    {
+      "nome": "proxima_revisao",
+      "rotulo": "Próxima revisão",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "protocolo:ingles_de_hoje",
+      "criar": false,
+      "vazio": "na fila das novas"
+    },
+    {
+      "nome": "usado_em",
+      "rotulo": "Usada em",
+      "tipo": "link",
+      "alvo": [
+        "dia"
+      ],
+      "multiplo": true,
+      "ramo": "lado",
+      "dono": "protocolo:ingles_de_hoje",
+      "criar": false
+    },
+    {
+      "nome": "audio",
+      "rotulo": "Áudio da frase",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "criar": false
+    },
+    {
+      "nome": "audio_resposta",
+      "rotulo": "Áudio da resposta",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "criar": false
+    },
+    {
+      "nome": "created",
+      "rotulo": "Criado em",
+      "tipo": "data",
+      "formato": "dia",
+      "dono": "derivado",
+      "criar": false
+    }
+  ],
+  "criar": {
+    "via": "nota",
+    "casa": {
+      "campo": "modulo",
+      "subpasta": "Cartões"
+    },
+    "molde": "200 - FUNCTIONS/Templates/Cartao_template.md"
+  },
+  "protocolos": [
+    {
+      "id": "frase_nova",
+      "papel": "cria"
+    },
+    {
+      "id": "construir_ideia",
+      "papel": "cria"
+    },
+    {
+      "id": "ingles_de_hoje",
+      "papel": "usa"
+    }
+  ],
+  "aprendizado": {
+    "escada": [
+      1,
+      3,
+      7,
+      14,
+      30,
+      60,
+      120
+    ],
+    "consolidada": 14,
+    "pecas": "peca_logica",
+    "fila": {
+      "novas": 1,
+      "maxNovas": 5,
+      "maxRevisoes": 10
+    }
+  }
+}

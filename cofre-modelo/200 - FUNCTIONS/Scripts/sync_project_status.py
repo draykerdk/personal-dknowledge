@@ -4,7 +4,14 @@ Sincroniza o `status` do frontmatter da nota-índice de cada projeto com a colun
 kanban (pasta) real — mecânica da Decisão D1 do Plano v3.1: a pasta é a fonte da
 verdade do estágio; o frontmatter é espelho.
 
-Só o `status`: o foco do trimestre não é do projeto (o `quarter` e o `foco_12_semanas`
+Com o `status`, o dia em que o espelho o trocou (`estagio_em`, AAAA-MM-DD): a data da
+mudança de estágio que a reputação pedia (MAPA_Tipos_de_Funcao §4.2–4.3; 05/11/2026). O
+estágio muda quando a pasta muda de coluna, à mão, e o cofre não guarda esse momento; o
+espelho é o único lugar que grava o estágio na nota, e grava a data junto. É o dia do
+`--apply`, não o do arraste: a bancada (`run_judges.py`) acusa o espelho atrasado, e o dia
+fica perto do arraste quando a bancada roda.
+
+Só o `status` e a data: o foco do trimestre não é do projeto (o `quarter` e o `foco_12_semanas`
 do projeto se aposentaram no Passo 0 da Missão, 0c; o foco é da nota do trimestre).
 
 Uso:
@@ -14,7 +21,7 @@ Uso:
 Reaproveita o parser de frontmatter de validate_projects.py (copiado aqui, sem
 dependências externas, para manter o script standalone).
 """
-import os, re, glob, sys, json
+import os, re, glob, sys, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from colunas_kanban import COL_STATUS  # noqa: E402  (a tabela das colunas mora num lugar só)
 
@@ -51,8 +58,8 @@ def frontmatter(path):
         return None
 
 
-def set_status_in_content(content, new_status):
-    """Troca (ou insere) a linha `status:` só dentro do bloco de frontmatter."""
+def set_field_in_content(content, key, value):
+    """Troca (ou insere) a linha `key:` só dentro do bloco de frontmatter."""
     m = re.match(r"^(---\n)(.*?)(\n---)", content, re.S)
     if not m:
         return content, False
@@ -60,15 +67,23 @@ def set_status_in_content(content, new_status):
     lines = fm_block.split("\n")
     changed = False
     for i, line in enumerate(lines):
-        if re.match(r"^status:\s*", line):
-            lines[i] = f"status: {new_status}"
+        if re.match(rf"^{re.escape(key)}:\s*", line):
+            lines[i] = f"{key}: {value}"
             changed = True
             break
     if not changed:
-        lines.append(f"status: {new_status}")
+        lines.append(f"{key}: {value}")
         changed = True
     new_fm_block = "\n".join(lines)
     new_content = head + new_fm_block + tail + content[m.end():]
+    return new_content, changed
+
+
+def set_status_in_content(content, new_status, day=None):
+    """Troca (ou insere) a linha `status:` e, com o dia, a `estagio_em:` (o dia da troca)."""
+    new_content, changed = set_field_in_content(content, "status", new_status)
+    if changed and day:
+        new_content, _ = set_field_in_content(new_content, "estagio_em", day)
     return new_content, changed
 
 
@@ -107,7 +122,7 @@ def main():
         if apply:
             with open(readme, encoding="utf-8") as handle:
                 content = handle.read()
-            new_content, changed = set_status_in_content(content, expected)
+            new_content, changed = set_status_in_content(content, expected, datetime.date.today().isoformat())
             if changed:
                 with open(readme, "w", encoding="utf-8") as handle:
                     handle.write(new_content)

@@ -78,8 +78,11 @@ export interface ColunaDoRamo {
  */
 export interface Ampliacao { ramo: string; tipos: string[] }
 
-/** O vazio de uma coluna: a frase e os protocolos que criam o que falta. */
-export interface VazioDaColuna { texto: string; protocolos: string[] }
+/**
+ * O vazio de uma coluna: a frase, os protocolos que criam o que falta e os tipos do Novo do ramo que também o
+ * criam (05/11: a estadia e o canal nascem pelo Novo, e não por um protocolo); `novos` vazio = nenhum.
+ */
+export interface VazioDaColuna { texto: string; protocolos: string[]; novos: string[] }
 
 /**
  * Um botão do ciclo de uma escala (▶️ abrir o dia, 🌳 planejar a semana…): o protocolo que
@@ -222,7 +225,17 @@ export interface ColecaoDoRamo {
      * de sempre (o começo no tempo, depois o título). `semValor`: onde ficam as notas sem a data, pelo começo.
      */
     ordem?: OrdemDaColecao;
+    /**
+     * A contagem das notas ligadas (05/11, a campanha da semana: as peças de cada frente e de cada canal), só numa coleção
+     * de vínculo: na linha, o alvo mostra as notas que o apontam pela forma de mostrar; do plano é a nota com a data do
+     * campo `data` no período, e feita é a que o modelo do tipo dela dá por feita (a peça publicada). `colecoes`: as
+     * coleções cujas notas contam (as peças e os desdobramentos; sem a chave, a do vínculo). `vazio`: o texto de ausência.
+     */
+    conta?: ContaDaColecao;
 }
+
+/** A contagem de uma coleção de vínculo: o campo da data que põe a nota ligada no plano do período e o texto de ausência. */
+export interface ContaDaColecao { data: string; colecoes: string[]; vazio: string }
 
 /** A ordem de uma coleção: o campo de data e as sem valor dele, as mais novas (`recente`) ou as mais velhas (`antigo`) primeiro. */
 export interface OrdemDaColecao { campo: string; semValor: 'recente' | 'antigo' }
@@ -239,7 +252,9 @@ export interface RamoPrincipal {
     titulo: string;
     /** O que o ramo é, para o seletor dos ramos (G7); vazio sem a chave. */
     descricao: string;
-    escalas: Escala[];
+    // Sem a chave `escalas` (05/11): a tela nunca a leu (o seletor da escala mostra sempre as quatro,
+    // `componente.ts`), e todo ramo serve às quatro, pela simetria dos ramos; a coluna é que diz em que
+    // escalas aparece (`ColunaDoRamo.escalas`).
     lugar: { rotulo: string; largura: string; celular: string; amplia: Ampliacao | null } | null;
     /** O centro; `vazio` = o texto do centro quando a fonte não dá nó (sem ele, o período). */
     centro: {
@@ -312,6 +327,9 @@ export function lerColecoes(raw: unknown, problemas: string[]): ColecaoDoRamo[] 
         const onde = `colecoes[${i}]`;
         if (!id) { problemas.push(`${onde}: a coleção precisa de id`); return; }
         if (out.some(x => x.id === id)) { problemas.push(`${onde}: a coleção ${id} se repete`); return; }
+        // A coleção por referência (05/11) chega aqui já trocada pela do outro ramo (`comAsColecoesDosOutros`); a que
+        // ainda diz `de` não foi resolvida: o ramo dela não foi lido, ou não tem a coleção.
+        if (c?.de !== undefined) { problemas.push(`${onde}: a coleção ${id} vem do ramo ${texto(c.de) || '(vazio)'}, que não foi lido ou não a tem`); return; }
         const vinculo = c?.vinculo && texto(c.vinculo.colecao) && texto(c.vinculo.campo) ? { colecao: texto(c.vinculo.colecao), campo: texto(c.vinculo.campo) } : null;
         if (c?.vinculo !== undefined && !vinculo) problemas.push(`${onde}: o vínculo precisa de colecao e campo`);
         const fontes: FonteDaColecao[] = [];
@@ -344,12 +362,20 @@ export function lerColecoes(raw: unknown, problemas: string[]): ColecaoDoRamo[] 
         const soValores = !!vinculo && Array.isArray(c?.fontes) && c.fontes.length === 0;
         if (!fontes.length && !soValores) { problemas.push(`${onde}: a coleção ${id} não tem fonte válida`); return; }
         const ordem = lerOrdem(c?.ordem, onde, problemas);
-        out.push({ id, rotulo: texto(c?.rotulo) || id, fontes, vinculo, ...(ordem ? { ordem } : {}) });
+        const conta = lerConta(c?.conta, !!vinculo, onde, problemas);
+        out.push({ id, rotulo: texto(c?.rotulo) || id, fontes, vinculo, ...(ordem ? { ordem } : {}), ...(conta ? { conta } : {}) });
     });
     for (const c of out) {
         if (c.vinculo && (c.vinculo.colecao === c.id || !out.some(x => x.id === c.vinculo!.colecao))) {
             problemas.push(`colecoes: o vínculo de ${c.id} aponta a coleção ${c.vinculo.colecao}, que não existe`);
             c.vinculo = null;
+        }
+        // A contagem só lê coleções que existem e não a própria; sem nenhuma, a do vínculo.
+        if (c.conta && c.vinculo) {
+            const fora = c.conta.colecoes.filter(x => x === c.id || !out.some(o => o.id === x));
+            for (const x of fora) problemas.push(`colecoes: a conta de ${c.id} lê a coleção ${x}, que não existe ou é a própria`);
+            const ficam = c.conta.colecoes.filter(x => !fora.includes(x));
+            c.conta = { ...c.conta, colecoes: ficam.length ? ficam : [c.vinculo.colecao] };
         }
         // A `usada` só lê coleções que existem e não a própria (a nota não sai por apontar a si mesma).
         for (const f of c.fontes) {
@@ -361,6 +387,52 @@ export function lerColecoes(raw: unknown, problemas: string[]): ColecaoDoRamo[] 
         }
     }
     return out;
+}
+
+/**
+ * O que faz: os ids dos ramos que as coleções por referência de um ramo cru citam (`{ "id": "<coleção>", "de": "<ramo>" }`),
+ * sem repetir e sem o próprio.
+ * Por quê: quem lê o ramo do cofre lê também esses arquivos antes de `comAsColecoesDosOutros` (a leitura é da borda).
+ * Entra → sai: o ramo cru → os ids, na ordem em que aparecem.
+ */
+export function ramosCitadosPelasColecoes(raw: unknown): string[] {
+    const r = raw as any;
+    if (!r || typeof r !== 'object' || !Array.isArray(r.colecoes)) return [];
+    const out: string[] = [];
+    for (const c of r.colecoes) { const de = texto(c?.de); if (de && de !== texto(r.id) && !out.includes(de)) out.push(de); }
+    return out;
+}
+
+/**
+ * O que faz: o ramo cru com as coleções por referência resolvidas: cada `{ "id": "<coleção>", "de": "<ramo>" }` vira
+ * uma cópia da coleção de mesmo id do outro ramo, um nível só (a coleção de lá que também é referência não se segue).
+ * Por quê: 05/11, a frente de renda no Projetos: o projeto conta as peças da semana pelas mesmas coleções da Criação, e
+ * a coleção tem um dono só (as sete fontes das peças moram no ramo Criação, e não numa cópia no Projetos). O juiz em
+ * Python resolve igual (`resolve_branch_references`).
+ * Entra → sai: o ramo cru e o leitor dos outros ramos crus pelo id → o ramo cru (uma cópia rasa; a entrada não muda).
+ * Erro e ataque: o ramo que não se lê (o leitor lança ou devolve nada), a coleção que ele não tem e a referência ao
+ * próprio ramo ficam como estão, e `lerColecoes` diz o problema; o leitor é chamado uma vez por ramo.
+ * Prova: tests/engine/refinosDosRamos.test.ts e os casos compartilhados com o juiz.
+ */
+export function comAsColecoesDosOutros(raw: unknown, outro: (id: string) => unknown): unknown {
+    const r = raw as any;
+    if (!r || typeof r !== 'object' || Array.isArray(r) || !Array.isArray(r.colecoes)) return raw;
+    const lidos = new Map<string, unknown[] | null>();
+    const colecoesDe = (id: string): unknown[] | null => {
+        if (!lidos.has(id)) {
+            let lista: unknown[] | null = null;
+            try { const o = outro(id) as any; lista = Array.isArray(o?.colecoes) ? o.colecoes : null; } catch (e) { lista = null; }
+            lidos.set(id, lista);
+        }
+        return lidos.get(id) ?? null;
+    };
+    const colecoes = r.colecoes.map((c: any) => {
+        const de = texto(c?.de), id = texto(c?.id);
+        if (!de || !id || de === texto(r.id)) return c;
+        const achada = colecoesDe(de)?.find((x: any) => texto(x?.id) === id && x?.de === undefined);
+        return achada ? JSON.parse(JSON.stringify(achada)) : c;
+    });
+    return { ...r, colecoes };
 }
 
 /**
@@ -418,6 +490,23 @@ function lerPresenca(raw: unknown, onde: string, problemas: string[]): string[] 
  * desconhecido vira problema e fica `antigo` (o de sempre).
  * Prova: tests/missao/colecoesOrdem.test.ts e os casos compartilhados com o juiz.
  */
+/**
+ * O que faz: lê a contagem de uma coleção (`conta`, 05/11): o campo da data e o texto de ausência.
+ * Erro e ataque: sem o campo da data, ou numa coleção que não é de vínculo, o problema é dito e a contagem fica de fora
+ * (o juiz em Python, `_branch_collections`, diz as mesmas mensagens); sem o `vazio`, "sem nota no plano".
+ * Prova: tests/missao/contaDaColecao.test.ts.
+ */
+function lerConta(raw: unknown, deVinculo: boolean, onde: string, problemas: string[]): ContaDaColecao | null {
+    if (raw === undefined) return null;
+    const data = raw && typeof raw === 'object' && !Array.isArray(raw) ? texto((raw as any).data) : '';
+    if (!data) { problemas.push(`${onde}.conta: precisa de data`); return null; }
+    if (!deVinculo) { problemas.push(`${onde}.conta: só vale numa coleção de vínculo`); return null; }
+    const cols = (raw as any).colecoes;
+    if (cols !== undefined && !(Array.isArray(cols) && cols.length && cols.every((x: unknown) => texto(x)))) problemas.push(`${onde}.conta.colecoes: precisa ser uma lista de coleções`);
+    const colecoes = Array.isArray(cols) ? cols.map(texto).filter(Boolean) : [];
+    return { data, colecoes, vazio: texto((raw as any).vazio) || 'sem nota no plano' };
+}
+
 function lerOrdem(raw: unknown, onde: string, problemas: string[]): OrdemDaColecao | null {
     if (raw === undefined) return null;
     const campo = raw && typeof raw === 'object' && !Array.isArray(raw) ? texto((raw as any).campo) : '';
@@ -522,13 +611,34 @@ export function ramoQueAmplia(ramoPrincipal: RamoPrincipal, onde: { lugar?: bool
     return achada && achada.ramo !== ramoPrincipal.id ? achada.ramo : null;
 }
 
-/** O que faz: o vazio de uma coluna (a frase, ou `{ texto, protocolos }`); sem a chave, `null`. */
+/**
+ * O que faz: o vazio de uma coluna (a frase, ou `{ texto, protocolos, novos }`); sem a chave, `null`.
+ * Os `novos` são tipos do Novo do ramo: quem confere que estão no seletor é `vaziosComONovo`, depois do Novo lido.
+ */
 function lerVazio(raw: unknown, onde: string, problemas: string[]): VazioDaColuna | null {
     if (raw === undefined || raw === null) return null;
-    if (typeof raw === 'string') return raw.trim() ? { texto: raw.trim(), protocolos: [] } : null;
+    if (typeof raw === 'string') return raw.trim() ? { texto: raw.trim(), protocolos: [], novos: [] } : null;
     const t = texto((raw as any)?.texto);
     if (!t) { problemas.push(`${onde}: o vazio precisa de texto`); return null; }
-    return { texto: t, protocolos: lista((raw as any)?.protocolos) };
+    return { texto: t, protocolos: lista((raw as any)?.protocolos), novos: lista((raw as any)?.novos) };
+}
+
+/**
+ * O que faz: confere os `novos` do vazio de cada coluna contra o seletor do Novo do ramo: o tipo que o seletor
+ * não tem sai, com o problema dito (o botão não aparece).
+ * Por quê: 05/11, o diagnóstico dos ramos: a Estadia vazia da Viagem oferece também o "+ Estadia", e a Canais vazia
+ * da Criação, o "+ Canal": o vazio abre o mesmo Novo do ramo, e não um caminho novo; o juiz em Python
+ * (`branch_problems`) diz a mesma mensagem.
+ * Entra → sai: as colunas, o Novo lido e os problemas (acrescidos) → nada (o `novos` de cada vazio fica só com os do seletor).
+ * Prova: os casos compartilhados com o juiz (tests/fixtures/ramos/casos.json) e tests/engine/refinosDosRamos.test.ts.
+ */
+function vaziosComONovo(colunas: ColunaDoRamo[], novo: NovoDoRamo, problemas: string[]): void {
+    for (const c of colunas) {
+        if (!c.vazio?.novos.length) continue;
+        const fora = c.vazio.novos.filter(t => !novo.tipos.some(x => x.tipo === t));
+        for (const t of fora) problemas.push(`a coluna ${c.id}: o vazio cria o tipo ${t}, que não está no seletor do Novo`);
+        if (fora.length) c.vazio = { ...c.vazio, novos: c.vazio.novos.filter(t => !fora.includes(t)) };
+    }
 }
 
 /**
@@ -763,13 +873,13 @@ export function lerRamoPrincipal(raw: unknown): { ramoPrincipal: RamoPrincipal |
     }
     const ramoPrincipal: RamoPrincipal = {
         id: id || 'sem-id', antes, titulo: texto(r.titulo) || id || 'Missão', descricao: texto(r.descricao),
-        escalas: escalasDe(r.escalas).length ? escalasDe(r.escalas) : [...ESCALAS],
         lugar: r.lugar ? { rotulo: texto(r.lugar.rotulo) || 'Lugar', largura: texto(r.lugar.largura) || '86px', celular: texto(r.lugar.celular) || '10px', amplia: ampliaDoLugar } : null,
         centro: { fonte: centroFonte, tipo: lista(r.centro.tipo), rotulo: r.centro.rotulo ?? {}, largura: r.centro.largura ?? '170px', painel: centroPainel, vazio: texto(r.centro.vazio) || null, habitos: listaDeHabitos?.length ? listaDeHabitos : r.centro.habitos !== false },
         trabalho, tempo, paineis, ligacoes, minimo: r.minimo ?? {}, ciclos: lerCiclos(r.ciclos, problemas), novo: lerNovo(r.novo, problemas), registro: lerRegistro(r.registro, problemas),
         colecoes: lerColecoes(r.colecoes, problemas), recorte: { tags: lista(r.recorte?.tags).map(t => t.replace(/^#/, '').toLowerCase()), projetos: lista(r.recorte?.projetos), ...(texto(r.recorte?.marca) ? { marca: texto(r.recorte?.marca) } : {}) },
         ...(formacao ? { formacao } : {}),
     };
+    vaziosComONovo([...trabalho, ...tempo], ramoPrincipal.novo, problemas);
     // A coluna que mostra uma coleção aponta uma que o ramo declara.
     for (const c of [...trabalho, ...tempo]) {
         const m = c.fonte.match(/^colecoes\.(.+)$/);

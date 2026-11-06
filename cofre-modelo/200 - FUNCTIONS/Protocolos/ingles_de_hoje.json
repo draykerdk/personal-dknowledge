@@ -1,0 +1,166 @@
+{
+    "id": "ingles_de_hoje",
+    "name": "🗣️ Inglês de hoje",
+    "icon": "languages",
+    "description": "O gesto diário do módulo de aprendizado: a fila do dia, uma frase de cada vez. A fila tem as revisões vencidas e as frases novas do dia, na `ordem` da trilha (cada cartão acende uma peça lógica, e a nova é sempre o próximo degrau); abrir de novo no mesmo dia não traz outra nova, e o ➕ Mais uma frase nova traz mais até o teto. Os números moram no modelo do cartão (`Config/dominios/cartao.json`, o bloco `aprendizado`). Para cada cartão, o gesto mostra o `diga` (o que você quer dizer, na sua língua), você produz a frase em voz alta ou por escrito antes de ver, e depois ele revela a frase, A construção da nota (as quatro camadas: o núcleo, a conexão, o verbo, o peso) e os áudios do cartão, quando houver (`audio` e `audio_resposta`). Você marca ✅ Lembrei, 🤏 Quase, ❌ Não lembrei ou 🌍 Usei de verdade: o intervalo segue a escada do modelo (lembrei sobe um degrau, quase repete, não volta ao primeiro, usei de verdade sobe dois e grava a Day em `usado_em`), a próxima revisão é hoje mais o intervalo, e o estado passa de nova a aprendendo e a consolidada. Cada frase deixa uma linha na Day e marca o hábito da língua, uma vez por dia. O gesto se mede por frases, não por minutos. No pacote, o módulo de partida é `100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês` (o link `[[Inglês]]`): troque a pasta e o link pelo seu módulo, e a língua (`lingua`) pela que você aprende.",
+    "useCurrentDate": true,
+    "logMode": "append",
+    "dailyTimestampFormat": "HH:mm",
+    "dailyLedgerLabel": "🗣️ Inglês de hoje",
+    "isHabit": true,
+    "habitTrackerPath": "200 - FUNCTIONS/Habits/Tracker/03 - Praticar a língua.md",
+    "habitTrackerTitle": "🗣️ Praticar a língua",
+    "steps": [
+        {
+            "id": "cartao",
+            "type": "suggest_note",
+            "prompt": "🗣️ A próxima frase da fila",
+            "info": "A fila do dia vem do modelo do cartão: as revisões vencidas, das mais antigas às de hoje, e a frase nova do dia, a próxima da trilha. Nada se escolhe aqui.",
+            "folder": "100 - AREAS",
+            "criteria": {
+                "property": [
+                    {
+                        "key": "type",
+                        "value": "cartao"
+                    }
+                ]
+            },
+            "fila": {
+                "modelo": "cartao",
+                "lingua": "en",
+                "secao": "## A construção",
+                "limite": 1600
+            },
+            "allowAnyNote": false,
+            "allowFreeText": false,
+            "emptyMessage": "🗣️ A fila de hoje está vazia: nenhuma revisão vencida e a frase nova do dia já foi. Uma frase que você ouviu vira cartão pelo 🗣️ Frase nova.",
+            "onEmpty": "end"
+        },
+        {
+            "id": "producao",
+            "type": "textarea",
+            "prompt": "🗣️ Como você diz isto em inglês?",
+            "info": "Fale em voz alta, ou escreva, antes de ver a frase. A resposta em branco também vale: o que conta é a tentativa.",
+            "placeholder": "A sua frase, antes de ver a do cartão",
+            "contextFrom": {
+                "variable": "cartao",
+                "property": "diga",
+                "label": "🇧🇷 {value}"
+            }
+        },
+        {
+            "id": "resultado",
+            "type": "select",
+            "prompt": "Como foi?",
+            "contextFrom": [
+                {
+                    "from": "cartao_frase",
+                    "label": "🇬🇧 {value}"
+                },
+                {
+                    "from": "cartao_como_funciona",
+                    "label": "🧱 A construção:\n{value}"
+                },
+                {
+                    "variable": "cartao",
+                    "property": "audio",
+                    "label": "🔊 Áudio da frase: {value}"
+                },
+                {
+                    "variable": "cartao",
+                    "property": "audio_resposta",
+                    "label": "🔊 Áudio da resposta: {value}"
+                }
+            ],
+            "options": [
+                "✅ Lembrei",
+                "🤏 Quase",
+                "❌ Não lembrei",
+                "🌍 Usei de verdade"
+            ],
+            "optionValues": [
+                "lembrei",
+                "quase",
+                "nao",
+                "usei"
+            ]
+        },
+        {
+            "id": "seguir",
+            "type": "select",
+            "prompt": "E agora?",
+            "condition": {
+                "variable": "cartao_depois",
+                "value": [
+                    "proxima_e_nova",
+                    "so_proxima",
+                    "so_nova"
+                ]
+            },
+            "options": [
+                "➡️ Próxima da fila",
+                "➕ Mais uma frase nova",
+                "✅ Terminar por hoje"
+            ],
+            "optionValues": [
+                "proxima",
+                "mais_nova",
+                "terminar"
+            ],
+            "optionsWhen": [
+                {
+                    "condition": {
+                        "variable": "cartao_depois",
+                        "value": "so_proxima"
+                    },
+                    "options": [
+                        "➡️ Próxima da fila",
+                        "✅ Terminar por hoje"
+                    ],
+                    "optionValues": [
+                        "proxima",
+                        "terminar"
+                    ]
+                },
+                {
+                    "condition": {
+                        "variable": "cartao_depois",
+                        "value": "so_nova"
+                    },
+                    "options": [
+                        "➕ Mais uma frase nova",
+                        "✅ Terminar por hoje"
+                    ],
+                    "optionValues": [
+                        "mais_nova",
+                        "terminar"
+                    ]
+                }
+            ]
+        }
+    ],
+    "repeticao": {
+        "modelo": "cartao",
+        "cartaoVar": "cartao",
+        "respostaVar": "resultado_value"
+    },
+    "template": "- 🗣️ {{cartao_display}} ({{cartao_tipo}}): {{resultado}} · próxima revisão em {{repeticao_proxima}}",
+    "dynamicNextProtocol": {
+        "stepId": "seguir",
+        "map": {
+            "➡️ Próxima da fila": "ingles_de_hoje",
+            "➕ Mais uma frase nova": "ingles_de_hoje",
+            "✅ Terminar por hoje": null
+        }
+    },
+    "carry": {
+        "ingles_de_hoje": {
+            "_fila_novas_vistas": "{{cartao_novas_vistas}}",
+            "_fila_pedido": "{{seguir_value}}",
+            "_fila_vistos": "{{cartao_vistos}}"
+        }
+    },
+    "fase_uso": "nova",
+    "objetivo": "praticar a língua do dia pela fila de frases: a nova e as revisões vencidas",
+    "fase": "execucao"
+}

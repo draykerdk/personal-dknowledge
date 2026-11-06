@@ -1,0 +1,224 @@
+{
+    "id": "construir_ideia",
+    "name": "🧩 Construir uma ideia",
+    "icon": "puzzle",
+    "description": "O gesto do método da construção: você escreve uma ideia na sua língua, de preferência algo que pensou de verdade (o diário de hoje é um bom começo), e a constrói na língua que aprende em quatro camadas, cada uma com a explicação curta dela e a peça da trilha onde você está (`trilha` no passo: a última peça acesa e a próxima, pelos cartões do 🗣️ Inglês de hoje): 1. o núcleo (quem age e o verbo), 2. a conexão (o conector ou a forma da pergunta), 3. o verbo que carrega o tempo ou a atitude, 4. o peso (a palavra que dá a emoção). No fim, a frase completa vira o nome de um cartão `nova` na subpasta `Cartões/` do módulo, com a ideia no `diga`, a construção no corpo e as peças que você usou em `pecas`. O cartão fica fora da trilha (sem `ordem`): é seu, e entra na fila das novas depois das da trilha. A frase que já tem cartão preserva o cartão, e a Day não registra (`preservadaSemRegistro`). No pacote, o módulo de partida é `100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês` (o link `[[Inglês]]`): troque a pasta e o link pelo seu módulo, e a língua (`lingua`) pela que você aprende.",
+    "useCurrentDate": true,
+    "targetFolder": "100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês/Cartões",
+    "filename": "{{frase_nome}}",
+    "overwriteExisting": false,
+    "preservadaSemRegistro": true,
+    "template": "# {{frase}}\n\n## A ideia\n\n\"{{ideia}}\"\n\n## A construção\n\n1. **O núcleo:** *{{nucleo}}*\n2. **A conexão:** *{{conexao}}*\n3. **O verbo:** *{{verbo}}*\n4. **O peso:** *{{peso}}*\n\n**A frase:** *{{frase}}*\n\n**As peças que você usou:** {{pecas}}\n\n## O peso\n\n## O gancho\n\n## Variações\n\n- \n",
+    "logMode": "link",
+    "dailyTimestampFormat": "HH:mm",
+    "dailyLedgerLabel": "🧩 Construir uma ideia",
+    "steps": [
+        {
+            "id": "ideia",
+            "type": "textarea",
+            "prompt": "🧩 A ideia, na sua língua: algo que você pensou de verdade",
+            "info": "Uma frase sua: uma conclusão do dia, uma pergunta que você quer fazer a alguém, algo que você sente. O diário de hoje (a Day) é um bom lugar para achar uma. Ela vira a frente do cartão.",
+            "placeholder": "Prefiro arriscar do que passar a vida sem saber.",
+            "required": true,
+            "trilha": {
+                "modelo": "cartao",
+                "lingua": "en",
+                "label": "🧭 Onde você está na trilha: {acesas} de {total} cartões vistos · a última peça acesa: {ultima} · a próxima: {proxima}",
+                "vazio": "🧭 A trilha ainda não começou: a primeira peça é {proxima}. Use o que você já sabe; o 🗣️ Inglês de hoje acende uma peça por dia."
+            }
+        },
+        {
+            "id": "nucleo",
+            "type": "text",
+            "prompt": "1️⃣ O núcleo: quem age e o verbo, o mínimo que diz a ideia",
+            "info": "Ache quem age e ponha antes do verbo: o inglês dá o sentido pela posição e nunca esconde o sujeito. Ex.: \"Prefiro arriscar…\" → I prefer to risk.",
+            "placeholder": "I prefer to risk.",
+            "required": true,
+            "trim": true,
+            "contextFrom": [
+                {
+                    "from": "ideia",
+                    "label": "🇧🇷 {value}"
+                }
+            ],
+            "trilha": {
+                "modelo": "cartao",
+                "lingua": "en",
+                "label": "🧭 Onde você está na trilha: {acesas} de {total} cartões vistos · a última peça acesa: {ultima} · a próxima: {proxima}",
+                "vazio": "🧭 A trilha ainda não começou: a primeira peça é {proxima}. Use o que você já sabe; o 🗣️ Inglês de hoje acende uma peça por dia."
+            }
+        },
+        {
+            "id": "conexao",
+            "type": "text",
+            "prompt": "2️⃣ A conexão: o conector ou a forma da pergunta que abre a segunda parte",
+            "info": "Que ligação há entre as partes do pensamento? Soma (and), contraste (but), causa (because), consequência (so), tempo (when), condição (if), comparação (than). Se for pergunta, o operador troca de lugar com o sujeito. Ex.: …than to live without knowing.",
+            "placeholder": "…than to live without knowing.",
+            "trim": true,
+            "contextFrom": [
+                {
+                    "from": "ideia",
+                    "label": "🇧🇷 {value}"
+                },
+                {
+                    "from": "nucleo",
+                    "label": "1️⃣ {value}"
+                }
+            ],
+            "trilha": {
+                "modelo": "cartao",
+                "lingua": "en",
+                "label": "🧭 Onde você está na trilha: {acesas} de {total} cartões vistos · a última peça acesa: {ultima} · a próxima: {proxima}",
+                "vazio": "🧭 A trilha ainda não começou: a primeira peça é {proxima}. Use o que você já sabe; o 🗣️ Inglês de hoje acende uma peça por dia."
+            }
+        },
+        {
+            "id": "verbo",
+            "type": "text",
+            "prompt": "3️⃣ O verbo: o tempo ou a atitude",
+            "info": "Quando, e de que jeito você olha a ação (o passado, o contínuo, o perfeito)? E com que atitude (would, could, should, might)? A forma do passado é distância: suaviza e faz hipótese. Ex.: I'd rather take the risk…",
+            "placeholder": "I'd rather take the risk…",
+            "trim": true,
+            "contextFrom": [
+                {
+                    "from": "ideia",
+                    "label": "🇧🇷 {value}"
+                },
+                {
+                    "from": "nucleo",
+                    "label": "1️⃣ {value}"
+                },
+                {
+                    "from": "conexao",
+                    "label": "2️⃣ {value}"
+                }
+            ],
+            "trilha": {
+                "modelo": "cartao",
+                "lingua": "en",
+                "label": "🧭 Onde você está na trilha: {acesas} de {total} cartões vistos · a última peça acesa: {ultima} · a próxima: {proxima}",
+                "vazio": "🧭 A trilha ainda não começou: a primeira peça é {proxima}. Use o que você já sabe; o 🗣️ Inglês de hoje acende uma peça por dia."
+            }
+        },
+        {
+            "id": "peso",
+            "type": "text",
+            "prompt": "4️⃣ O peso: a palavra ou a forma que dá a emoção",
+            "info": "Que palavra carrega o que você sente? O fim da frase é onde o ouvinte guarda; o -ing prolonga; a palavra apertada na voz muda o sentido. Ex.: …than spend my life wondering.",
+            "placeholder": "…than spend my life wondering.",
+            "trim": true,
+            "contextFrom": [
+                {
+                    "from": "ideia",
+                    "label": "🇧🇷 {value}"
+                },
+                {
+                    "from": "nucleo",
+                    "label": "1️⃣ {value}"
+                },
+                {
+                    "from": "conexao",
+                    "label": "2️⃣ {value}"
+                },
+                {
+                    "from": "verbo",
+                    "label": "3️⃣ {value}"
+                }
+            ],
+            "trilha": {
+                "modelo": "cartao",
+                "lingua": "en",
+                "label": "🧭 Onde você está na trilha: {acesas} de {total} cartões vistos · a última peça acesa: {ultima} · a próxima: {proxima}",
+                "vazio": "🧭 A trilha ainda não começou: a primeira peça é {proxima}. Use o que você já sabe; o 🗣️ Inglês de hoje acende uma peça por dia."
+            }
+        },
+        {
+            "id": "frase",
+            "type": "text",
+            "prompt": "✅ A frase completa, em inglês",
+            "info": "Junte as camadas numa frase só, como você diria numa conversa que importa. Ela vira o nome do cartão.",
+            "placeholder": "I'd rather take the risk than spend my life wondering.",
+            "trim": true,
+            "comoNome": true,
+            "required": true,
+            "contextFrom": [
+                {
+                    "from": "ideia",
+                    "label": "🇧🇷 {value}"
+                },
+                {
+                    "from": "nucleo",
+                    "label": "1️⃣ {value}"
+                },
+                {
+                    "from": "conexao",
+                    "label": "2️⃣ {value}"
+                },
+                {
+                    "from": "verbo",
+                    "label": "3️⃣ {value}"
+                },
+                {
+                    "from": "peso",
+                    "label": "4️⃣ {value}"
+                }
+            ]
+        },
+        {
+            "id": "pecas",
+            "type": "multiselect_note",
+            "prompt": "🔗 As peças lógicas que você usou",
+            "info": "Marque as peças que a frase usa: elas ganham a frase na lista \"As frases que a usam\". Pode pular.",
+            "criteria": {
+                "folder": "100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês/Lógica",
+                "property": [
+                    {
+                        "key": "type",
+                        "value": "peca_logica"
+                    }
+                ]
+            },
+            "optional": true,
+            "comoLista": true
+        },
+        {
+            "id": "categoria",
+            "type": "select",
+            "prompt": "🗂️ Que tipo de frase é?",
+            "options": [
+                "❓ Pergunta que conecta",
+                "💬 Assunto seu",
+                "🤝 Conhecer alguém",
+                "🌍 Viagem",
+                "🫂 Socializar",
+                "💼 Trabalho",
+                "🧰 Utilitária",
+                "🔗 Conector"
+            ],
+            "optionValues": [
+                "pergunta",
+                "assunto",
+                "conhecer",
+                "viagem",
+                "socializar",
+                "trabalho",
+                "utilitaria",
+                "conector"
+            ]
+        }
+    ],
+    "properties": {
+        "type": "cartao",
+        "lingua": "en",
+        "modulo": "[[Inglês]]",
+        "diga": "{{ideia}}",
+        "categoria": "{{categoria_value}}",
+        "pecas": "{{pecas}}",
+        "estado": "nova",
+        "intervalo": 0,
+        "created": "{{date:YYYY-MM-DD}}"
+    },
+    "fase_uso": "nova",
+    "objetivo": "construir na língua que se aprende, em quatro camadas, uma ideia pensada de verdade, e guardar a frase como cartão",
+    "fase": "captura"
+}

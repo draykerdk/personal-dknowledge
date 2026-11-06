@@ -61,6 +61,25 @@ export function pelasSituacoes(
     destinos: Readonly<Record<string, readonly string[]>> | undefined,
 ): Map<string, string[]> {
     const out = new Map<string, string[]>();
+    for (const { id, fatos } of subidosPelasSituacoes(modelo, sinais, estado, destinos)) {
+        const ja = out.get(id) ?? [];
+        out.set(id, [...ja, ...fatos.filter(f => !ja.includes(f))]);
+    }
+    return out;
+}
+
+/**
+ * O que faz: cada protocolo que uma situação do nó sobe agora, com os fatos e as fichas do `preencher` dela; a regra
+ * do `quando` e do recorte da parada é uma só, a de `pelasSituacoes`, que só junta os fatos.
+ * Entra → sai: o modelo, os sinais, o estado e os destinos → a lista (um item por situação e protocolo).
+ */
+function subidosPelasSituacoes(
+    modelo: Pick<DomainModel, 'situacoes'> | null,
+    sinais: ReadonlyArray<{ tipo: string; fato: string }>,
+    estado: { estado: string; rotulo: string } | null,
+    destinos: Readonly<Record<string, readonly string[]>> | undefined,
+): Array<{ id: string; fatos: string[]; preencher: Record<string, string> }> {
+    const out: Array<{ id: string; fatos: string[]; preencher: Record<string, string> }> = [];
     if (!destinos) return out;
     for (const s of modelo?.situacoes ?? []) {
         const fatos = s.quando.startsWith(QUANDO_ESTADO)
@@ -68,12 +87,26 @@ export function pelasSituacoes(
             : sinais.filter(x => x.tipo === s.quando).map(x => x.fato);
         if (!fatos.length) continue;
         const da = destinos[s.situacao] ?? [];
-        for (const id of s.protocolos) {
-            if (!da.includes(id)) continue;
-            const ja = out.get(id) ?? [];
-            out.set(id, [...ja, ...fatos.filter(f => !ja.includes(f))]);
-        }
+        for (const id of s.protocolos) if (da.includes(id)) out.push({ id, fatos, preencher: s.preencher?.[id] ?? {} });
     }
+    return out;
+}
+
+/**
+ * O que faz: as fichas com que cada protocolo subido pela situação abre (o `preencher` da situação, 06/11), por id; a
+ * primeira situação que preenche um passo vale.
+ * Por quê: o 🔄 que a tarefa em curso sobe abria com a tarefa do dia; com o `preencher` da situação, abre com a do nó,
+ * como o `preencher` do bloco `protocolos` já faz no painel da peça.
+ * Prova: tests/missao/protocolosDoNo.test.ts ("o preencher da situação").
+ */
+export function preencherPelasSituacoes(
+    modelo: Pick<DomainModel, 'situacoes'> | null,
+    sinais: ReadonlyArray<{ tipo: string; fato: string }>,
+    estado: { estado: string; rotulo: string } | null,
+    destinos: Readonly<Record<string, readonly string[]>> | undefined,
+): Map<string, Record<string, string>> {
+    const out = new Map<string, Record<string, string>>();
+    for (const { id, preencher } of subidosPelasSituacoes(modelo, sinais, estado, destinos)) out.set(id, { ...preencher, ...(out.get(id) ?? {}) });
     return out;
 }
 
@@ -81,11 +114,12 @@ export function pelasSituacoes(
  * O que faz: os protocolos do tipo e da nota, antes da ordem: os donos dos campos (`dono:
  * protocolo:<id>#<passo>`, a resposta é o valor do campo), o do `criar` (o protocolo e o completo, as
  * respostas pelos `passos`), os do bloco `protocolos` (o papel e o `preencher`) e os que já rodaram, cada um
- * uma vez, com os papéis somados e as datas da rodada na frente.
+ * uma vez, com os papéis somados e as datas da rodada na frente; os que a situação sobe levam as respostas do
+ * `preencher` dela (06/11).
  * Entra → sai: o modelo do tipo (ou `null`), o nó e as rodadas → os candidatos, na ordem dos papéis.
  * Erro e ataque: a resposta sem valor não vai (o protocolo pergunta); a ficha sem valor também não.
  */
-export function candidatosDoNo(modelo: DomainModel | null, no: NoDosProtocolos, rodaram: Readonly<Record<string, readonly string[]>> = {}, daSituacao: ReadonlySet<string> = new Set()): Array<{ id: string; papeis: PapelDoProtocolo[]; valores: Record<string, string> }> {
+export function candidatosDoNo(modelo: DomainModel | null, no: NoDosProtocolos, rodaram: Readonly<Record<string, readonly string[]>> = {}, daSituacao: ReadonlySet<string> = new Set(), preencherDaSituacao: ReadonlyMap<string, Record<string, string>> = new Map()): Array<{ id: string; papeis: PapelDoProtocolo[]; valores: Record<string, string> }> {
     const porId = new Map<string, { id: string; papeis: PapelDoProtocolo[]; valores: Record<string, string> }>();
     const de = (id: string) => { let c = porId.get(id); if (!c) { c = { id, papeis: [], valores: { ...no.datas } }; porId.set(id, c); } return c; };
     const papel = (id: string, p: PapelDoProtocolo) => { const c = de(id); if (!c.papeis.includes(p)) c.papeis.push(p); return c; };
@@ -110,6 +144,11 @@ export function candidatosDoNo(modelo: DomainModel | null, no: NoDosProtocolos, 
     for (const [id, dias] of Object.entries(rodaram)) if (dias.length) papel(id, 'rodou');
     // A situação do nó (o P13): o que já estava ganha só o peso; o que não estava entra "pelo sinal".
     for (const id of daSituacao) if (!porId.has(id)) papel(id, 'sinal');
+    // O `preencher` da situação (06/11): as respostas do nó, como as do bloco `protocolos`.
+    for (const [id, fichas] of preencherDaSituacao) {
+        const c = porId.get(id);
+        if (c) for (const [passo, ficha] of Object.entries(fichas)) responder(c, passo, resolverFichas(ficha, no));
+    }
     const peso = (c: { papeis: PapelDoProtocolo[] }) => Math.min(...c.papeis.map(p => ORDEM_DOS_PAPEIS.indexOf(p)));
     const lista = [...porId.values()];
     for (const c of lista) c.papeis.sort((a, b) => ORDEM_DOS_PAPEIS.indexOf(a) - ORDEM_DOS_PAPEIS.indexOf(b));
@@ -127,7 +166,7 @@ export function candidatosDoNo(modelo: DomainModel | null, no: NoDosProtocolos, 
  */
 export function protocolosDoNo(modelo: DomainModel | null, no: NoDosProtocolos, lido: LidoDosProtocolos): ProtocoloDoNo[] {
     const situacao = pelasSituacoes(modelo, no.sinais ?? [], no.estado ?? null, lido.destinos);
-    const cands = candidatosDoNo(modelo, no, lido.rodaram, new Set(situacao.keys()));
+    const cands = candidatosDoNo(modelo, no, lido.rodaram, new Set(situacao.keys()), preencherPelasSituacoes(modelo, no.sinais ?? [], no.estado ?? null, lido.destinos));
     if (!cands.length) return [];
     const ids = cands.map(c => c.id);
     const nivel = (id: string) => lido.niveis?.[id] ?? null;

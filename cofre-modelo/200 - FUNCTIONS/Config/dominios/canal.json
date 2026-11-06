@@ -1,0 +1,77 @@
+{
+  "dominio": "canal",
+  "descricao": "O canal onde as peças vão ao ar (`type: canal`): a nota do plano do canal, lida pela coluna Canais do ramo Criação. O nome da nota é o valor do campo `canal` das peças, e é por ele que a peça se liga ao canal; o canal sem nota continua na coluna, só com o nome. Os campos são o plano, e não a agenda: o público, a promessa, o formato, a cadência e onde publica. A nota não leva data nem tarefa: as datas e as tarefas nascem no 🌳. Os `perfis` são a lista dos perfis do canal, um por rede, no formato \"Rede · perfil\", e são as opções dos destinos de cada peça; o `destino_por_formato` é a regra de para onde vai cada formato, uma linha por perfil, \"<formato> → <Rede · perfil>\", e dá os destinos de partida da peça daquele formato. Nasce pelo Novo simples da Missão, na pasta `Canais/` da casa das peças.",
+  "candidatos": {
+    "pasta": "400 - MEMORY/200 - WEEKLY/Roteiros/Canais",
+    "type": "canal"
+  },
+  "campos": [
+    {
+      "nome": "canal",
+      "rotulo": "Canal",
+      "tipo": "texto",
+      "formato": "curto",
+      "obrigatorio": true,
+      "dono": "nota"
+    },
+    {
+      "nome": "publico",
+      "rotulo": "Público",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota",
+      "vazio": "a escrever"
+    },
+    {
+      "nome": "promessa",
+      "rotulo": "Promessa",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota",
+      "vazio": "a escrever"
+    },
+    {
+      "nome": "formato",
+      "rotulo": "Formato",
+      "tipo": "texto",
+      "formato": "longo",
+      "dono": "nota",
+      "vazio": "a escrever"
+    },
+    {
+      "nome": "cadencia",
+      "rotulo": "Cadência",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "vazio": "a escrever"
+    },
+    {
+      "nome": "plataformas",
+      "rotulo": "Onde publica",
+      "tipo": "texto",
+      "formato": "curto",
+      "dono": "nota",
+      "vazio": "a escolher"
+    },
+    {
+      "nome": "perfis",
+      "rotulo": "Perfis",
+      "tipo": "lista",
+      "dono": "nota",
+      "vazio": "a listar"
+    },
+    {
+      "nome": "destino_por_formato",
+      "rotulo": "Para onde vai cada formato",
+      "tipo": "lista",
+      "dono": "nota",
+      "vazio": "a decidir"
+    }
+  ],
+  "criar": {
+    "via": "nota",
+    "titulo": "canal",
+    "molde": "200 - FUNCTIONS/Templates/Canal_template.md"
+  }
+}

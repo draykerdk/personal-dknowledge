@@ -4,8 +4,10 @@
  * do modal, o título curto, a nota a criar no passo, a conferência e as rodadas.
  */
 import { describe, expect, it } from 'vitest';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
-    chaveDoRascunho, conferirGaveta, criacoesAoGravar, pedidoDoCiclo, resumoDoResto, rodadaCompletaDaGaveta, rodadaDaGaveta, rotuloDoPasso, vistaDaGaveta,
+    chaveDoRascunho, conferirGaveta, criacoesAoGravar, pedidoDoCiclo, primeiraFrase, respondidosPeloNo, resumoDoResto, rodadaCompletaDaGaveta, rodadaDaGaveta, rotuloDoPasso, soPassoAPasso, vistaDaGaveta,
     type OpcoesDoPasso, type ProtocoloDaGaveta,
 } from '../../src/missao/gaveta';
 
@@ -39,9 +41,11 @@ describe('o pedido do botão', () => {
         expect(pedidoDoCiclo({ ...base, protocolo: '' }, '2026-10-28')).toBeNull();
         expect(pedidoDoCiclo(base, 'ontem')).toBeNull();
     });
-    it('o 📨 da tabela dos botões traz os líderes; o mesmo emoji com outro protocolo não', () => {
-        expect(pedidoDoCiclo({ ...base, emoji: '📨', protocolo: 'review_semanal' }, '2026-10-28')!.lideres).toEqual(['relatorio', 'fato_semana']);
-        expect(pedidoDoCiclo({ ...base, emoji: '📨', protocolo: 'outro' }, '2026-10-28')!.lideres).toEqual([]);
+    it('o 📅 da tabela dos botões traz os líderes (o topo do 📨, desde 05/11); o mesmo emoji com outro protocolo não', () => {
+        expect(pedidoDoCiclo({ ...base, emoji: '📅', protocolo: 'review_semanal' }, '2026-10-28')!.lideres).toEqual(['relatorio', 'fato_semana']);
+        expect(pedidoDoCiclo({ ...base, emoji: '📅', protocolo: 'outro' }, '2026-10-28')!.lideres).toEqual([]);
+        // O 📨 saiu da tabela: um botão com ele num ramo abre sem topo, pela ponta.
+        expect(pedidoDoCiclo({ ...base, emoji: '📨', protocolo: 'review_semanal' }, '2026-10-28')!.lideres).toEqual([]);
         expect(chaveDoRascunho({ escala: 'semana', chave: '2026-W44', emoji: '📨', protocolo: 'review_semanal' })).not.toBe(chaveDoRascunho({ escala: 'semana', chave: '2026-W44', emoji: '📅', protocolo: 'review_semanal' }));
     });
 });
@@ -113,5 +117,40 @@ describe('criar no passo, a conferência e as rodadas', () => {
     it('o rótulo: a primeira linha da pergunta, sem o OPCIONAL da frente', () => {
         expect(rotuloDoPasso(DEF.steps[0])).toBe('o fato?');
         expect(rotuloDoPasso({ id: 'z' })).toBe('z');
+    });
+});
+
+describe('a descrição recolhida', () => {
+    it('a primeira frase à vista e o resto recolhido; a abreviação com minúscula não corta', () => {
+        expect(primeiraFrase('Protocolo focado na jornada (Vlog/Shorts). Desde 03/11/2026, registrar marca o hábito. E mais.'))
+            .toEqual({ primeira: 'Protocolo focado na jornada (Vlog/Shorts).', resto: 'Desde 03/11/2026, registrar marca o hábito. E mais.' });
+        expect(primeiraFrase('Uma frase só, sem ponto')).toEqual({ primeira: 'Uma frase só, sem ponto', resto: '' });
+        expect(primeiraFrase('Leva a lista (ex.: a pesquisa) para a nota. Rodar de novo acrescenta.').primeira).toBe('Leva a lista (ex.: a pesquisa) para a nota.');
+        expect(primeiraFrase('')).toEqual({ primeira: '', resto: '' });
+    });
+});
+
+describe('o gesto curto do nó', () => {
+    it('o que o nó responde (o botão) e o operador não mexeu sai da gaveta; o digitado volta a aparecer', () => {
+        const v = vistaDaGaveta({ ...P, doBotao: { nota: 'Vídeo A', acao: '' } }, {}, SEM);
+        expect(respondidosPeloNo(v).map(c => [c.campo.id, c.valor])).toEqual([['nota', 'Vídeo A']]);
+        const mexido = vistaDaGaveta({ ...P, doBotao: { nota: 'Vídeo A' } }, { nota: 'Vídeo B' }, SEM);
+        expect(respondidosPeloNo(mexido)).toEqual([]);
+    });
+});
+
+// O arquivo vem do cofre (três pastas acima do plugin) ou, no pacote aberto, do `cofre-modelo/` ao lado do plugin;
+// sem nenhum dos dois, o bloco fica de fora.
+const raizCom = (rel: string) => [resolve(process.cwd(), '../../..'), resolve(process.cwd(), '../cofre-modelo')].find(r => existsSync(resolve(r, rel)));
+const PROTOCOLOS = raizCom('200 - FUNCTIONS/Protocolos/ingles_de_hoje.json');
+
+describe.skipIf(!PROTOCOLOS)('só passo a passo (06/11: o 🗣️ pelo painel do módulo abria a gaveta com a fila vazia)', () => {
+    const ler = (id: string) => JSON.parse(readFileSync(resolve(PROTOCOLOS!, '200 - FUNCTIONS/Protocolos', `${id}.json`), 'utf8'));
+    it('o protocolo com o passo `fila` roda passo a passo; os outros ficam na gaveta', () => {
+        expect(soPassoAPasso(ler('ingles_de_hoje'))).toBe(true);
+        expect(soPassoAPasso(ler('frase_nova'))).toBe(false);
+        expect(soPassoAPasso(DEF)).toBe(false);
+        expect(soPassoAPasso(null)).toBe(false);
+        expect(soPassoAPasso({ steps: 'x' })).toBe(false);
     });
 });

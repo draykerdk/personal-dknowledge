@@ -28,7 +28,7 @@ import type { Papel } from './papeisDeProtocolo';
 export type TipoDoCampo = 'texto' | 'texto_longo' | 'escolha' | 'escolhas' | 'nota' | 'notas';
 
 /** Por que um passo fica para o modal (§5.4). */
-export type MotivoFora = 'router' | 'arvore_do_agora' | 'refazer' | 'tarefa_no_meio' | 'diario' | 'tipo_desconhecido';
+export type MotivoFora = 'router' | 'arvore_do_agora' | 'refazer' | 'tarefa_no_meio' | 'diario' | 'opcoes_da_outra_nota' | 'tipo_desconhecido';
 
 /** Um campo do formulário: o passo e o que o desenho e a validação precisam saber dele. */
 export interface CampoDoFormulario {
@@ -91,7 +91,8 @@ export function tipoDoCampo(step: any): TipoDoCampo | null {
  * O que faz: por que um passo fica para o modal, ou `null` se ele cabe no formulário.
  * Por quê: §5.4: o router é caminho, não formulário; a árvore do agora é um fluxo em si; o
  * `returnTo` é "refazer"; o `suggest_task` cria a tarefa no meio da pergunta; o "📖 Pelo
- * diário" sem o contexto da rodada não tem as opções (com ele, cabe: `formularioDoProtocolo`).
+ * diário" sem o contexto da rodada não tem as opções (com ele, cabe: `formularioDoProtocolo`); as opções pela outra
+ * nota (`opcoesDe`) saem das respostas de antes.
  * Entra → sai: o protocolo (o `id`) e o passo → o motivo ou `null`.
  */
 export function foraDoFormulario(def: any, step: any): MotivoFora | null {
@@ -100,6 +101,9 @@ export function foraDoFormulario(def: any, step: any): MotivoFora | null {
     if (step?.returnTo && typeof step.returnTo === 'object') return 'refazer';
     if (step?.type === 'suggest_task') return 'tarefa_no_meio';
     if (step?.type === 'multiselect' && step.fromDiary) return 'diario';
+    // As opções pela outra nota (`opcoesDe`, 06/11, os destinos do 🎬): dependem das respostas de antes (o canal e o
+    // formato), e o modal as monta na hora, pela mesma função do painel.
+    if (step?.type === 'multiselect' && step.opcoesDe) return 'opcoes_da_outra_nota';
     if (!tipoDoCampo(step)) return 'tipo_desconhecido';
     return null;
 }
@@ -318,18 +322,19 @@ export interface BotaoDoCiclo {
 
 /**
  * Os botões do ciclo, como no protótipo (`CYCLE_PROTO`, arquitetura de 27/10, §5.5): ▶️ o
- * protocolo de abrir o dia, 🌙 a revisão do dia, 🌳 o planejamento da semana, 📅 a revisão da semana, 📨 a
- * revisão da semana com o `relatorio` (o estado do 📨) e o fato da semana no topo, 🧭 o
- * planejamento do trimestre e 🔄 a revisão do trimestre. O 📨 grava o 📅 inteiro: os líderes só
+ * protocolo de abrir o dia, 🌙 a revisão do dia, 🌳 o planejamento da semana, 📅 a revisão da semana,
+ * com o `relatorio` (o estado do 📨, a conversa da semana) e o fato da semana no topo, 🧭 o
+ * planejamento do trimestre e 🔄 a revisão do trimestre. O 📅 grava o protocolo inteiro: os líderes só
  * mudam a ordem de mostrar. Cada botão diz o papel, não o id (D1 do mapa da v0): o id vem da
  * tabela vigente, e o cofre sem o protocolo do papel não mostra o botão.
+ * O 📨 saiu da tabela em 05/11 (a direção dos ramos): nenhum ramo do cofre tinha mais o botão, e o
+ * 📅 ficou com o topo dele, um botão só para a revisão da semana (um jeito por função).
  */
 export const BOTOES_DO_CICLO: Readonly<Record<string, BotaoDoCiclo>> = Object.freeze({
     '▶️': { papel: 'abrir_dia', modo: 'planejar' },
     '🌙': { papel: 'fechar_dia', modo: 'revisar' },
     '🌳': { papel: 'planejar_semana', modo: 'planejar' },
-    '📅': { papel: 'revisar_semana', modo: 'revisar' },
-    '📨': { papel: 'revisar_semana', modo: 'revisar', lideres: ['relatorio', 'fato_semana'] },
+    '📅': { papel: 'revisar_semana', modo: 'revisar', lideres: ['relatorio', 'fato_semana'] },
     '🧭': { papel: 'planejar_trimestre', modo: 'planejar' },
     '🔄': { papel: 'revisar_trimestre', modo: 'revisar' },
 });
@@ -337,14 +342,14 @@ export const BOTOES_DO_CICLO: Readonly<Record<string, BotaoDoCiclo>> = Object.fr
 /**
  * O que faz: os campos do formulário em duas partes: os do topo (os líderes visíveis, na ordem
  * dada) e o resto (na ordem do protocolo), que a gaveta mostra recolhido e preenchido.
- * Por quê: §5.5, o 📨 "abre o 📅 com o `relatorio` e o fato da semana no topo, e o resto do 📅
- * logo abaixo, recolhido e preenchido; gravar roda o 📅 inteiro" (P12a): a ordem de mostrar não
+ * Por quê: §5.5, o 📅 (que ficou com o topo do 📨 em 05/11) abre "com o `relatorio` e o fato da
+ * semana no topo, e o resto logo abaixo, recolhido e preenchido; gravar roda o 📅 inteiro" (P12a): a ordem de mostrar não
  * muda o que se grava, que segue por `rodadaDoFormulario` com todas as respostas.
  * Entra → sai: o estado do formulário e os ids dos líderes → `{ topo, resto }` (todo campo cai
  * em um dos dois, uma vez só).
  * Erro e ataque: líder que não é campo visível (escondido, para o modal, inexistente) não entra;
  * líder repetido conta uma vez; sem líderes, tudo é resto.
- * Prova: tests/engine/protocolForm.test.ts ("o 📨").
+ * Prova: tests/engine/protocolForm.test.ts ("o 📅 com o topo").
  */
 export function camposComDestaque(estado: EstadoDoFormulario, lideres: readonly string[] = []): { topo: CampoDoFormulario[]; resto: CampoDoFormulario[] } {
     const porId = new Map(estado.campos.map(campo => [campo.id, campo]));

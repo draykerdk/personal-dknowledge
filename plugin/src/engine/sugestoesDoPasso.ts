@@ -17,7 +17,7 @@
  * no contexto, lido pelo motor (`JSONProtocol.contextoDasSugestoes`). Prova:
  * tests/engine/sugestoesDoPasso.test.ts.
  */
-import { isClosedUnit, isoWeekOf, type TaskUnit } from './decisionWeights';
+import { isClosedUnit, isoWeekOf, linkName, type TaskUnit } from './decisionWeights';
 import { leftCommitmentMark } from './commitmentLeft';
 import { lugarDoDia } from '../missao/lugares';
 import type { Estadia } from '../missao/tipos';
@@ -25,12 +25,14 @@ import { addDays, diaDaSemana, diaMes } from '../missao/tempo';
 import { weekDates } from './calendario';
 import { DIA } from './dia';
 import { ehManutencao } from './taskSemantics';
+import { campoDaDataDePublicacao, publicadaPeloModelo, valoresLivres, type DomainModel } from './domainModel';
+import { grammarCounts, grammarText, timeHorizon } from './showGrammar';
 
 /** A lista fechada das fontes declaráveis num passo. */
 export const FONTES_DE_SUGESTAO = [
     'feitas_do_dia', 'feitas_da_semana', 'compromisso_de_amanha', 'acao_do_dia', 'valor_da_semana',
     'modo_do_dia', 'modo_da_semana', 'onde_na_semana', 'cidades_da_semana', 'projetos_da_semana', 'pendentes_sem_computador',
-    'smart_da_semana',
+    'smart_da_semana', 'publicadas_da_semana', 'resultados_da_semana',
 ] as const;
 
 export type FonteDeSugestao = typeof FONTES_DE_SUGESTAO[number];
@@ -65,6 +67,80 @@ export interface ContextoDaSugestao {
     valorDaSemana: { nome: string; daNota: boolean } | null;
     /** O compromisso que o 🌙 deixou para o dia (`pinFromYesterday` do passo), com quando. */
     deixada: { nome: string; quando: string } | null;
+    /**
+     * As peças (05/11, a campanha da semana): as notas de cada modelo com formatos (o frontmatter e o nome), lidas só
+     * quando um passo da rodada pede o publicado ou os resultados da semana; sem a chave, nenhuma.
+     */
+    pecas?: ReadonlyArray<PecasDoModelo>;
+}
+
+/** As notas de um tipo com formatos, com o modelo dele (05/11). */
+export interface PecasDoModelo {
+    modelo: Pick<DomainModel, 'campos' | 'estados' | 'formatos'> & { sinais?: Record<string, unknown> };
+    notas: ReadonlyArray<{ nome: string; campos: Record<string, unknown> }>;
+}
+
+/** O que faz: as opções da fonte no passo (`defaultFrom` com o `sugestao` dela): os campos de uma chave (`por`, `campos`). */
+function camposDaFonte(step: any, nome: string, chave: 'por' | 'campos'): string[] {
+    const lista = Array.isArray(step?.defaultFrom) ? step.defaultFrom : step?.defaultFrom ? [step.defaultFrom] : [];
+    const v = lista.find((x: any) => x?.sugestao === nome)?.[chave];
+    return Array.isArray(v) ? v.map((x: unknown) => String(x ?? '').trim()).filter(Boolean) : [];
+}
+
+/** O que faz: os valores de um campo de uma nota, como nomes (o link pelo nome da nota; a lista item por item). */
+const valoresDe = (v: unknown): string[] => (Array.isArray(v) ? v : [v]).map(x => linkName(x)).filter(x => x.replace(/[\[\]"'\s]/g, ''));
+
+/**
+ * O que faz: o publicado de uma semana, por campo: para cada campo de `por` (o canal, a frente), cada valor com a linha
+ * da forma de mostrar (do plano é a peça com o dia de ir ao ar na semana; feita é a publicada pelo modelo); e as
+ * peças publicadas na semana, com os campos pedidos (o link da campanha, o que trouxe).
+ * Por quê: 05/11, a campanha da semana: o 📅 conta o publicado por canal e por frente, ao lado do que entrou por fonte,
+ * e lê o `resultado` e o `link_cta` de cada peça, pela função única de mostrar (nenhuma conta à parte).
+ * Entra → sai: as peças, a semana e os campos → `{ porCampo, publicadas }` (vazio sem peça com o dia na semana).
+ * Erro e ataque: o campo que o modelo não tem fica de fora; o campo de escolha mostra todos os valores dele (o canal
+ * sem peça diz o texto de ausência); o vazio de um campo pedido é o `vazio` do modelo ou "sem dado".
+ */
+function publicadoDaSemana(pecas: ReadonlyArray<PecasDoModelo>, semana: string, por: readonly string[], campos: readonly string[]): { porCampo: string[]; publicadas: string[] } {
+    const dias = weekDates(semana);
+    const horizonte = timeHorizon({ weeks: [], dates: dias });
+    const porCampo: string[] = [];
+    const publicadas: string[] = [];
+    const grupos = new Map<string, { rotulo: string; valores: Map<string, Array<{ status: string; scheduled?: string; completedDate?: string }>> }>();
+    for (const { modelo, notas } of pecas) {
+        const data = campoDaDataDePublicacao(modelo);
+        if (!data) continue;
+        for (const n of notas) {
+            const dia = String(n.campos?.[data] ?? '').slice(0, 10);
+            if (!dias.includes(dia)) continue;
+            const feita = publicadaPeloModelo(modelo, n.campos);
+            const unidade = { status: feita ? 'done' : 'open', scheduled: dia, completedDate: dia };
+            for (const nome of por) {
+                const campo = modelo.campos.find(c => c.nome === nome);
+                if (!campo) continue;
+                const g = grupos.get(nome) ?? { rotulo: campo.rotulo, valores: new Map() };
+                // O valor livre (o canal sem cadência) só aparece quando tem peça na semana.
+                const livres = new Set(valoresLivres(modelo.sinais, nome).map(x => x.toLowerCase()));
+                if (!grupos.has(nome) && campo.tipo === 'escolha') for (const v of campo.valores ?? []) if (!livres.has(String(v).toLowerCase())) g.valores.set(String(v), []);
+                grupos.set(nome, g);
+                for (const v of valoresDe(n.campos?.[nome])) g.valores.set(v, [...(g.valores.get(v) ?? []), unidade]);
+            }
+            if (feita) {
+                const lidos = campos.map(nome => {
+                    const campo = modelo.campos.find(c => c.nome === nome);
+                    const v = valoresDe(n.campos?.[nome]).join(', ') || String(n.campos?.[nome] ?? '').trim();
+                    return campo ? `${campo.rotulo}: ${v || campo.vazio || 'sem dado'}` : '';
+                }).filter(Boolean);
+                publicadas.push(lidos.length ? `${n.nome} (${lidos.join(' · ')})` : n.nome);
+            }
+        }
+    }
+    for (const nome of por) {
+        const g = grupos.get(nome);
+        if (!g) continue;
+        const partes = [...g.valores].map(([v, us]) => `${v}: ${grammarText(grammarCounts(us, horizonte), 'sem peça no plano')}`);
+        porCampo.push(`${g.rotulo} · ${partes.join('; ')}`);
+    }
+    return { porCampo, publicadas };
 }
 
 /** Uma sugestão: o valor (na forma da resposta do passo), o porquê e a fonte. */
@@ -127,7 +203,11 @@ const dataCurta = (dia: string) => `${diaDaSemana(dia)} ${diaMes(dia)}`;
  *   marcada nela, a passagem de agora ("a passagem de agora, pelas Days"; proposta da viagem nos ciclos, §3);
  * - `projetos_da_semana`: a Temporada e os projetos com tarefa aberta na semana;
  * - `pendentes_sem_computador`: até três pendentes nos contextos sem computador;
- * - `smart_da_semana`: criar a SMART agora até a semana ter três (as de manutenção, `natureza: manutencao`, fora da conta).
+ * - `smart_da_semana`: criar a SMART agora até a semana ter três (as de manutenção, `natureza: manutencao`, fora da conta);
+ * - `publicadas_da_semana` (05/11): o publicado da semana revisada por cada campo do `por` da fonte (o canal, a frente),
+ *   pela forma de mostrar ("o publicado da semana, pelas peças");
+ * - `resultados_da_semana` (05/11): as peças publicadas na semana revisada, com os `campos` da fonte (o link da
+ *   campanha, o que trouxe), para a leitura do resultado.
  * Entra → sai: o nome da fonte, o passo (o tipo e as opções do JSON), o contexto e as opções do
  * passo montado (`null` = as do JSON) → a sugestão, com o valor na forma da resposta do passo
  * (o texto, a opção, o nome da nota, ou `[[A]], [[B]]` nas notas).
@@ -224,6 +304,16 @@ export function sugestaoDoPasso(nome: string, step: any, ctx: ContextoDaSugestao
             const n = tarefas.filter(u => u.type === 'tarefa_smart' && u.week === ctx.semanaAlvo && u.status !== 'cancelled' && !ehManutencao(u)).length;
             const escolha = (opts ?? [])[n >= 3 ? 1 : 0];
             return s(escolha, `a semana tem ${n ? `${n} SMART` : 'nenhuma SMART'} (até 3)`);
+        }
+        case 'publicadas_da_semana': {
+            if (!ctx.pecas) return null;
+            const { porCampo } = publicadoDaSemana(ctx.pecas, ctx.semanaDoDia, camposDaFonte(step, nome, 'por'), []);
+            return s(porCampo.join(' | ') || 'nenhuma peça com o dia de ir ao ar nesta semana', 'o publicado da semana, pelas peças');
+        }
+        case 'resultados_da_semana': {
+            if (!ctx.pecas) return null;
+            const { publicadas } = publicadoDaSemana(ctx.pecas, ctx.semanaDoDia, [], camposDaFonte(step, nome, 'campos'));
+            return s(publicadas.join(' | ') || 'nenhuma peça publicada nesta semana', 'as peças publicadas na semana, com o link e o que trouxe');
         }
     }
     return null;

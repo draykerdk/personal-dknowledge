@@ -21,7 +21,7 @@ import { canGoBack, navigateFractalBack, navigateFractalUp } from './engine/canv
 import { ProgressionEngine } from './engine/progressionEngine';
 import { InputModal } from './ui/modals';
 import { NovaArvoreModal } from './ui/arvoreModals';
-import { buildGrid, parseHabit, resolveClick, toggleEntry, formatarDiaIngles, calcHabitMetrics, calcGridStats } from './engine/habits';
+import { buildGrid, parseHabit, resolveClick, formatarDiaIngles, calcHabitMetrics, calcGridStats } from './engine/habits';
 import { DshOperatorBridge } from './engine/dshOperatorBridge';
 import { MissionControl } from './engine/missionControl';
 import { MissionBoard } from './board/boardPlugin';
@@ -35,7 +35,11 @@ import { PeriodNoteRepairWatcher } from './temporal/periodNoteRepairWatcher';
 import { renderDayNote } from './temporal/periodNoteRepair';
 import { applyDfmAction, parseDfmBlock, DfmBlockAction } from './engine/dfmBlocks';
 import { DIA } from './engine/dia';
+import { gravacaoVista, minutosDoAvisoDeSync } from './engine/avisoDeSync';
 import { semanaNoTexto, trimestreNoTexto } from './engine/periodo';
+
+/** A chave, no armazenamento local do aparelho, da última gravação da Day de hoje que ele viu (o aviso de sync). */
+const CHAVE_DA_GRAVACAO_DA_DAY = 'dfm-gravacao-da-day';
 
 export function parseDfmButtonId(raw: string): string {
     const token = raw.trim();
@@ -106,7 +110,7 @@ export default class DFMPlugin extends Plugin {
     private lastArvoreAutoReevalDate: string | null = null;
 
     async onload() {
-        console.log('Carregando DFM System 2.8.0...');
+        console.log('Carregando DFM System 2.9.0...');
 
         // Register Views
         // As duas vistas antigas (o DFM Control Center e o Mission Control dos painéis antigos) saíram em
@@ -469,6 +473,12 @@ export default class DFMPlugin extends Plugin {
 
             // Check for recent modifications (Sync Conflict Warning)
             this.checkForRecentModifications();
+            // A gravação da Day de hoje que este aparelho vê (a Missão, o motor, a edição daqui) fica registrada no
+            // aparelho: o aviso de sync da próxima abertura não avisa dela (06/11, engine/avisoDeSync.ts).
+            this.registerEvent(this.app.vault.on('modify', (file) => {
+                if (!(file instanceof TFile) || file.name !== `${(window as any).moment().format('YYYY-MM-DD')}.md`) return;
+                try { this.app.saveLocalStorage(CHAVE_DA_GRAVACAO_DA_DAY, { caminho: file.path, mtime: file.stat.mtime }); } catch { /* sem o armazenamento, o aviso fica como era */ }
+            }));
         });
 
         // Register Global Hotkey Command
@@ -923,9 +933,8 @@ export default class DFMPlugin extends Plugin {
                         return;
                     }
                     if (!(arquivo instanceof TFile)) return;
-                    await this.app.fileManager.processFrontMatter(arquivo, (fm) => {
-                        fm.entries = toggleEntry(fm.entries, celula.date);
-                    });
+                    // A marca à mão passa pela porta única dos hábitos: o dia em `entries` e a linha na Day (06/11).
+                    await this.habitLog.alternarDia(arquivo.path, celula.date);
                     await refresh?.();
                 });
             }
@@ -947,12 +956,11 @@ export default class DFMPlugin extends Plugin {
 
         if (!dailyNote) return; 
 
-        const modifiedTime = dailyNote.stat.mtime;
-        const now = Date.now();
-        const fiveMinutesAgo = now - (5 * 60 * 1000);
-
-        if (modifiedTime > fiveMinutesAgo) {
-            const minutesAgo = Math.floor((now - modifiedTime) / 60000);
+        // O que este aparelho gravou (a Missão, há pouco) não é sync de outro aparelho (06/11).
+        let vista = null;
+        try { vista = gravacaoVista(this.app.loadLocalStorage(CHAVE_DA_GRAVACAO_DA_DAY)); } catch { vista = null; }
+        const minutesAgo = minutosDoAvisoDeSync({ caminho: dailyNote.path, mtime: dailyNote.stat.mtime }, Date.now(), vista);
+        if (minutesAgo !== null) {
             new Notice(
                 `⚠️ AVISO DE SYNC: A nota diária foi modificada há ${minutesAgo} min (provavelmente em outro device). Aguarde 2-3 min para o iCloud sincronizar antes de editar, ou você pode perder dados.`,
                 15000 

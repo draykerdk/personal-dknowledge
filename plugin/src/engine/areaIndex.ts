@@ -41,7 +41,8 @@ export function isAreaType(type: unknown): boolean {
 }
 
 /**
- * O que faz: o link para gravar no campo `Area` de uma nota. A nota da área se chama
+ * O que faz: o link para gravar no campo `area` de uma nota (o minúsculo, que a seta de projeto para a
+ * área grava e os modelos leem). A nota da área se chama
  * README, e `[[README]]` resolve para qualquer um dos READMEs do cofre: ela vai pelo
  * caminho, com o nome da área como rótulo (`[[100 - AREAS/01 - Uma área/000 - INDEX/README|Uma área]]`).
  * As outras notas vão pelo nome, como sempre.

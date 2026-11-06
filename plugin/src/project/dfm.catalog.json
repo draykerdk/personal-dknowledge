@@ -1,0 +1,542 @@
+{
+  "dfm": 1,
+  "system": "project",
+  "purpose": "Os canvas de projeto do dfm-system (`src/project`): todo projeto tem um canvas, e o canvas gerencia as tarefas do projeto (a zona gerida das SMART e das ações, sincronizada quando uma TaskNote muda). O modelo daqui é também a árvore do projeto que a Missão, o quadro e o motor leem. Este mapa declara os módulos e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "modules": [
+    {
+      "id": "base",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. O chão: onde fica o canvas de um projeto ou departamento, numa regra só.",
+      "why": "O gerente do canvas, o índice de canvas do painel, a Árvore e a nota do trimestre têm de achar o mesmo arquivo (correção L9 do plano do canvas de 13/10/2026).",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/project/projectCanvasPath.test.ts"
+      ],
+      "connects_to": [],
+      "used_by": [
+        "fn.modelo",
+        "liga.gerente"
+      ]
+    },
+    {
+      "id": "fn.modelo",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. A árvore do projeto pelo contrato do Kernel (a SMART com `projects: [[Projeto]]`, a ação com `projects: [[SMART mãe]]`): o fold, o link, o progresso, as chaves, as filhas de uma SMART e o plano da zona gerida do canvas.",
+      "why": "Uma árvore só para o canvas, a Missão (cerca de 25 importações), o quadro e o motor; a conta fica testável sem o Obsidian.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/canvas/managedZone.test.ts tests/canvas/taskGraph.test.ts tests/missao/borboleta.test.ts tests/project/projectCanvasManager.test.ts tests/project/projectCanvasModel.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.canvas",
+        "ext.engine"
+      ],
+      "used_by": [
+        "liga.gerente"
+      ]
+    },
+    {
+      "id": "liga.gerente",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. Sincroniza a zona gerida do canvas de um projeto quando uma TaskNote do projeto muda (criada, concluída, religada, apagada), abre e cria os canvas e registra os comandos dos canvas de projeto.",
+      "why": "Os efeitos (o vault, os eventos, os comandos) ficam fora do modelo, num lugar só.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/project/projectCanvasManager.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.board",
+        "ext.canvas",
+        "ext.engine",
+        "ext.main",
+        "ext.missao",
+        "ext.obsidian",
+        "fn.modelo"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "ext.board",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o quadro e o painel do Mission Control (`src/board`), com o mapa deles: o MissionBoard, a conclusão de uma tarefa, os menus do canvas.",
+      "why": "As gravações de tarefa e os menus passam pelo quadro, com a conclusão de sempre.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.gerente"
+      ]
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: a camada de canvas (`src/canvas`), com o mapa dela: os ids e a zona gerida, as setas que gravam campos, a cor e o cartão da tarefa.",
+      "why": "Quem desenha num canvas usa a mesma zona gerida e a mesma tabela das setas.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.modelo",
+        "liga.gerente"
+      ]
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.modelo",
+        "liga.gerente"
+      ]
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; nada aqui importa o main em execução.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.gerente"
+      ]
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: a Missão (`src/missao`), com o mapa e o guarda dela: o estado da tela, as intenções, os gestos, as gravações e os hospedeiros.",
+      "why": "O sistema antigo abre e grava pela Missão o que ela já faz, em vez de manter a cópia.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.gerente"
+      ]
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "state": "standard",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.gerente"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "ProjectCanvasManager.register",
+      "path": "projectCanvasManager.ts",
+      "line": 103,
+      "module": "liga.gerente",
+      "summary": "registra os comandos dos canvas de projeto e as escutas das TaskNotes que sincronizam a zona.",
+      "card": {
+        "does": "registra os comandos dos canvas de projeto e as escutas das TaskNotes que sincronizam a zona.",
+        "why": "o canvas acompanha a tarefa que muda, sem o operador pedir.",
+        "proof": "tests/project/projectCanvasManager.test.ts."
+      }
+    },
+    {
+      "name": "ProjectCanvasManager.readTasks",
+      "path": "projectCanvasManager.ts",
+      "line": 172,
+      "module": "liga.gerente",
+      "summary": "as tarefas do índice do quadro, a entrada da árvore do projeto.",
+      "card": {
+        "does": "as tarefas do índice do quadro, a entrada da árvore do projeto.",
+        "proof": "tests/project/projectCanvasManager.test.ts."
+      }
+    },
+    {
+      "name": "ProjectCanvasManager.projects",
+      "path": "projectCanvasManager.ts",
+      "line": 177,
+      "module": "liga.gerente",
+      "summary": "Projetos do kanban e departamentos, com as raízes de repositório deles já conferidas.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.projectsSync",
+      "path": "projectCanvasManager.ts",
+      "line": 186,
+      "module": "liga.gerente",
+      "summary": "O mesmo, sem esperar: do portfólio já lido (para quem não pode ser assíncrono).",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.canvasPathFor",
+      "path": "projectCanvasManager.ts",
+      "line": 212,
+      "module": "liga.gerente",
+      "summary": "O canvas do projeto, pelo resolvedor único (repositório aninhado → canvas na área).",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.canvasPathOfFolder",
+      "path": "projectCanvasManager.ts",
+      "line": 217,
+      "module": "liga.gerente",
+      "summary": "O canvas da pasta de um projeto ou departamento (a nota do trimestre pergunta por aqui).",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.linkScope",
+      "path": "projectCanvasManager.ts",
+      "line": 226,
+      "module": "liga.gerente",
+      "summary": "Para as setas que gravam: a nota-índice e o `.canvas` de cada projeto apontam o projeto; no canvas do projeto, o cabeçalho `dfm-pc-proj` também.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.factsFor",
+      "path": "projectCanvasManager.ts",
+      "line": 244,
+      "module": "liga.gerente",
+      "summary": "O \"quanto falta\" de um projeto pelo nome, sem esperar: a mesma conta (`projectProgress`, com a forma de mostrar no trimestre atual) do trimestre e do cabeçalho da zona. `null` se o portfólio não conhece o projeto.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.inNestedRepo",
+      "path": "projectCanvasManager.ts",
+      "line": 348,
+      "module": "liga.gerente",
+      "summary": "O canvas do projeto cai dentro de um repositório aninhado? Com o resolvedor, só se a pasta não fica numa área.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.sync",
+      "path": "projectCanvasManager.ts",
+      "line": 366,
+      "module": "liga.gerente",
+      "summary": "Refaz a zona gerida. Devolve `false` se o projeto não tem canvas.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.headerFor",
+      "path": "projectCanvasManager.ts",
+      "line": 404,
+      "module": "liga.gerente",
+      "summary": "O cabeçalho da zona: a forma de mostrar do projeto no trimestre atual (`projectProgress`, a conta do trimestre) e o caminho de volta — o trimestre atual, a semana em foco e a área. O trimestre e a semana levam à nota (o canvas deles se aposentou em 02/11/2026); a área, ao canvas dela quando existe. Sem arquivo, só texto.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.syncAll",
+      "path": "projectCanvasManager.ts",
+      "line": 437,
+      "module": "liga.gerente",
+      "summary": "sincroniza os canvas de projeto que já têm zona e avisa quantos.",
+      "card": {
+        "does": "sincroniza os canvas de projeto que já têm zona e avisa quantos.",
+        "why": "o canvas de departamento feito à mão continua como está.",
+        "proof": "tests/project/projectCanvasManager.test.ts."
+      }
+    },
+    {
+      "name": "ProjectCanvasManager.openOrCreate",
+      "path": "projectCanvasManager.ts",
+      "line": 455,
+      "module": "liga.gerente",
+      "summary": "Abre o canvas do projeto na mesma aba (o voltar retorna); `newTab` (Cmd/Ctrl), numa aba nova; `reveal: false` só cria e sincroniza, sem abrir aba. Projeto em repositório aninhado: o canvas nasce na área.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.createMissing",
+      "path": "projectCanvasManager.ts",
+      "line": 504,
+      "module": "liga.gerente",
+      "summary": "cria o canvas dos projetos que ainda não têm, só no computador.",
+      "card": {
+        "does": "cria o canvas dos projetos que ainda não têm, só no computador.",
+        "why": "no celular os canvas geridos não são gravados.",
+        "proof": "tests/project/projectCanvasManager.test.ts."
+      }
+    },
+    {
+      "name": "ProjectCanvasManager.projectOf",
+      "path": "projectCanvasManager.ts",
+      "line": 548,
+      "module": "liga.gerente",
+      "summary": "o projeto de um caminho: o do canvas dele, ou o da pasta que contém a nota; senão, `null`.",
+      "card": {
+        "does": "o projeto de um caminho: o do canvas dele, ou o da pasta que contém a nota; senão, `null`.",
+        "proof": "tests/project/projectCanvasManager.test.ts."
+      }
+    },
+    {
+      "name": "ProjectCanvasManager.newSmart",
+      "path": "projectCanvasManager.ts",
+      "line": 558,
+      "module": "liga.gerente",
+      "summary": "Abre o protocolo de SMART do cofre (o papel `criar_smart`) já com o projeto escolhido.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.newAction",
+      "path": "projectCanvasManager.ts",
+      "line": 571,
+      "module": "liga.gerente",
+      "summary": "Abre o protocolo de ação atômica do cofre já com a SMART mãe escolhida. A semana da SMART vai junto (`tarefa_smart_prop_week`, como o seletor faria):",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.projectForCanvas",
+      "path": "projectCanvasManager.ts",
+      "line": 632,
+      "module": "liga.gerente",
+      "summary": "O projeto (ou departamento) dono deste canvas, pelo resolvedor e pelo portfólio já lido.",
+      "card": {}
+    },
+    {
+      "name": "ProjectCanvasManager.openSmarts",
+      "path": "projectCanvasManager.ts",
+      "line": 638,
+      "module": "liga.gerente",
+      "summary": "SMART abertas do projeto, para escolher a mãe de uma ação nova.",
+      "card": {}
+    },
+    {
+      "name": "fold",
+      "path": "projectCanvasModel.ts",
+      "line": 77,
+      "module": "fn.modelo",
+      "summary": "o texto dobrado para comparar: sem acento, minúsculo e sem os espaços das pontas.",
+      "card": {
+        "does": "o texto dobrado para comparar: sem acento, minúsculo e sem os espaços das pontas.",
+        "why": "um nome de projeto casa com o link mesmo quando a caixa e o acento mudam.",
+        "proof": "tests/project/projectCanvasModel.test.ts."
+      }
+    },
+    {
+      "name": "linkTarget",
+      "path": "projectCanvasModel.ts",
+      "line": 82,
+      "module": "fn.modelo",
+      "summary": "`[[Pasta/Nota|alias]]` → `Nota`.",
+      "card": {}
+    },
+    {
+      "name": "projectKeys",
+      "path": "projectCanvasModel.ts",
+      "line": 88,
+      "module": "fn.modelo",
+      "summary": "Nomes pelos quais as tarefas apontam o projeto: o nome e a nota-índice (menos `README`).",
+      "card": {}
+    },
+    {
+      "name": "smartChildren",
+      "path": "projectCanvasModel.ts",
+      "line": 106,
+      "module": "fn.modelo",
+      "summary": "As ações de uma SMART: toda tarefa que não é SMART e aponta para ela em `projects`, de qualquer status. Uma regra só para a zona do projeto, o bloco da semana e o cartão; a ação com duas mães conta nas duas.",
+      "card": {}
+    },
+    {
+      "name": "hasOpenMother",
+      "path": "projectCanvasModel.ts",
+      "line": 116,
+      "module": "fn.modelo",
+      "summary": "A ação tem alguma SMART mãe aberta, em qualquer projeto? É a regra do menu fora de canvas de projeto; dentro dele vale `hasOpenMotherIn` (só as mães do projeto). `smarts`: as SMART do vault pela chave `fold(basename)`.",
+      "card": {}
+    },
+    {
+      "name": "hasOpenMotherIn",
+      "path": "projectCanvasModel.ts",
+      "line": 128,
+      "module": "fn.modelo",
+      "summary": "A ação tem SMART mãe aberta **neste projeto** (`keys`: `projectKeys` dele)?",
+      "card": {}
+    },
+    {
+      "name": "offersLinkToSmart",
+      "path": "projectCanvasModel.ts",
+      "line": 158,
+      "module": "fn.modelo",
+      "summary": "O menu do nó oferece \"Ligar a uma SMART…\" para esta ação aberta?",
+      "card": {}
+    },
+    {
+      "name": "smartOptionsFor",
+      "path": "projectCanvasModel.ts",
+      "line": 177,
+      "module": "fn.modelo",
+      "summary": "As SMART abertas que podem ser mãe da ação: as do projeto dela, direto ou pela mãe (aberta ou encerrada). Ordem por nome, para o seletor; com `prefer` (os `projectKeys` do canvas de onde veio o pedido), as SMART desse projeto vêm primeiro.",
+      "card": {}
+    },
+    {
+      "name": "collectProjectTasks",
+      "path": "projectCanvasModel.ts",
+      "line": 195,
+      "module": "fn.modelo",
+      "summary": "Monta a árvore do projeto a partir das tarefas do vault.",
+      "card": {}
+    },
+    {
+      "name": "projectUnits",
+      "path": "projectCanvasModel.ts",
+      "line": 257,
+      "module": "fn.modelo",
+      "summary": "As unidades de um projeto (a conta do trimestre, da zona, do cartão e do painel):",
+      "card": {}
+    },
+    {
+      "name": "projectProgress",
+      "path": "projectCanvasModel.ts",
+      "line": 275,
+      "module": "fn.modelo",
+      "summary": "\"Quanto falta\" de um projeto — uma conta só, para o trimestre, a zona, o cartão e o painel.",
+      "card": {}
+    },
+    {
+      "name": "progressText",
+      "path": "projectCanvasModel.ts",
+      "line": 291,
+      "module": "fn.modelo",
+      "summary": "A linha do projeto na forma de mostrar, pela função única:",
+      "card": {}
+    },
+    {
+      "name": "nodeIdFor",
+      "path": "projectCanvasModel.ts",
+      "line": 331,
+      "module": "fn.modelo",
+      "summary": "Id estável por caminho: a mesma tarefa mantém o mesmo nó entre sincronizações.",
+      "card": {}
+    },
+    {
+      "name": "projectHeaderText",
+      "path": "projectCanvasModel.ts",
+      "line": 368,
+      "module": "fn.modelo",
+      "summary": "O texto do nó `dfm-pc-proj`: o nome (com link para a nota-índice), a forma de mostrar do projeto (a mesma do trimestre e do painel, por `progressText`) e \"↑ 2026-Q4 · W42 · Uma área\".",
+      "card": {}
+    },
+    {
+      "name": "planProjectCanvas",
+      "path": "projectCanvasModel.ts",
+      "line": 395,
+      "module": "fn.modelo",
+      "summary": "o canvas novo de um projeto: o que o operador desenhou fica, e a zona gerida (o cabeçalho, as SMART e as ações, com as setas) é refeita abaixo dele ou no lugar da antiga; devolve o canvas e a contagem.",
+      "card": {
+        "does": "o canvas novo de um projeto: o que o operador desenhou fica, e a zona gerida (o cabeçalho, as SMART e as ações, com as setas) é refeita abaixo dele ou no lugar da antiga; devolve o canvas e a contagem.",
+        "why": "a sincronização é uma conta só, testável sem o Obsidian.",
+        "proof": "tests/project/projectCanvasModel.test.ts."
+      }
+    },
+    {
+      "name": "gitmodulePaths",
+      "path": "projectCanvasModel.ts",
+      "line": 533,
+      "module": "fn.modelo",
+      "summary": "Caminhos (`path = …`) declarados num `.gitmodules`.",
+      "card": {}
+    },
+    {
+      "name": "newProjectCanvas",
+      "path": "projectCanvasModel.ts",
+      "line": 549,
+      "module": "fn.modelo",
+      "summary": "O canvas de um projeto novo: título, índice, widget do projeto — a zona vem da sincronização.",
+      "card": {}
+    },
+    {
+      "name": "sameCanvas",
+      "path": "projectCanvasModel.ts",
+      "line": 559,
+      "module": "fn.modelo",
+      "summary": "Mesmo conteúdo? Evita regravar o canvas (e disparar o motor) sem necessidade.",
+      "card": {}
+    },
+    {
+      "name": "areaRootOf",
+      "path": "projectCanvasPath.ts",
+      "line": 39,
+      "module": "base",
+      "summary": "`100 - AREAS/03 - Uma área/200 - DEPARTMENTS/Um departamento` → `100 - AREAS/03 - Uma área`.",
+      "card": {}
+    },
+    {
+      "name": "conventionalCanvasPath",
+      "path": "projectCanvasPath.ts",
+      "line": 45,
+      "module": "base",
+      "summary": "O caminho de sempre: `<pasta>/<Nome>.canvas`.",
+      "card": {}
+    },
+    {
+      "name": "areaCanvasPath",
+      "path": "projectCanvasPath.ts",
+      "line": 50,
+      "module": "base",
+      "summary": "O caminho na área (`100 - AREAS/<área>/Canvases/<Nome>.canvas`), ou `null` fora de uma área.",
+      "card": {}
+    },
+    {
+      "name": "insideNestedRepo",
+      "path": "projectCanvasPath.ts",
+      "line": 56,
+      "module": "base",
+      "summary": "O caminho fica dentro de algum repositório git aninhado da lista?",
+      "card": {}
+    },
+    {
+      "name": "projectCanvasPath",
+      "path": "projectCanvasPath.ts",
+      "line": 70,
+      "module": "base",
+      "summary": "O canvas do projeto: o de sempre, ou o da área quando a pasta do projeto fica num repositório aninhado. `nestedRoots` são as raízes desses repositórios.",
+      "card": {}
+    },
+    {
+      "name": "projectCanvasCandidates",
+      "path": "projectCanvasPath.ts",
+      "line": 77,
+      "module": "base",
+      "summary": "Os dois caminhos em que o canvas de um projeto pode estar, para quem não sabe quais pastas são repositório.",
+      "card": {}
+    },
+    {
+      "name": "isProjectCanvasPath",
+      "path": "projectCanvasPath.ts",
+      "line": 84,
+      "module": "base",
+      "summary": "Este `.canvas` é do projeto (por qualquer um dos dois caminhos)?",
+      "card": {}
+    }
+  ]
+}

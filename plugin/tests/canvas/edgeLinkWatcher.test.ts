@@ -16,8 +16,13 @@ import type { CanvasLike, EdgeContext, LinkTask, Patch } from '../../src/canvas/
  * um vault de frontmatters em memória. Cada teste é uma lacuna do §10 do plano.
  */
 
-const Q = 'Quarterly/Canvases/2026-Q4.canvas';
-const W = 'Week/Canvases/2026-W42.canvas';
+// Dois canvas de projeto. As pontas de semana e de dia são as notas (nós de arquivo): a célula da semana e o
+// bloco do dia dos canvas aposentados do trimestre e da semana saíram em 06/11/2026.
+const Q = '100 - AREAS/Venda/Venda.canvas';
+const W = '100 - AREAS/Livro/Livro.canvas';
+const WEEK43 = '300 - RUNTIME/302 - Daymiss/Week/2026-W43.md';
+const DAY13 = '300 - RUNTIME/302 - Daymiss/Day/2026-10-13.md';
+const DAY14 = '300 - RUNTIME/302 - Daymiss/Day/2026-10-14.md';
 const acao = (basename: string): LinkTask => ({ path: `TaskNotes/Tasks/${basename}.md`, basename, type: 'task', projects: [] });
 const A = acao('Editar vídeo');
 const B = acao('Gravar vídeo');
@@ -27,18 +32,17 @@ const S2 = smartTask('Cadastrar lojas (W42)');
 
 const ctx: EdgeContext = {
     taskAt: p => [A, B, S1, S2].find(t => t.path === p) ?? null,
-    noteAt: () => null,
-    blockWeeks: { 'dfm-qs-': '2026-W42' },
+    noteAt: p => (p === WEEK43 ? { kind: 'week', week: '2026-W43' } : p === DAY13 ? { kind: 'day', date: '2026-10-13' } : p === DAY14 ? { kind: 'day', date: '2026-10-14' } : null),
     isSmartName: name => [S1, S2].some(t => t.basename === name),
 };
 
 const NODES = [
-    { id: 'dfm-qw-2026-W43', type: 'text', text: 'W43' },
-    { id: 'dfm-qs-a', type: 'file', file: A.path },
-    { id: 'dfm-qs-b', type: 'file', file: B.path },
-    { id: 'dfm-qs-nodate', type: 'text', text: '📥 sem dia' },
-    { id: 'dfm-qs-s1', type: 'file', file: S1.path },
-    { id: 'dfm-qs-s2', type: 'file', file: S2.path },
+    { id: 'semana-43', type: 'file', file: WEEK43 },
+    { id: 'dfm-pc-a', type: 'file', file: A.path },
+    { id: 'dfm-pc-b', type: 'file', file: B.path },
+    { id: 'dia-13', type: 'file', file: DAY13 },
+    { id: 'dfm-pc-s1', type: 'file', file: S1.path },
+    { id: 'dfm-pc-s2', type: 'file', file: S2.path },
     { id: 'minha-nota', type: 'text', text: 'pensamento do operador' },
 ];
 
@@ -112,10 +116,10 @@ function harness(opts: { nodes?: any[]; writes?: boolean; path?: string } = {}) 
 describe('linha de base (L1)', () => {
     it('é tirada ao instalar o embrulho: seta que já existia não grava; o primeiro gesto depois grava', async () => {
         const h = harness();
-        h.setRaw({ nodes: NODES, edges: [{ id: 'velha', fromNode: 'dfm-qw-2026-W43', toNode: 'dfm-qs-b' }] });
+        h.setRaw({ nodes: NODES, edges: [{ id: 'velha', fromNode: 'semana-43', toNode: 'dfm-pc-b' }] });
         h.watcher.attach(h.view);
         expect(h.watcher.hasBaseline(Q)).toBe(true);
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.gesture([['nova', 'semana-43', 'dfm-pc-a']]);
         expect(h.timers.size).toBe(1);
         await h.tick();
         expect(h.fm[A.path]).toEqual({ week: '2026-W43' });
@@ -127,7 +131,7 @@ describe('linha de base (L1)', () => {
     it('accept (toda sincronização, inclusive a igual) troca a base sem gravar', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        const synced = { nodes: NODES, edges: [{ id: 'dfm-qs-ew-a', fromNode: 'dfm-qw-2026-W43', toNode: 'dfm-qs-a' }, { id: 'do-operador', fromNode: 'dfm-qs-a', toNode: 'dfm-qs-b' }] };
+        const synced = { nodes: NODES, edges: [{ id: 'dfm-pc-ew-a', fromNode: 'semana-43', toNode: 'dfm-pc-a' }, { id: 'do-operador', fromNode: 'dfm-pc-a', toNode: 'dfm-pc-b' }] };
         h.setRaw(synced);
         h.watcher.accept(Q, synced);
         h.canvas.requestSave();
@@ -140,7 +144,7 @@ describe('linha de base (L1)', () => {
         h.setRaw({ nodes: [], edges: [] });
         h.watcher.attach(h.view);
         expect(h.watcher.hasBaseline(Q)).toBe(false);
-        h.setRaw({ nodes: NODES, edges: [{ id: 'e', fromNode: 'dfm-qw-2026-W43', toNode: 'dfm-qs-a' }] });
+        h.setRaw({ nodes: NODES, edges: [{ id: 'e', fromNode: 'semana-43', toNode: 'dfm-pc-a' }] });
         h.canvas.requestSave();
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
@@ -152,7 +156,7 @@ describe('comparação presa ao caminho (L2)', () => {
     it('a vista trocou de arquivo antes da espera terminar: a comparação é descartada', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.gesture([['nova', 'semana-43', 'dfm-pc-a']]);
         h.view.file = { path: W }; // mesma instância de canvas, outro arquivo (navegar na mesma aba)
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
@@ -162,7 +166,7 @@ describe('comparação presa ao caminho (L2)', () => {
         const h = harness();
         h.watcher.attach(h.view);
         h.view.file = { path: W };
-        h.canvas.setData({ nodes: NODES, edges: [{ id: 'da-semana', fromNode: 'dfm-qw-2026-W43', toNode: 'dfm-qs-a' }] });
+        h.canvas.setData({ nodes: NODES, edges: [{ id: 'da-semana', fromNode: 'semana-43', toNode: 'dfm-pc-a' }] });
         h.canvas.requestSave();
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
@@ -174,7 +178,7 @@ describe('recarga externa (L3)', () => {
     it('setData por mudança de fora (Sync, git) refaz a base sem gravar, e o requestSave seguinte não vê gesto', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.canvas.setData({ nodes: NODES, edges: [{ id: 'de-outro-aparelho', fromNode: 'dfm-qw-2026-W43', toNode: 'dfm-qs-a' }] });
+        h.canvas.setData({ nodes: NODES, edges: [{ id: 'de-outro-aparelho', fromNode: 'semana-43', toNode: 'dfm-pc-a' }] });
         h.canvas.requestSave(); // mover um nó, por exemplo
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
@@ -184,10 +188,10 @@ describe('recarga externa (L3)', () => {
         const h = harness();
         h.watcher.attach(h.view);
         (h.deps.context as any).mockImplementationOnce(async () => {
-            h.canvas.setData({ nodes: NODES, edges: [{ id: 'nova', fromNode: 'dfm-qw-2026-W43', toNode: 'dfm-qs-a' }, { id: 'externa', fromNode: 'dfm-qs-a', toNode: 'dfm-qs-b' }] });
+            h.canvas.setData({ nodes: NODES, edges: [{ id: 'nova', fromNode: 'semana-43', toNode: 'dfm-pc-a' }, { id: 'externa', fromNode: 'dfm-pc-a', toNode: 'dfm-pc-b' }] });
             return ctx;
         });
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.gesture([['nova', 'semana-43', 'dfm-pc-a']]);
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
     });
@@ -197,7 +201,7 @@ describe('espera (L4, L11)', () => {
     it('is-connecting é lido no fim da espera: ainda conectando, espera de novo; depois, compara', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.gesture([['nova', 'semana-43', 'dfm-pc-a']]);
         h.classes.add('is-connecting'); // o fim da conexão chama requestSave antes de tirar a classe
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
@@ -211,8 +215,8 @@ describe('espera (L4, L11)', () => {
     it('a espera é de 300 ms por caminho; gestos seguidos reagendam uma comparação só', () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.gesture([['e1', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
-        h.gesture([['e2', 'dfm-qw-2026-W43', 'dfm-qs-b']]);
+        h.gesture([['e1', 'semana-43', 'dfm-pc-a']]);
+        h.gesture([['e2', 'semana-43', 'dfm-pc-b']]);
         expect(DEBOUNCE_MS).toBe(300);
         expect(h.timers.size).toBe(1);
     });
@@ -220,7 +224,7 @@ describe('espera (L4, L11)', () => {
     it('flush roda a comparação pendente na hora e diz se gravou', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.gesture([['nova', 'dfm-qs-a', 'dfm-qs-b']]);
+        h.gesture([['nova', 'dfm-pc-a', 'dfm-pc-b']]);
         expect(h.watcher.hasPending(Q)).toBe(true);
         expect(await h.watcher.flush(Q)).toBe(true);
         expect(h.fm[B.path]).toEqual({ blockedBy: [`[[${A.basename}]]`] });
@@ -234,7 +238,7 @@ describe('o que grava e o que não grava', () => {
         const h = harness();
         h.fm[A.path] = { week: '2026-W41' };
         h.watcher.attach(h.view);
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.gesture([['nova', 'semana-43', 'dfm-pc-a']]);
         await h.tick();
         expect(h.fm[A.path].week).toBe('2026-W43');
         h.notes[0].undo!();
@@ -247,7 +251,7 @@ describe('o que grava e o que não grava', () => {
         const h = harness();
         h.fm[A.path] = { week: '2026-W41' };
         h.watcher.attach(h.view);
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.gesture([['nova', 'semana-43', 'dfm-pc-a']]);
         await h.tick();
         const r = h.notes[0].undo!() as unknown;
         expect(r).toBeInstanceOf(Promise);
@@ -258,7 +262,7 @@ describe('o que grava e o que não grava', () => {
     it('Ctrl+Z (applyHistory) também é observado', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.canvas.applyHistory({ nodes: NODES, edges: [{ id: 'refeita', fromNode: 'dfm-qw-2026-W43', toNode: 'dfm-qs-b' }] });
+        h.canvas.applyHistory({ nodes: NODES, edges: [{ id: 'refeita', fromNode: 'semana-43', toNode: 'dfm-pc-b' }] });
         await h.tick();
         expect(h.fm[B.path]).toEqual({ week: '2026-W43' });
     });
@@ -266,12 +270,12 @@ describe('o que grava e o que não grava', () => {
     it('seta sem sentido avisa uma vez, sem gravar', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-nodate']]);
+        h.gesture([['nova', 'semana-43', 'dia-13']]);
         await h.tick();
         h.canvas.requestSave();
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
-        expect(h.notes.map(n => n.text)).toEqual(['Seta W43 → sem dia fica só como desenho: esse par não muda campo.']);
+        expect(h.notes.map(n => n.text)).toEqual(['Seta W43 → ter 13 fica só como desenho: esse par não muda campo.']);
     });
 
     describe('canvas solto, sem zona gerida (Fase 6: o observador vale em todo canvas)', () => {
@@ -317,7 +321,7 @@ describe('o que grava e o que não grava', () => {
     it('no celular (L7) nada é gravado', async () => {
         const h = harness({ writes: false });
         h.watcher.attach(h.view);
-        h.gesture([['nova', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.gesture([['nova', 'semana-43', 'dfm-pc-a']]);
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
     });
@@ -337,8 +341,8 @@ describe('seta apagada desfaz (Fase 3)', () => {
         const h = harness();
         h.fm[B.path] = { blockedBy: [`[[${A.basename}]]`, '[[Outra]]'] };
         h.watcher.attach(h.view);
-        h.synced([['dfm-qs-d-1', 'dfm-qs-a', 'dfm-qs-b']]);
-        h.erase(['dfm-qs-d-1']);
+        h.synced([['dfm-pc-d-1', 'dfm-pc-a', 'dfm-pc-b']]);
+        h.erase(['dfm-pc-d-1']);
         await h.tick();
         expect(h.fm[B.path]).toEqual({ blockedBy: ['[[Outra]]'] });
         expect(h.notes.map(n => n.text)).toEqual(['Desligado: Editar vídeo ↛ Gravar vídeo (não bloqueia mais)']);
@@ -353,7 +357,7 @@ describe('seta apagada desfaz (Fase 3)', () => {
         const h = harness();
         h.fm[A.path] = { week: '2026-W43' };
         h.watcher.attach(h.view);
-        h.synced([['minha', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.synced([['minha', 'semana-43', 'dfm-pc-a']]);
         h.erase(['minha']);
         await h.tick();
         expect(h.fm[A.path]).toEqual({});
@@ -364,8 +368,8 @@ describe('seta apagada desfaz (Fase 3)', () => {
         const h = harness();
         h.fm[B.path] = { blockedBy: [`[[${A.basename}]]`] };
         h.watcher.attach(h.view);
-        h.synced([['dfm-qs-d-1', 'dfm-qs-a', 'dfm-qs-b'], ['dfm-qs-ea-b', 'dfm-qs-s1', 'dfm-qs-b']]);
-        h.erase(['dfm-qs-b']);
+        h.synced([['dfm-pc-d-1', 'dfm-pc-a', 'dfm-pc-b'], ['dfm-pc-ea-b', 'dfm-pc-s1', 'dfm-pc-b']]);
+        h.erase(['dfm-pc-b']);
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
     });
@@ -374,8 +378,8 @@ describe('seta apagada desfaz (Fase 3)', () => {
         const h = harness();
         h.fm[A.path] = { projects: [`[[${S1.basename}]]`] };
         h.watcher.attach(h.view);
-        h.synced([['dfm-qs-ea-a', 'dfm-qs-s1', 'dfm-qs-a']]);
-        h.setRaw({ nodes: NODES, edges: [{ id: 'dfm-qs-ea-a', fromNode: 'dfm-qs-s2', toNode: 'dfm-qs-a' }] });
+        h.synced([['dfm-pc-ea-a', 'dfm-pc-s1', 'dfm-pc-a']]);
+        h.setRaw({ nodes: NODES, edges: [{ id: 'dfm-pc-ea-a', fromNode: 'dfm-pc-s2', toNode: 'dfm-pc-a' }] });
         h.canvas.requestSave();
         await h.tick();
         expect(h.fm[A.path]).toEqual({ projects: [`[[${S2.basename}]]`] });
@@ -386,8 +390,8 @@ describe('seta apagada desfaz (Fase 3)', () => {
         const h = harness();
         h.fm[A.path] = { projects: [`[[${S1.basename}]]`] };
         h.watcher.attach(h.view);
-        h.synced([['dfm-qs-ea-a', 'dfm-qs-s1', 'dfm-qs-a']]);
-        h.erase(['dfm-qs-ea-a']);
+        h.synced([['dfm-pc-ea-a', 'dfm-pc-s1', 'dfm-pc-a']]);
+        h.erase(['dfm-pc-ea-a']);
         await h.tick();
         expect(h.fm[A.path]).toEqual({ projects: ['[[Venda]]'] });
     });
@@ -399,8 +403,8 @@ describe('Ctrl+Z de uma sincronização não grava (L5)', () => {
         h.fm[B.path] = { blockedBy: [`[[${A.basename}]]`] };
         h.watcher.attach(h.view);
         // A sincronização desenhou o "bloqueia" porque o blockedBy foi posto pelo TaskNotes.
-        h.synced([['minha', 'minha-nota', 'dfm-qs-a'], ['dfm-qs-d-1', 'dfm-qs-a', 'dfm-qs-b']]);
-        h.canvas.applyHistory({ nodes: NODES, edges: [{ id: 'minha', fromNode: 'minha-nota', toNode: 'dfm-qs-a' }] });
+        h.synced([['minha', 'minha-nota', 'dfm-pc-a'], ['dfm-pc-d-1', 'dfm-pc-a', 'dfm-pc-b']]);
+        h.canvas.applyHistory({ nodes: NODES, edges: [{ id: 'minha', fromNode: 'minha-nota', toNode: 'dfm-pc-a' }] });
         h.canvas.requestSave(); // o canvas salva logo depois: a marca do histórico fica
         await h.tick();
         expect(h.deps.write).not.toHaveBeenCalled();
@@ -415,7 +419,7 @@ describe('Ctrl+Z de uma sincronização não grava (L5)', () => {
         const h = harness();
         h.fm[A.path] = { week: '2026-W43' };
         h.watcher.attach(h.view);
-        h.synced([['minha', 'dfm-qw-2026-W43', 'dfm-qs-a']]);
+        h.synced([['minha', 'semana-43', 'dfm-pc-a']]);
         h.canvas.applyHistory({ nodes: NODES, edges: [] });
         await h.tick();
         expect(h.fm[A.path]).toEqual({});
@@ -425,8 +429,8 @@ describe('Ctrl+Z de uma sincronização não grava (L5)', () => {
         const h = harness();
         h.fm[B.path] = { blockedBy: [`[[${A.basename}]]`] };
         h.watcher.attach(h.view);
-        h.synced([['dfm-qs-d-1', 'dfm-qs-a', 'dfm-qs-b']]);
-        h.erase(['dfm-qs-d-1']);
+        h.synced([['dfm-pc-d-1', 'dfm-pc-a', 'dfm-pc-b']]);
+        h.erase(['dfm-pc-d-1']);
         await h.tick();
         expect(h.fm[B.path]).toEqual({});
     });
@@ -437,8 +441,8 @@ describe('menu da seta: "DFM · Desligar vínculo"', () => {
         const h = harness();
         h.fm[A.path] = { projects: [`[[${S1.basename}]]`] };
         h.watcher.attach(h.view);
-        h.synced([['dfm-qs-ea-a', 'dfm-qs-s1', 'dfm-qs-a']]);
-        expect(await h.watcher.unlinkEdge(h.view, { id: 'dfm-qs-ea-a' })).toBe(true);
+        h.synced([['dfm-pc-ea-a', 'dfm-pc-s1', 'dfm-pc-a']]);
+        expect(await h.watcher.unlinkEdge(h.view, { id: 'dfm-pc-ea-a' })).toBe(true);
         expect(h.canvas.removeEdge).toHaveBeenCalledTimes(1);
         await h.tick();
         expect(h.fm[A.path]).toEqual({ projects: ['[[Venda]]'] });
@@ -448,7 +452,7 @@ describe('menu da seta: "DFM · Desligar vínculo"', () => {
     it('seta-anotação não é apagada: o aviso diz que ela não liga campo', async () => {
         const h = harness();
         h.watcher.attach(h.view);
-        h.synced([['minha', 'minha-nota', 'dfm-qs-a']]);
+        h.synced([['minha', 'minha-nota', 'dfm-pc-a']]);
         expect(await h.watcher.unlinkEdge(h.view, { id: 'minha' })).toBe(false);
         expect(h.canvas.removeEdge).not.toHaveBeenCalled();
         expect(h.notes.map(n => n.text)).toEqual(['Esta seta não liga nenhum campo: fica só como desenho.']);
@@ -457,8 +461,8 @@ describe('menu da seta: "DFM · Desligar vínculo"', () => {
     it('no celular não faz nada', async () => {
         const h = harness({ writes: false });
         h.watcher.attach(h.view);
-        h.synced([['dfm-qs-ea-a', 'dfm-qs-s1', 'dfm-qs-a']]);
-        expect(await h.watcher.unlinkEdge(h.view, { id: 'dfm-qs-ea-a' })).toBe(false);
+        h.synced([['dfm-pc-ea-a', 'dfm-pc-s1', 'dfm-pc-a']]);
+        expect(await h.watcher.unlinkEdge(h.view, { id: 'dfm-pc-ea-a' })).toBe(false);
         expect(h.canvas.removeEdge).not.toHaveBeenCalled();
     });
 });
@@ -468,20 +472,20 @@ describe('seta-anotação na sincronização (keepEdge)', () => {
         const h = harness();
         const keep = await h.watcher.keepEdgeFor(Q);
         const n = (id: string) => NODES.find(x => x.id === id)!;
-        expect(keep({}, n('minha-nota'), n('dfm-qs-a'))).toBe(true);
-        expect(keep({}, n('dfm-qs-s1'), n('dfm-qs-a'))).toBe(false);
+        expect(keep({}, n('minha-nota'), n('dfm-pc-a'))).toBe(true);
+        expect(keep({}, n('dfm-pc-s1'), n('dfm-pc-a'))).toBe(false);
         expect(h.deps.context).toHaveBeenCalledWith(Q);
     });
 });
 
 describe('fluxo de criação: o aviso da seta dia → ação diz a carga do dia', () => {
-    const nodes = [...NODES, { id: 'dfm-qs-day-2026-10-14', type: 'text', text: 'qua 14' }];
+    const nodes = [...NODES, { id: 'dia-14', type: 'file', file: DAY14 }];
 
     it('acrescenta o complemento de `linkNote` ao aviso da seta gravada', async () => {
         const h = harness({ nodes });
         h.deps.linkNote = vi.fn(() => ' · o dia passa de 2 h (3 h agendadas)');
         h.watcher.attach(h.view);
-        h.gesture([['d', 'dfm-qs-day-2026-10-14', 'dfm-qs-a']]);
+        h.gesture([['d', 'dia-14', 'dfm-pc-a']]);
         await h.tick();
         expect(h.fm[A.path].scheduled).toBe('2026-10-14');
         expect(h.notes.at(-1)!.text).toMatch(/→ qua 14 .* · o dia passa de 2 h \(3 h agendadas\)$/);
@@ -492,7 +496,7 @@ describe('fluxo de criação: o aviso da seta dia → ação diz a carga do dia'
         const h = harness({ nodes });
         h.deps.linkNote = vi.fn(async () => { throw new Error('sem índice'); });
         h.watcher.attach(h.view);
-        h.gesture([['d', 'dfm-qs-day-2026-10-14', 'dfm-qs-a']]);
+        h.gesture([['d', 'dia-14', 'dfm-pc-a']]);
         await h.tick();
         expect(h.fm[A.path].scheduled).toBe('2026-10-14');
         expect(h.notes.at(-1)!.text).toMatch(/→ qua 14 \(W42\)$/);

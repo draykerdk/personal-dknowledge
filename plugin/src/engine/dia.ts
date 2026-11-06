@@ -115,3 +115,25 @@ export function partesDoDia(texto: string): { ano: number; mes: number; dia: num
 export function diaDoArquivo(nome: string): string {
     return nome.endsWith('.md') && DIA.test(nome.slice(0, -3)) ? nome.slice(0, -3) : '';
 }
+
+/**
+ * O que faz: o carimbo de um momento na forma do TaskNotes (`2026-10-28T10:00:00.000-03:00`): o dia,
+ * a hora com os milissegundos e o fuso do relógio local.
+ * Por quê: o criador único de tarefa (o diagnóstico do fluxo SMART, D5, 05/11): o `dateCreated` saía
+ * em quatro formas (o dia só, a hora sem os milissegundos, `Z`, a do TaskNotes); a API do TaskNotes
+ * grava esta, e a volta pelo cofre e as notas do protocolo gravam a mesma. Também a hora das datas da
+ * reputação (a marca do hábito), que pedem o momento e não só o dia.
+ * Entra → sai: um `Date` (o relógio chega pela borda) → o texto.
+ * Erro e ataque: data inválida dá ''; fuso de meia hora (`+05:30`) sai com os minutos; fuso negativo
+ * com o sinal.
+ * Prova: tests/engine/dia.test.ts ("o carimbo").
+ */
+export function carimboDoMomento(momento: Date): string {
+    if (!(momento instanceof Date) || Number.isNaN(momento.getTime())) return '';
+    const dois = (n: number) => String(Math.abs(n)).padStart(2, '0');
+    const fuso = -momento.getTimezoneOffset();
+    const sinal = fuso >= 0 ? '+' : '-';
+    const dia = `${momento.getFullYear()}-${dois(momento.getMonth() + 1)}-${dois(momento.getDate())}`;
+    const hora = `${dois(momento.getHours())}:${dois(momento.getMinutes())}:${dois(momento.getSeconds())}.${String(momento.getMilliseconds()).padStart(3, '0')}`;
+    return `${dia}T${hora}${sinal}${dois(Math.floor(Math.abs(fuso) / 60))}:${dois(Math.abs(fuso) % 60)}`;
+}

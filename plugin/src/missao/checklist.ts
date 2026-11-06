@@ -21,14 +21,16 @@ export const idDoItem = (caminho: string, linha: number) => `k:${caminho}#${linh
  * Por quê: itens de checklist com links internos aparecem no ramo e no painel como a pessoa os lê, enquanto a
  * marcação continua conferindo a linha crua da nota (`marcarItem`).
  * Entra → sai: o texto cru do item → o texto com cada `[[...]]` trocado pelo rótulo ou pelo nome sem o caminho.
- * Erro e ataque: sem `[[...]]`, devolve o próprio texto; links vazios `[[]]` ficam vazios.
+ * O negrito (`**…**`, `__…__`) sai também: o item da 🔎 Conferência ("**A fonte primária.** O site…") aparecia com
+ * os asteriscos no painel e no ramo (a percorrida de 06/11).
+ * Erro e ataque: sem `[[...]]`, devolve o próprio texto; links vazios `[[]]` ficam vazios; o `**` sem par fica.
  * Prova: tests/missao/checklist.test.ts.
  */
 export function textoLimpoDoItem(texto: string): string {
     return String(texto ?? '').replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, alvo: string, rotulo?: string) => {
         const limpo = (rotulo ?? alvo ?? '').trim();
         return rotulo ? limpo : (limpo.split('/').pop() ?? limpo).replace(/\.md$/i, '');
-    });
+    }).replace(/\*\*(.+?)\*\*|__(.+?)__/g, (_, a?: string, b?: string) => a ?? b ?? '');
 }
 
 /** Um item da checklist: a linha (0 = a primeira do arquivo), se está marcado e o texto. */
@@ -64,15 +66,18 @@ function linhasDeItem(linhas: readonly string[]): number[] {
 /**
  * O que faz: os itens da checklist de uma nota, na ordem do texto.
  * Entra → sai: o texto da nota → os itens (vazio sem checklist).
- * Erro e ataque: o frontmatter e os blocos de código não têm item; o texto que não é texto dá vazio.
+ * Erro e ataque: o frontmatter e os blocos de código não têm item; o item sem texto (o lugar vazio do modelo)
+ * não conta; o texto que não é texto dá vazio.
  */
 export function checklistDoTexto(texto: string): ItemDaChecklist[] {
     if (typeof texto !== 'string') return [];
     const linhas = linhasDe(texto);
+    // O item sem texto é o lugar vazio do modelo da nota (o "- [ ] " do 📋 Checklist da TaskNote nova): não é um
+    // item, e o painel mostrava uma caixa sem nada ao lado (a percorrida de 06/11).
     return linhasDeItem(linhas).map(i => {
         const m = ITEM.exec(semCR(linhas[i]))!;
         return { linha: i, feito: m[2] !== ' ', texto: m[4].trim() };
-    });
+    }).filter(item => item.texto !== '');
 }
 
 /**

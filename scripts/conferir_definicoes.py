@@ -5,7 +5,8 @@ O que faz: lê `config-padrao/definicoes.padrao.json` e `config-padrao/README.md
 cada campo do esquema (as folhas; as chaves que começam com `_` são comentários) tem a sua linha
 na tabela dos campos, que cada papel de `protocolos_por_papel` tem a sua linha na tabela dos
 papéis, que nenhuma linha da tabela nomeia um campo que não existe, e que os padrões são neutros
-(textos vazios, listas e objetos vazios, menos as pastas, os arquivos, a porta da ponte e os papéis da v0).
+(textos vazios, listas e objetos vazios, menos as pastas, os arquivos, a porta da ponte, os papéis da v0
+e as chaves da trilha de uso).
 
 Por quê: o esquema e a documentação andam juntos; um campo novo sem o porquê, ou uma linha que
 ficou de um campo que saiu, é ponta solta.
@@ -23,7 +24,8 @@ import tempfile
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-NAO_NEUTROS = ("pastas.", "arquivos.", "protocolos_por_papel.", "versao", "ponte.porta")
+# a trilha de uso liga e desliga partes da tela e diz horas e números: comportamento, nada da pessoa
+NAO_NEUTROS = ("pastas.", "arquivos.", "protocolos_por_papel.", "versao", "ponte.porta", "trilha.")
 
 
 def folhas(d, prefixo=""):

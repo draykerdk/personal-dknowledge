@@ -15,6 +15,11 @@ import type { ProjectProgress } from '../project/projectCanvasModel';
 import { quarterPeriod } from '../engine/calendario';
 import { showGrammar, workHorizon, type GrammarUnit, type ShownGrammar } from '../engine/showGrammar';
 import { ehTrimestre } from '../engine/periodo';
+import { portaDoPeriodo } from '../missao/estadoTela';
+import { PORTAS } from '../missao/frases';
+import { idDoProjeto } from '../missao/linhagem';
+import { RAMO_DE_PARTIDA } from '../missao/ramoPrincipal';
+import type { EstadoDaMissao } from '../missao/view/componente';
 
 export type Tone = 'neutral' | 'accent' | 'good' | 'warn' | 'bad' | 'muted';
 
@@ -420,4 +425,46 @@ export function tasksModel(snapshot: MissionSnapshot, spec: Pick<BoardWidgetSpec
         items: sorted.slice(0, spec.limite).map(t => toTaskItem(t, snapshot.today, { hideProject: Boolean(spec.projeto) })),
         total: sorted.length,
     };
+}
+
+/* ------------------------------------------------------------ o atalho da Missão (item 8 do roteiro) */
+
+/** O que o lugar do bloco `tipo: missao` sabe de si: o projeto do canvas de projeto e o nome do arquivo (sem extensão). */
+export interface ContextoDoAtalho {
+    /** O projeto do canvas de projeto onde o bloco mora (`projectForCanvas`); `null` = não é canvas de projeto. */
+    projeto?: string | null;
+    /** O nome do canvas ou da nota (a Week e a nota do trimestre se chamam pelo período). */
+    nome?: string | null;
+}
+
+/** O atalho: o texto do botão, a frase de para onde ele leva e o estado em que a Missão abre (`null` = como estava). */
+export interface AtalhoDaMissao { rotulo: string; texto: string; estado: EstadoDaMissao | null }
+
+/**
+ * O que faz: para onde o bloco `tipo: missao` de um canvas (ou de uma nota) leva: no canvas de projeto,
+ * a Missão com o zoom no projeto (o ramo dele, onde se planeja); no canvas ou na nota de um período (a
+ * Week, a nota do trimestre, os canvas arquivados de período), a Missão naquele período, pela mesma porta
+ * dos comandos (`portaDoPeriodo`); nos outros, a Missão no ramo pedido (`ramo_principal`), ou como estava.
+ * Por quê: a Missão no canvas é só um atalho para um ramo ou uma escala (Arquitetura e
+ * Roteiro, §4); o item 8 do roteiro. O widget só dizia de onde abrir a Missão (o inventário da
+ * aposentadoria, 3.6).
+ * Entra → sai: o bloco lido e o contexto do lugar → o rótulo, a frase e o estado (o mesmo `openMissao`
+ * das portas).
+ * Erro e ataque: o projeto vale antes do nome (o canvas de projeto não se chama pelo período); o nome
+ * que só contém um período (uma TaskNote com a semana no título) não é de período; o ramo de partida
+ * não vai no estado (a aba fica no dela).
+ * Prova: tests/board/missaoAtalho.test.ts.
+ */
+export function atalhoDaMissao(spec: Pick<BoardWidgetSpec, 'ramoPrincipal'>, ctx: ContextoDoAtalho = {}): AtalhoDaMissao {
+    const ramoPrincipal = spec.ramoPrincipal && spec.ramoPrincipal !== RAMO_DE_PARTIDA ? spec.ramoPrincipal : null;
+    const base = { abrirTudo: false, aberto: null, onde: null, ...(ramoPrincipal ? { ramoPrincipal } : {}) };
+    const projeto = String(ctx.projeto ?? '').trim();
+    if (projeto) {
+        const id = idDoProjeto(projeto);
+        return { rotulo: PORTAS.atalho.projeto(projeto), texto: PORTAS.atalho.doProjeto, estado: { ...base, escala: 'semana', foco: '', selecionado: id, zoom: id } };
+    }
+    const porta = portaDoPeriodo(ctx.nome);
+    if (porta) return { rotulo: PORTAS.atalho.periodo(porta.foco), texto: PORTAS.atalho.doPeriodo, estado: { ...base, escala: porta.escala, foco: porta.foco, selecionado: porta.selecionado } };
+    if (ramoPrincipal) return { rotulo: PORTAS.atalho.ramo(ramoPrincipal), texto: PORTAS.atalho.doRamo, estado: { ...base, escala: 'semana', foco: '', selecionado: null } };
+    return { rotulo: PORTAS.atalho.missao, texto: PORTAS.atalho.daMissao, estado: null };
 }

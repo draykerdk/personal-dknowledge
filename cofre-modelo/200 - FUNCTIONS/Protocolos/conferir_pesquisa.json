@@ -1,0 +1,53 @@
+{
+    "id": "conferir_pesquisa",
+    "name": "🔎 Conferir uma pesquisa",
+    "icon": "search-check",
+    "description": "Leva a lista de verificação da pesquisa para a nota da tarefa de pesquisa (a TaskNote com a tag `pesquisa`): cada item do 📋 Planejar da lista entra na seção 🔎 Conferência da tarefa, aberto, com quem confere (🤖 o agente, 👤 você, 🤝 os dois). Na Missão, cada item vira um nó do ramo da tarefa e se marca ali. Rodar de novo só acrescenta o item que falta; o já marcado fica como está. A lista mora só na nota dela (`200 - FUNCTIONS/Checklists/🔎 Conferir uma pesquisa.md`): mudar lá muda as próximas conferências.",
+    "useCurrentDate": true,
+    "logMode": "append",
+    "dailyTimestampFormat": "HH:mm",
+    "dailyLedgerLabel": "🔎 Conferir uma pesquisa",
+    "steps": [
+        {
+            "id": "tarefa",
+            "type": "suggest_note",
+            "prompt": "🔎 Qual pesquisa se confere?",
+            "info": "A tarefa com a tag `pesquisa`, aberta ou já concluída. A lista entra na seção 🔎 Conferência da nota dela; nada mais muda na tarefa.",
+            "placeholder": "A tarefa de pesquisa",
+            "folder": "TaskNotes",
+            "excludeArchive": false,
+            "criteria": {
+                "property": [
+                    {
+                        "key": "tags",
+                        "value": "pesquisa"
+                    }
+                ]
+            },
+            "allowAnyNote": false,
+            "allowFreeText": false,
+            "emptyMessage": "Nenhuma tarefa com a tag `pesquisa`: ponha a tag na tarefa e rode de novo.",
+            "required": true
+        }
+    ],
+    "template": "- 🔎 **Pesquisa em conferência:** {{tarefa_display}}",
+    "appendToSection": [
+        {
+            "path": "{{tarefa_path}}",
+            "allowedFolder": "TaskNotes",
+            "criarSecao": true,
+            "linhas": [
+                {
+                    "section": "## 🔎 Conferência",
+                    "checklistDe": {
+                        "path": "200 - FUNCTIONS/Checklists/🔎 Conferir uma pesquisa.md",
+                        "section": "## 📋 Planejar"
+                    }
+                }
+            ]
+        }
+    ],
+    "objetivo": "nenhuma pesquisa de agente aceita sem a conferência dos itens críticos",
+    "fase": "revisao",
+    "fase_uso": "nova"
+}

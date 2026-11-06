@@ -48,6 +48,14 @@ describe('ler a checklist', () => {
     });
 });
 
+describe('o lugar vazio do modelo da tarefa (a percorrida de 06/11)', () => {
+    it('o "- [ ] " sem texto não é item; os de texto ficam, com a linha deles', () => {
+        const nota = '---\nstatus: open\n---\n# T\n\n## 📋 Checklist\n- [ ] \n- [ ] A fonte primária\n';
+        expect(checklistDoTexto(nota)).toEqual([{ linha: 7, feito: false, texto: 'A fonte primária' }]);
+        expect(checklistDoTexto('## 📋 Checklist\n- [ ] \n')).toEqual([]);
+    });
+});
+
 describe('marcar um item: só aquela linha muda', () => {
     it('marca e desmarca, e nada mais da nota muda', () => {
         const r = marcarItem(NOTA, 8, true, 'passaporte');
@@ -105,6 +113,9 @@ describe('tirar o item acrescentado (o Desfazer)', () => {
     it('limpa os links [[alvo|rótulo]] e [[alvo]] para mostrar na tela', () => {
         expect(textoLimpoDoItem('Executar: [[200 - FUNCTIONS/Protocolos/X.md|📊 Novo Hub de Cidade]]')).toBe('Executar: 📊 Novo Hub de Cidade');
         expect(textoLimpoDoItem('Ver [[500 - RESOURCES/Pessoas/Ana.md]] hoje')).toBe('Ver Ana hoje');
+        // O negrito sai (06/11, os itens da 🔎 Conferência); o asterisco sem par fica.
+        expect(textoLimpoDoItem('🤖 **A fonte primária.** O site oficial')).toBe('🤖 A fonte primária. O site oficial');
+        expect(textoLimpoDoItem('__Data__ e 2 * 3')).toBe('Data e 2 * 3');
     });
 });
 

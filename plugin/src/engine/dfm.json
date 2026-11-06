@@ -21,11 +21,13 @@
         "protocolGroups.ts",
         "dia.ts",
         "periodo.ts",
-        "papeisDeProtocolo.ts"
+        "papeisDeProtocolo.ts",
+        "escritorDaDay.ts",
+        "avisoDeSync.ts"
       ],
       "role": "functions",
       "core": true,
-      "does": "Funções. O chão do motor: o vocabulário das tarefas (os lugares do campo `contexts` em taskContexts; o status, a prioridade e o impacto em taskSemantics), o nome de link de uma nota e o nome que um link escrito aponta (noteLink), a forma de mostrar os números (showGrammar), o grupo de um protocolo pelo prefixo do id (protocolGroups) e o dia escrito `AAAA-MM-DD`, a regex única do plugin inteiro, com as leituras do dia num texto maior: no começo, em qualquer lugar, com a hora, os números e o nome do arquivo da Day (dia), e a semana `AAAA-Www` e o trimestre `AAAA-Qn` escritos, também com um dono só (periodo); e os papéis de protocolo, a tabela papel → id que o código pede no lugar dos ids do cofre (papeisDeProtocolo).",
+      "does": "Funções. O chão do motor: o vocabulário das tarefas (os lugares do campo `contexts` em taskContexts; o status, a prioridade e o impacto em taskSemantics), o nome de link de uma nota e o nome que um link escrito aponta (noteLink), a forma de mostrar os números (showGrammar), o grupo de um protocolo pelo prefixo do id (protocolGroups) e o dia escrito `AAAA-MM-DD`, a regex única do plugin inteiro, com as leituras do dia num texto maior: no começo, em qualquer lugar, com a hora, os números e o nome do arquivo da Day (dia), e a semana `AAAA-Www` e o trimestre `AAAA-Qn` escritos, também com um dono só (periodo); os papéis de protocolo, a tabela papel → id que o código pede no lugar dos ids do cofre (papeisDeProtocolo); e o escritor da Day, a parte pura: onde o registro entra, a inserção sem repetir no dia e a linha da marca do hábito com a marca do id (escritorDaDay, 06/11); e o aviso de sync da Day ao abrir, que não avisa do que este aparelho gravou (avisoDeSync, 06/11).",
       "why": "Camada 0: tudo no motor pode ler daqui, e ela não lê nada do motor; sem Obsidian, sem cofre, sem relógio escondido.",
       "proof": [
         "cd ../.. && npx vitest run tests/contracts/livroNoSistemaEtapaC.test.ts tests/engine/nowTree.test.ts tests/engine/missionPlan.test.ts tests/engine/showGrammar.test.ts tests/engine/dia.test.ts tests/engine/diaNosLeitores.test.ts tests/engine/diaSemCopia.test.ts tests/engine/periodo.test.ts tests/engine/periodoSemCopia.test.ts tests/engine/papeisDeProtocolo.test.ts"
@@ -151,7 +153,8 @@
         "commitmentLeft.ts",
         "exposicoes.ts",
         "suportes.ts",
-        "teleprompter.ts"
+        "teleprompter.ts",
+        "paraGravar.ts"
       ],
       "role": "functions",
       "does": "Funções. Os leitores das notas e das Days: o registro com tipo (records), a leitura do diário da Day (diaryReader), o compromisso que o 🌙 deixou e o Comando do Dia que o ▶️ gravou (commitmentLeft; desde 02/11 com o compromisso deixado para hoje e o comando da Day, que o painel antigo e a Missão leem), as exposições da semana (exposicoes) e os Suportes e decisões de uma nota de período (suportes). E o teleprompter de um roteiro (teleprompter, 03/11): só a fala, do Gancho ao CTA, em linhas curtas para o celular, com as faltas ditas.",
@@ -183,13 +186,15 @@
       "id": "fn.contagens",
       "paths": [
         "ech.ts",
-        "reputacao.ts"
+        "reputacao.ts",
+        "usoDosGestos.ts",
+        "repeticao.ts"
       ],
       "role": "functions",
-      "does": "Funções. As contagens: as três contagens do ECH, a expansão, a complexidade e a harmonia (ech), e a base da reputação contextual, a grade ciclo × ECH com a meia-vida, a evidência e os níveis (reputacao).",
+      "does": "Funções. As contagens: as três contagens do ECH, a expansão, a complexidade e a harmonia (ech), e a base da reputação contextual, a grade ciclo × ECH com a meia-vida, a evidência e os níveis (reputacao), e o uso de um gesto do sistema em dias, pelos registros que já existem (usoDosGestos, 05/11: a trilha de uso e o critério uso da árvore). E a repetição do aprendizado (05/11, repeticao): a fila do dia, a escada dos intervalos, as contas dos níveis e o critério da Árvore, sobre as notas do tipo que declara o `aprendizado`.",
       "why": "Camada 4: contam sobre os leitores e os pesos; o serviço do núcleo entrega os fatos e mostra o resultado.",
       "proof": [
-        "cd ../.. && npx vitest run tests/engine/ech.test.ts tests/engine/reputacao.test.ts"
+        "cd ../.. && npx vitest run tests/engine/ech.test.ts tests/engine/reputacao.test.ts tests/engine/repeticao.test.ts"
       ]
     },
     {
@@ -386,7 +391,7 @@
         "habitLog.ts"
       ],
       "role": "module",
-      "does": "Liga módulos: o registro dos hábitos marcados pelo DFM (habitLog): o protocolo concluído, o Pomodoro, o Comando do Dia, o bloco do agora e o 📖 Pelo diário, cada marca uma data em `entries` da nota do hábito.",
+      "does": "Liga módulos: o registro dos hábitos marcados pelo DFM (habitLog): o protocolo concluído, o Pomodoro, o Comando do Dia, o bloco do agora e o 📖 Pelo diário, cada marca uma data em `entries` da nota do hábito e uma linha na Day do dia marcado, com a hora; e a marca à mão das três vistas (alternarDia, 06/11).",
       "why": "Camada 8: uma porta só grava a marca do hábito.",
       "proof": [
         "cd ../.. && npx vitest run tests/engine/habitLog.test.ts"
@@ -642,7 +647,7 @@
     {
       "from": "fn.contagens",
       "to": "base",
-      "carries": "DIA"
+      "carries": "DIA, protocoloDaMarca"
     },
     {
       "from": "fn.contagens",
@@ -678,6 +683,11 @@
       "from": "fn.leitores",
       "to": "fn.pesos",
       "carries": "dayOf, fieldText"
+    },
+    {
+      "from": "fn.leitores",
+      "to": "fn.modelos",
+      "carries": "camposComApelidos, campoDaDataDePublicacao, formatoDaNota; tipos: DomainModel, DomainState"
     },
     {
       "from": "fn.modelos",
@@ -722,7 +732,7 @@
     {
       "from": "liga.agora",
       "to": "base",
-      "carries": "DIA"
+      "carries": "DIA, carimboDoMomento"
     },
     {
       "from": "liga.agora",
@@ -762,7 +772,7 @@
     {
       "from": "liga.agora",
       "to": "fn.tarefas",
-      "carries": "comTipoNaCriacao"
+      "carries": "comTipoNaCriacao, frontmatterDaTarefaNova, frontmatterDoPedido, nomeDaTarefaNova, pedidoDoFrontmatter, PASTA_DAS_TAREFAS, textoDaTarefa; tipos: PedidoDeCriacao (a borda única do criador de tarefa, 05/11)"
     },
     {
       "from": "liga.canvas",
@@ -847,7 +857,12 @@
     {
       "from": "liga.habitos",
       "to": "base",
-      "carries": "DIA, diaNoTexto"
+      "carries": "DIA, diaNoTexto, inserirNaDay, linhaDaMarcaDoHabito, PASTA_DA_DAY, secaoDoRegistro, semAMarcaDoHabito"
+    },
+    {
+      "from": "liga.habitos",
+      "to": "fn.habitos",
+      "carries": "toggleEntry"
     },
     {
       "from": "liga.habitos",
@@ -942,12 +957,12 @@
     {
       "from": "liga.nucleo",
       "to": "fn.leitores",
-      "carries": "contarRegistros, EXPOSICAO_TIPO, exposicoesSemana, isRecordPathCounted, registrosDe, TRILHAS_EXPOSICAO; tipos: ConsultaRegistros, ExposicoesSemana, NotaComCampos"
+      "carries": "blocoParaGravar, CAMPOS_DA_PECA, contarRegistros, estadosDaGravacao, EXPOSICAO_TIPO, exposicoesSemana, falaDoTeleprompter, isRecordPathCounted, ordemParaGravar, pecasParaGravar, protocoloDoTeleprompter, registrosDe, teleprompterDoRoteiro, TRILHAS_EXPOSICAO; tipos: BotaoParaGravar, ConsultaRegistros, ExposicoesSemana, ModeloDaPeca, NotaComCampos, PecaLida, ProtocoloDoBotao"
     },
     {
       "from": "liga.nucleo",
       "to": "fn.modelos",
-      "carries": "domainModelPath, domainWeightProblems, domainWeightsOf, hasChoice, parseDomainModel; tipos: ChoiceModel, DomainModel"
+      "carries": "campoDaDataDePublicacao, DOMAIN_MODELS_FOLDER, domainModelPath, domainWeightProblems, domainWeightsOf, hasChoice, parseDomainModel; tipos: ChoiceModel, DomainModel"
     },
     {
       "from": "liga.nucleo",
@@ -1027,7 +1042,12 @@
     {
       "from": "liga.protocolo",
       "to": "base",
-      "carries": "DIA, diaNoInicio, TASK_CONTEXT_INFO, TASK_CONTEXT_QUESTION, TASK_CONTEXT_SKIP, TASK_CONTEXTS, taskContextsFrom, taskContextsYaml"
+      "carries": "carimboDoMomento, DIA, diaNoInicio, TASK_CONTEXT_INFO, TASK_CONTEXT_QUESTION, TASK_CONTEXT_SKIP, TASK_CONTEXTS, taskContextsFrom"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "ext.canvas",
+      "carries": "motherLink, patchFor; tipos: LinkTask"
     },
     {
       "from": "liga.protocolo",
@@ -1077,12 +1097,17 @@
     {
       "from": "liga.protocolo",
       "to": "fn.protocolo",
-      "carries": "aberturaDoPasso, acrescentarNaSecao, avisoDoProblema, chavesDaResposta, COMMONS_FOLDER, conditionMatches, declaraSugestao, defaultSourcesOf, ehPassoDeContextoGenerico, expandCommonSteps, fontesDaAbertura, listFromAnswer, ORIGEM_DO_FORMULARIO, parseCommon, passosContinuados, planWeekStart, problemaDaResposta, pulaNoSeletorDeNota, renderTemplateTokens, resolveClockTokens, resolveDateTokens, resolveWeekdayTokens, respondidoNoFormulario, RESPONDIDOS, respondidosDe, sugestaoDoPasso, targetQuarterStart, targetWeekStart, VALORES_INICIAIS, valoresIniciaisDe, weekStartFromValue; tipos: Abertura, CommonDef, ContextoDaRodada, ContextoDaSugestao, LeitorDoFormulario, PontosDaTarefa, ResolvedorDeSugestao, TokenClock"
+      "carries": "aberturaDoPasso, acrescentarNaSecao, avisoDoProblema, comSecao, itensDaSecao, textoDaSecao, chavesDaResposta, COMMONS_FOLDER, conditionMatches, declaraSugestao, defaultSourcesOf, ehPassoDeContextoGenerico, expandCommonSteps, fontesDaAbertura, listFromAnswer, ORIGEM_DO_FORMULARIO, parseCommon, passosContinuados, planWeekStart, problemaDaResposta, pulaNoSeletorDeNota, renderTemplateTokens, resolveClockTokens, resolveDateTokens, resolveWeekdayTokens, respondidoNoFormulario, RESPONDIDOS, respondidosDe, sugestaoDoPasso, targetQuarterStart, targetWeekStart, VALORES_INICIAIS, valoresIniciaisDe, weekStartFromValue; tipos: Abertura, CommonDef, ContextoDaRodada, ContextoDaSugestao, LeitorDoFormulario, PontosDaTarefa, ResolvedorDeSugestao, TokenClock"
     },
     {
       "from": "liga.protocolo",
       "to": "fn.tarefas",
-      "carries": "completeTaskFrontmatter"
+      "carries": "completeTaskFrontmatter, frontmatterDaTarefaNova, PASTA_DAS_TAREFAS, pedidoDoFrontmatter, PRIORIDADE_DA_TAREFA_NOVA, STATUS_DA_TAREFA_NOVA, TAG_DA_TAREFA, textoDaTarefa, TIPO_DA_TAREFA, valoresDoModelo"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "liga.agora",
+      "carries": "createTaskViaApi (o createTask e o Criar a que falta pela borda única do criador de tarefa, 05/11)"
     },
     {
       "from": "liga.protocolo",
@@ -1200,6 +1225,16 @@
       "carries": "blocoComMudanca, editarLista, editarTexto, SEPARADOR; tipos: Edicao (as respostas da inicialização pela mesma edição da aba, puras)"
     },
     {
+      "from": "fn.protocolo",
+      "to": "fn.modelos",
+      "carries": "campoDaDataDePublicacao, publicadaPeloModelo; tipos: DomainModel (o publicado da semana, 05/11)"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.modelos",
+      "carries": "DOMAIN_MODELS_FOLDER, parseDomainModel (as peças da rodada, 05/11)"
+    },
+    {
       "from": "compoe.agente",
       "to": "fn.protocolo",
       "carries": "acrescentarNaSecao, titulosDaNota"
@@ -1213,6 +1248,26 @@
       "from": "liga.operador",
       "to": "ext.definicoes",
       "carries": "definicoesDe, fusoDoSistema"
+    },
+    {
+      "from": "liga.progressao",
+      "to": "fn.contagens",
+      "carries": "criterioDeUso"
+    },
+    {
+      "from": "liga.progressao",
+      "to": "ext.definicoes",
+      "carries": "definicoesDe"
+    },
+    {
+      "from": "fn.contagens",
+      "to": "fn.modelos",
+      "carries": "tipos: DomainLearning, EstadoDoAprendizado, FilaDoAprendizado (a repetição lê o bloco do modelo, 05/11)"
+    },
+    {
+      "from": "liga.protocolo",
+      "to": "fn.contagens",
+      "carries": "filaDoDia, nomeDoCartao, proximoPasso; tipos: CartaoLido (o 🗣️ Inglês de hoje, 05/11)"
     }
   ]
 }

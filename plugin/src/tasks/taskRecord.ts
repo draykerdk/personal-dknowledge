@@ -55,6 +55,8 @@ export interface TaskRecord extends TaskInfo {
     destino?: string;
     /** O dia em que o 🔄 Revisar o trecho revisou a SMART (`revisado`, `AAAA-MM-DD`, 02/11); sem o campo, a chave não existe. */
     revisado?: string;
+    /** De onde a tarefa veio (`origem`: `registrar_feito`, `agente`, `arvore`…, 05/11, a trilha de uso a conta); sem o campo, a chave não existe. */
+    origem?: string;
 }
 
 export function listOf(raw: unknown): unknown[] {
@@ -98,6 +100,7 @@ export function toTaskRecord(path: string, basename: string, fm: Record<string, 
         ...(textOf(fm.criterio_suficiente) ? { criterioSuficiente: textOf(fm.criterio_suficiente) } : {}),
         ...(linkTarget(listOf(fm.destino)[0]) ? { destino: linkTarget(listOf(fm.destino)[0]) } : {}),
         ...(day(fm.revisado) ? { revisado: day(fm.revisado) } : {}),
+        ...(String(listOf(fm.origem)[0] ?? '').trim() ? { origem: String(listOf(fm.origem)[0]).trim() } : {}),
     };
 }
 

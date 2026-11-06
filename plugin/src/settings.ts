@@ -46,6 +46,11 @@ export interface DFMPluginSettings {
      * Sem o campo (o salvamento de hoje), valem os de partida, e nada muda.
      */
     definicoes?: { protocolos_por_papel?: Record<string, string | null> } & Record<string, unknown>;
+    /**
+     * O que a trilha de uso guarda (05/11/2026, `estadoDaTrilha` em `src/missao/trilha.ts`): as marcas dos gestos
+     * que não deixam outro rastro, as dicas da primeira vez já vistas e o último gesto da vez.
+     */
+    trilhaUso?: { marcas?: Record<string, string[]>; vistas?: string[]; gesto?: string };
 }
 
 export const DEFAULT_SETTINGS: DFMPluginSettings = {

@@ -13,7 +13,7 @@
  */
 
 import { taskColor, progressLine } from '../canvas/taskColor';
-import { operatorEdges } from '../canvas/managedIds';
+import { isManagedId, operatorEdges } from '../canvas/managedIds';
 import type { KeepEdge } from '../canvas/managedIds';
 import { dependencyEdges } from '../canvas/taskGraph';
 import { grammarCounts, grammarText, workHorizon, type GrammarCounts, type GrammarPeriod } from '../engine/showGrammar';
@@ -69,6 +69,11 @@ export const TERMINAL = new Set(['done', 'cancelled']);
 export const ZONE_PREFIX = 'dfm-pc-';
 export const ZONE_GROUP_ID = `${ZONE_PREFIX}zone`;
 
+/**
+ * O que faz: o texto dobrado para comparar: sem acento, minúsculo e sem os espaços das pontas.
+ * Por quê: um nome de projeto casa com o link mesmo quando a caixa e o acento mudam.
+ * Prova: tests/project/projectCanvasModel.test.ts.
+ */
 export function fold(value: string): string {
     return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
@@ -329,9 +334,8 @@ export function nodeIdFor(path: string): string {
     return `${ZONE_PREFIX}${h.toString(36)}`;
 }
 
-export function isManaged(id: string): boolean {
-    return id.startsWith(ZONE_PREFIX);
-}
+// O dono de cada nó (a zona gerida ou o operador) é a regra única `isManagedId` (`canvas/managedIds.ts`):
+// a `isManaged` daqui, só com o `dfm-pc-`, saiu em 05/11 (um jeito por função); o plano refaz só a zona.
 
 export interface PlanResult {
     data: CanvasData;
@@ -382,14 +386,20 @@ export interface PlanOptions {
     header?: ProjectHeader;
 }
 
+/**
+ * O que faz: o canvas novo de um projeto: o que o operador desenhou fica, e a zona gerida (o cabeçalho, as
+ * SMART e as ações, com as setas) é refeita abaixo dele ou no lugar da antiga; devolve o canvas e a contagem.
+ * Por quê: a sincronização é uma conta só, testável sem o Obsidian.
+ * Prova: tests/project/projectCanvasModel.test.ts.
+ */
 export function planProjectCanvas(current: CanvasData, project: ProjectInfo, tree: ProjectTasks, opts: PlanOptions = {}): PlanResult {
-    const nodes = (current.nodes ?? []).filter(n => !isManaged(n.id));
+    const nodes = (current.nodes ?? []).filter(n => !isManagedId(n.id));
 
     // Tarefas que o operador pôs fora da zona continuam lá, e não entram de novo.
     const outside = new Set(nodes.filter(n => n.type === 'file' && n.file).map(n => n.file as string));
     const oldZone = (current.nodes ?? []).find(n => n.id === ZONE_GROUP_ID);
     // A cor é do formatador de canvas (só o status; a prioridade não pinta): a zona só preserva a que já havia.
-    const oldColor = new Map((current.nodes ?? []).filter(n => isManaged(n.id) && n.color).map(n => [n.id, n.color as string]));
+    const oldColor = new Map((current.nodes ?? []).filter(n => isManagedId(n.id) && n.color).map(n => [n.id, n.color as string]));
 
     let origin: { x: number; y: number };
     if (oldZone) origin = { x: oldZone.x, y: oldZone.y };
@@ -510,7 +520,7 @@ export function planProjectCanvas(current: CanvasData, project: ProjectInfo, tre
     // Seta do operador fora da zona fica, até uma órfã (limpar o canvas dele não é
     // trabalho desta sincronização); a que toca a zona fica se é anotação e as duas
     // pontas continuam (Fase 3); a com sentido de dado vira a seta gerida.
-    const edges = operatorEdges(current.edges ?? [], next, isManaged, opts.keepEdge);
+    const edges = operatorEdges(current.edges ?? [], next, isManagedId, opts.keepEdge);
     return {
         data: { ...current, nodes: next, edges: [...edges, ...zoneEdges] },
         stats,

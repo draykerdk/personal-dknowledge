@@ -1,7 +1,7 @@
 /**
  * A gaveta dos protocolos do ciclo na tela (P12b): a cabeça (o modo, o período, o nome do
  * protocolo), o plano do período, os campos do formulário com o valor e o porquê, o que já está
- * registrado, o que o protocolo pergunta no fim, a parte recolhida do 📨 e as ações.
+ * registrado, o que o protocolo pergunta no fim, a parte recolhida do 📅 e as ações.
  *
  * Por quê: o protótipo aprovado (template, 2209–2330, `planHtml`, `planField`, `planContext`): a
  * gaveta larga, com o plano do período ao lado da linha do tempo (a linha, as SMART "de até 3",
@@ -15,7 +15,7 @@
  * Missão (`noEl`), não uma segunda linha do tempo.
  */
 import type { CampoNaGaveta, CriacoesPedidas, TituloNaGaveta, VistaDaGaveta } from '../gaveta';
-import { rotuloDoPasso, resumoDoResto } from '../gaveta';
+import { primeiraFrase, respondidosPeloNo, rotuloDoPasso, resumoDoResto } from '../gaveta';
 import type { Escala } from '../tempo';
 import { diaDaSemana, diaMes, idDoPeriodo, semanaCurta } from '../tempo';
 import { FRASES, GAVETA, SMART_DA_SEMANA_ATE } from '../frases';
@@ -36,7 +36,7 @@ export interface FormDaGaveta {
     /** Os passos do protocolo, para o rótulo do que já está registrado e do que fica para o fim. */
     passos: readonly any[];
     problemas: Record<string, string>;
-    /** Há líderes (o 📨): o resto vem recolhido. */
+    /** Há líderes (o 📅): o resto vem recolhido. */
     comDestaque: boolean;
     restoAberto: boolean;
     criar: CriacoesPedidas;
@@ -44,6 +44,12 @@ export interface FormDaGaveta {
     contextos: readonly string[];
     /** O motor não deu o protocolo: o aviso no lugar do formulário. */
     falhou: boolean;
+    /**
+     * A gaveta abriu pelo protocolo de um nó (a seção Protocolos do painel), e não pelo botão do ciclo do período: o
+     * plano do período fica de fora (a percorrida de 06/11: o 📹 de uma peça mostrava "No plano de sex 06/11 · sem
+     * tarefas · + Nova tarefa" no meio do registro, sem relação com ele).
+     */
+    doNo?: boolean;
 }
 
 const idDoCampo = (id: string) => `gv-${id.replace(/[^\w-]/g, '_')}`;
@@ -296,7 +302,7 @@ function acoes(ctx: Contexto, rodape: boolean, nome: string): HTMLElement {
 
 /**
  * O que faz: o conteúdo da gaveta: a cabeça, as ações de cima, o plano do período, o que já está
- * registrado, os campos (o topo e, no 📨, o resto recolhido com o resumo), o que o protocolo
+ * registrado, os campos (o topo e, no 📅, o resto recolhido com o resumo), o que o protocolo
  * pergunta no fim e as ações do rodapé.
  * Entra → sai: o contexto do desenho e o formulário → o elemento.
  */
@@ -308,7 +314,17 @@ export function conteudoDaGaveta(ctx: Contexto, f: FormDaGaveta): HTMLElement {
     const txt = el(doc, 'div', 'dh-txt');
     txt.appendChild(el(doc, 'div', 'kind', null, `${f.modo} · ${periodoEmPalavras(f.escala, f.chave)}`));
     txt.appendChild(el(doc, 'h2', 'dr-title', null, nome || GAVETA.carregando));
-    if (f.descricao) txt.appendChild(el(doc, 'p', 'origem', null, f.descricao));
+    // A primeira frase da descrição à vista e o resto (o histórico) recolhido (a percorrida de 06/11).
+    if (f.descricao) {
+        const { primeira, resto } = primeiraFrase(f.descricao);
+        txt.appendChild(el(doc, 'p', 'origem', null, primeira));
+        if (resto) {
+            const mais = el(doc, 'details', 'gv-mais');
+            mais.appendChild(el(doc, 'summary', null, null, GAVETA.maisDaDescricao));
+            mais.appendChild(el(doc, 'p', 'origem', null, resto));
+            txt.appendChild(mais);
+        }
+    }
     dh.appendChild(txt);
     const x = botao(doc, 'x', '×', { 'data-act': 'gv-fechar' });
     ctx.marcar(x, GAVETA.fechar, 'Esc');
@@ -316,7 +332,7 @@ export function conteudoDaGaveta(ctx: Contexto, f: FormDaGaveta): HTMLElement {
     corpo.appendChild(dh);
     const vista = f.vista;
     if (vista) corpo.appendChild(acoes(ctx, false, nome));
-    const plano = planoDoPeriodoEl(ctx, f.escala, f.chave);
+    const plano = f.doNo ? null : planoDoPeriodoEl(ctx, f.escala, f.chave);
     if (plano) corpo.appendChild(plano);
     if (!vista) {
         corpo.appendChild(el(doc, 'p', f.falhou ? 'hint aviso' : 'hint', { role: 'status' }, f.falhou ? GAVETA.naoCarregou : GAVETA.carregando));
@@ -326,6 +342,11 @@ export function conteudoDaGaveta(ctx: Contexto, f: FormDaGaveta): HTMLElement {
         corpo.appendChild(listaDePassos(ctx, GAVETA.jaRegistrado, GAVETA.dicaJaRegistrado,
             vista.pulados.map(p => ({ id: p.id, nota: p.motivo === 'sem_diario' ? GAVETA.semDiario : undefined })), f.passos, 'data-gv-pulados'));
     }
+    // Aberta pelo protocolo de um nó, o que o nó já responde (a peça do 📹, a tarefa do 🔎) não se pergunta de
+    // novo: uma linha diz o que veio dele, e a resposta vai na gravação como sempre.
+    const doNo = f.doNo ? respondidosPeloNo(vista) : [];
+    const ocultos = new Set(doNo.map(c => c.campo.id));
+    if (doNo.length) corpo.appendChild(el(doc, 'p', 'hint gv-do-no', { 'data-gv-do-no': '' }, GAVETA.doNo(doNo.map(c => String(c.valor)))));
     const form = el(doc, 'div', 'pform', { 'data-form': 'gaveta' });
     const campo = (c: CampoNaGaveta) => {
         const pf = campoDaGavetaEl(ctx, c, f.problemas[c.campo.id], f.criar[c.campo.id] ?? null, f.contextos);
@@ -336,7 +357,7 @@ export function conteudoDaGaveta(ctx: Contexto, f: FormDaGaveta): HTMLElement {
         box.append(pf, tituloEl(ctx, titulo));
         return box;
     };
-    for (const c of f.comDestaque ? vista.topo : [...vista.topo, ...vista.resto]) form.appendChild(campo(c));
+    for (const c of f.comDestaque ? vista.topo : [...vista.topo, ...vista.resto]) if (!ocultos.has(c.campo.id)) form.appendChild(campo(c));
     corpo.appendChild(form);
     if (f.comDestaque && vista.resto.length) {
         const r = resumoDoResto(vista);
@@ -347,7 +368,7 @@ export function conteudoDaGaveta(ctx: Contexto, f: FormDaGaveta): HTMLElement {
         ctx.marcar(b, `${GAVETA.resto(nome, r.campos, r.sugeridos)}; Gravar grava todos`);
         cab.appendChild(b);
         const dentro = sec.appendChild(el(doc, 'div', 'pform', { id: 'gv-resto-campos', hidden: !f.restoAberto }));
-        for (const c of vista.resto) dentro.appendChild(campo(c));
+        for (const c of vista.resto) if (!ocultos.has(c.campo.id)) dentro.appendChild(campo(c));
         corpo.appendChild(sec);
     }
     const noFim = [...vista.fora.map(x => ({ id: x.id })), ...vista.semResposta.map(id => ({ id }))];

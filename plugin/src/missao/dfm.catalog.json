@@ -28,6 +28,7 @@
         "fn.lugar",
         "fn.sinais",
         "fn.trabalho",
+        "fn.trilha",
         "liga.gravar",
         "liga.leitor",
         "liga.lugares",
@@ -75,7 +76,7 @@
       "id": "fn.trabalho",
       "role": "functions",
       "state": "standard",
-      "does": "Funções do trabalho: a linhagem de cada tarefa (projeto, SMART, área, ramo), os filtros (e os lugares do \"Onde estou\", pelo vocabulário dos contextos), a busca, os campos de um nó pelo modelo do tipo e as conexões de uma nota, e a próxima ação real de cada projeto (proximaAcao, 02/11: a fixada na nota, ou a primeira pela ordem padrão que quem compõe passa).",
+      "does": "Funções do trabalho: a linhagem de cada tarefa (projeto, SMART, área, ramo), os filtros (e os lugares do \"Onde estou\", pelo vocabulário dos contextos), a busca, os campos de um nó pelo modelo do tipo e as conexões de uma nota, e a próxima ação real de cada projeto (proximaAcao, 02/11: a fixada na nota, ou a primeira pela ordem padrão que quem compõe passa). E o centro do módulo de aprendizado (05/11, aprendizado): a fila do dia, o nível em curso na forma de mostrar e as peças do nível.",
       "why": "Cada pergunta sobre uma tarefa ou um projeto tem uma resposta só, testável sem a tela.",
       "runs_on": "",
       "core": false,
@@ -212,6 +213,29 @@
       ]
     },
     {
+      "id": "fn.trilha",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções da trilha de uso (05/11): o arquivo da trilha lido (os textos, os gestos com a forma de contar e as dicas), o dia sem registro e os dias de antes sem registro, a acolhida de quem chega à tarde ou à noite, os usos de cada gesto pela contagem do motor (engine/usoDosGestos.ts), o gesto da vez, a trilha no modelo e o estado que a Missão guarda no salvamento (as marcas e as dicas vistas).",
+      "why": "A porta de entrada e o gesto da semana decidem pelos dados, sem tela e sem texto no código: os textos são do arquivo, o que liga é das definições.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/trilha.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.engine"
+      ],
+      "used_by": [
+        "compoe.modelo",
+        "liga.lugares",
+        "vista.casco",
+        "vista.linhas"
+      ]
+    },
+    {
       "id": "compoe.modelo",
       "role": "module",
       "state": "standard",
@@ -234,6 +258,7 @@
         "fn.lugar",
         "fn.sinais",
         "fn.trabalho",
+        "fn.trilha",
         "ramo-principal"
       ],
       "used_by": [
@@ -279,7 +304,7 @@
       "id": "vista.linhas",
       "role": "module",
       "state": "standard",
-      "does": "Vista, uma parte: as linhas abertas e fechadas. Só emite intenções. A construir: view/grade.ts (a grade das colunas do ramo).",
+      "does": "Vista, uma parte: as linhas abertas e fechadas. Só emite intenções. A construir: view/grade.ts (a grade das colunas do ramo); e a trilha de uso na tela (view/trilha.ts, 05/11): a acolhida, o cartão do gesto da semana e a dica da primeira vez.",
       "why": "A linha do tempo se desenha sem saber do cofre nem da gravação.",
       "runs_on": "",
       "core": false,
@@ -292,6 +317,7 @@
         "ext.project",
         "fn.gestos",
         "fn.lugar",
+        "fn.trilha",
         "ramo-principal",
         "vista.base"
       ],
@@ -453,6 +479,7 @@
         "fn.lugar",
         "fn.sinais",
         "fn.trabalho",
+        "fn.trilha",
         "ramo-principal",
         "vista.base",
         "vista.entrada",
@@ -543,6 +570,7 @@
         "fn.formularios",
         "fn.gestos",
         "fn.trabalho",
+        "fn.trilha",
         "liga.gravar",
         "ramo-principal",
         "vista.casco"
@@ -568,6 +596,7 @@
         "fn.lugar",
         "fn.sinais",
         "fn.trabalho",
+        "fn.trilha",
         "liga.gravar",
         "liga.leitor",
         "liga.lugares",
@@ -727,9 +756,23 @@
   ],
   "functions": [
     {
+      "name": "centroDoAprendizado",
+      "path": "aprendizado.ts",
+      "line": 41,
+      "module": "fn.trabalho",
+      "summary": "o centro do módulo de nome `modulo`: o primeiro modelo com `aprendizado` que tem notas apontando para ele; a fila do dia pela fila do modelo (a rodada de hoje: as novas que a Day já registra), as contas dos níveis, o nível em curso, as peças do tipo `pecas` do modelo nesse nível e os protocolos do modelo. Sem nota do tipo no módulo, `null` (o módulo comum não muda).",
+      "card": {
+        "does": "o centro do módulo de nome `modulo`: o primeiro modelo com `aprendizado` que tem notas apontando para ele; a fila do dia pela fila do modelo (a rodada de hoje: as novas que a Day já registra), as contas dos níveis, o nível em curso, as peças do tipo `pecas` do modelo nesse nível e os protocolos do modelo. Sem nota do tipo no módulo, `null` (o módulo comum não muda).",
+        "why": "\"o centro do módulo mostra a fila do dia (a nova e as revisões vencidas) e o nível em 'dominadas · do nível · faltam'\" (proposta de 05/11, §6), pela forma de mostrar que já existe.",
+        "io": "o nome do módulo, as notas lidas, os modelos dos tipos, hoje e as novas que a Day de hoje já registra (por `type`; 06/11, a mesma conta da fila do gesto) → o centro, ou `null`.",
+        "errors": "a nota de outro módulo, de outro tipo ou sem nível fica de fora da conta; o nível sem frase não aparece; o modelo sem `aprendizado` não conta.",
+        "proof": "tests/missao/aprendizado.test.ts."
+      }
+    },
+    {
       "name": "dataDaTarefa",
       "path": "borboleta.ts",
-      "line": 82,
+      "line": 85,
       "module": "compoe.modelo",
       "summary": "a data com que a tarefa aparece: o dia (com a hora), a semana quando veio por ela, ou a prateleira.",
       "card": {
@@ -739,7 +782,7 @@
     {
       "name": "cargaTexto",
       "path": "borboleta.ts",
-      "line": 93,
+      "line": 96,
       "module": "compoe.modelo",
       "summary": "a carga do dia em texto, a mesma conta e o mesmo texto de `nucleo.cargaDoDia`.",
       "card": {
@@ -749,7 +792,7 @@
     {
       "name": "formaDoDia",
       "path": "borboleta.ts",
-      "line": 99,
+      "line": 102,
       "module": "compoe.modelo",
       "summary": "a forma do dia, a mesma de `nucleo.formaDoDia`.",
       "card": {
@@ -759,7 +802,7 @@
     {
       "name": "formaDaSemana",
       "path": "borboleta.ts",
-      "line": 101,
+      "line": 104,
       "module": "compoe.modelo",
       "summary": "a forma da semana, a mesma de `nucleo.formaDaSemana`.",
       "card": {
@@ -769,7 +812,7 @@
     {
       "name": "formaDoTrimestre",
       "path": "borboleta.ts",
-      "line": 103,
+      "line": 106,
       "module": "compoe.modelo",
       "summary": "a forma do trimestre, a mesma de `nucleo.formaDoTrimestre`.",
       "card": {
@@ -779,7 +822,7 @@
     {
       "name": "formaDoAno",
       "path": "borboleta.ts",
-      "line": 108,
+      "line": 111,
       "module": "compoe.modelo",
       "summary": "a forma do ano (as semanas dos quatro trimestres), pela função única.",
       "card": {
@@ -789,7 +832,7 @@
     {
       "name": "modeloDaMissao",
       "path": "borboleta.ts",
-      "line": 123,
+      "line": 126,
       "module": "compoe.modelo",
       "summary": "o modelo da Missão de uma versão do cofre: o índice, os filtros resolvidos, as janelas e, quando pedidas (e uma vez só), as linhas abertas e fechadas, a linhagem, a busca; mais os lugares, a visão, os sinais, a triagem, a reserva e as contagens.",
       "card": {
@@ -803,7 +846,7 @@
     {
       "name": "arquivosDoNo",
       "path": "borboleta.ts",
-      "line": 365,
+      "line": 408,
       "module": "compoe.modelo",
       "summary": "a nota e o canvas de um nó, pelo id: a TaskNote (e o canvas do projeto dela), o projeto, a área, o dia, a semana, o trimestre, a visão e a cidade.",
       "card": {
@@ -817,7 +860,7 @@
     {
       "name": "criaveisDoNo",
       "path": "borboleta.ts",
-      "line": 398,
+      "line": 441,
       "module": "compoe.modelo",
       "summary": "o que um nó ainda não tem e o sistema já sabe criar: o canvas do projeto (e do departamento) e a Day do dia que não tem. O canvas da semana e o do trimestre não se criam mais (aposentados em 02/11/2026); a nota deles nasce pelo 🌳 e pelo 🧭, os botões do ciclo.",
       "card": {
@@ -830,7 +873,7 @@
     {
       "name": "daLinhagemMarcada",
       "path": "borboleta.ts",
-      "line": 435,
+      "line": 480,
       "module": "compoe.modelo",
       "summary": "o teste da linhagem marcada: a tarefa entra no recorte de algum ramo com `marca` (o ✈️ da Viagem), pela regra única do recorte (`noRecorteDoRamo`); o recorte sem tag nem projeto não conta (o \"todas\" dele).",
       "card": {
@@ -841,7 +884,7 @@
     {
       "name": "marcasDosRamosNoTempo",
       "path": "borboleta.ts",
-      "line": 456,
+      "line": 501,
       "module": "compoe.modelo",
       "summary": "as marcas dos ramos no tempo (o ✈️ da Viagem): para cada ramo com `recorte.marca`, as ações do recorte dele (`noRecorteDoRamo`, a regra única do que é do ramo) no dia em que caem e na semana delas, cada período com a marca e os títulos na dica.",
       "card": {
@@ -855,7 +898,7 @@
     {
       "name": "ordemPadrao",
       "path": "borboleta.ts",
-      "line": 503,
+      "line": 548,
       "module": "compoe.modelo",
       "summary": "a ordem padrão das tarefas de um período, a mesma do Dia e de cada dia da semana: (1) as de hora marcada primeiro, na ordem do horário (a de hora passada e não feita fica no topo por ser a mais cedo, e o cartão a marca); (2) as outras abertas pelos pontos da tabela única de pesos (os mesmos do 🤝 e da árvore do agora, `scoresByPath`, que o serviço passa por caminho), e, no mesmo peso, a de reputação mais alta (o grau do nível); (3) as feitas e as canceladas por último. Fora da escala do dia, o dia vem antes de tudo.",
       "card": {
@@ -869,7 +912,7 @@
     {
       "name": "noDaTarefa",
       "path": "borboleta.ts",
-      "line": 556,
+      "line": 601,
       "module": "compoe.modelo",
       "summary": "o nó de uma tarefa: a ação (status · estimativa · data) ou a SMART (a forma das ações dela).",
       "card": {
@@ -879,7 +922,7 @@
     {
       "name": "noDoProjeto",
       "path": "borboleta.ts",
-      "line": 578,
+      "line": 623,
       "module": "compoe.modelo",
       "summary": "o nó de um projeto: a linha dele no período (a mesma de `nucleo.formaDoProjeto` no trimestre) e o estágio, pela marca e pelo rótulo da linha da tabela de estados que a coluna dele dá.",
       "card": {
@@ -889,7 +932,7 @@
     {
       "name": "noDaArea",
       "path": "borboleta.ts",
-      "line": 611,
+      "line": 659,
       "module": "compoe.modelo",
       "summary": "o nó de uma área: as frentes ativas (o projeto numa coluna de faixa, ativo, em revisão ou integrando, e o departamento, que é frente contínua) e as do backlog.",
       "card": {
@@ -901,7 +944,7 @@
     {
       "name": "noDaSemana",
       "path": "borboleta.ts",
-      "line": 629,
+      "line": 677,
       "module": "compoe.modelo",
       "summary": "o nó da semana (a forma dela, `nucleo.formaDaSemana`), com as datas, o par de valores e, fechada, a forma cheia.",
       "card": {
@@ -911,7 +954,7 @@
     {
       "name": "noDoTrimestre",
       "path": "borboleta.ts",
-      "line": 646,
+      "line": 694,
       "module": "compoe.modelo",
       "summary": "o nó do trimestre (a forma dele, `nucleo.formaDoTrimestre`), com o tema ou as semanas.",
       "card": {
@@ -921,7 +964,7 @@
     {
       "name": "noDaVisao",
       "path": "borboleta.ts",
-      "line": 657,
+      "line": 705,
       "module": "compoe.modelo",
       "summary": "o nó da visão: a vigente, ou \"sem visão ainda\"; o ciclo longo como linha de cima.",
       "card": {
@@ -931,7 +974,7 @@
     {
       "name": "pessoasDoDia",
       "path": "borboleta.ts",
-      "line": 667,
+      "line": 715,
       "module": "compoe.modelo",
       "summary": "as pessoas do dia (`pessoas` na Day, links para as notas de pessoa).",
       "card": {
@@ -941,7 +984,7 @@
     {
       "name": "noDoCentro",
       "path": "borboleta.ts",
-      "line": 672,
+      "line": 720,
       "module": "compoe.modelo",
       "summary": "o nó central de uma linha: o dia, a semana, o trimestre, o ano ou a prateleira.",
       "card": {
@@ -951,7 +994,7 @@
     {
       "name": "asaDe",
       "path": "borboleta.ts",
-      "line": 718,
+      "line": 766,
       "module": "compoe.modelo",
       "summary": "a asa direita de uma linha: dia → semana → trimestre → visão (sem o centro).",
       "card": {
@@ -961,7 +1004,7 @@
     {
       "name": "noDoId",
       "path": "borboleta.ts",
-      "line": 891,
+      "line": 942,
       "module": "compoe.modelo",
       "summary": "o nó de qualquer id, pelos mesmos construtores com que o mapa o compõe: a tarefa e a SMART (`noDaTarefa`), o projeto no trimestre de hoje (`noDoProjeto`, o da linha de hoje), a área, a semana e o trimestre da asa, o dia e o ano do centro, a visão, a passagem, a nota de uma coleção do ramo e o vínculo sem nota, o trecho, o lugar em camadas (a cidade e o país fora das coleções) e a pessoa (o último dia no registro, como o painel dela diz).",
       "card": {
@@ -974,7 +1017,7 @@
     {
       "name": "noDaPassagem",
       "path": "borboleta.ts",
-      "line": 937,
+      "line": 988,
       "module": "compoe.modelo",
       "summary": "o nó de uma passagem (`l:`): a cidade, o país e as datas, com quantos dias até a saída (ou até hoje, na aberta).",
       "card": {
@@ -985,7 +1028,7 @@
     {
       "name": "contar",
       "path": "borboleta.ts",
-      "line": 1011,
+      "line": 1062,
       "module": "compoe.modelo",
       "summary": "as contagens do índice para conferir contra o cofre (cada TaskNote num lugar só).",
       "card": {
@@ -1008,20 +1051,20 @@
     {
       "name": "modeloDaNota",
       "path": "camposDoNo.ts",
-      "line": 67,
+      "line": 69,
       "module": "fn.trabalho",
       "summary": "o modelo do tipo que vale para uma nota.",
       "card": {
         "does": "o modelo do tipo que vale para uma nota.",
         "why": "o `type` confirma o tipo, e a casa diz onde ele mora (convencoes.md, \"Cada tipo\"); dois modelos com a mesma casa (a ação e a SMART, o projeto e a área) se separam pelo `type`.",
         "io": "o caminho, o frontmatter e os modelos → o modelo, ou `null`.",
-        "errors": "nota longe de toda casa, `type` de outro tipo ou sem `type` numa casa que dois modelos dividem dão `null`: o painel não mostra campo de outro tipo. A nota arquivada ao lado da casa (`TaskNotes/Archive`), com o `type` de um modelo só, acha o dele."
+        "errors": "nota longe de toda casa, `type` de outro tipo ou sem `type` numa casa que dois modelos dividem dão `null`: o painel não mostra campo de outro tipo. A nota arquivada ao lado da casa (`TaskNotes/Archive`), com o `type` de um modelo só, acha o dele. A exceção (06/11): sem `type` em `TaskNotes/`, vale a tarefa (`task`), como no registro da tarefa."
       }
     },
     {
       "name": "linksDoCampo",
       "path": "camposDoNo.ts",
-      "line": 100,
+      "line": 106,
       "module": "fn.trabalho",
       "summary": "o que um valor de campo de link aponta (um ou uma lista): o nome da tela (o alias, quando há) e o alvo (a nota, sem o alias); o objeto `{ uid }` do TaskNotes, pelo uid.",
       "card": {
@@ -1033,7 +1076,7 @@
     {
       "name": "campoDoEstado",
       "path": "camposDoNo.ts",
-      "line": 139,
+      "line": 145,
       "module": "fn.trabalho",
       "summary": "o campo do modelo que guarda o estado da tabela `estados`: o de escolha cuja lista de valores contém todos os valores da tabela; sem lista (o catálogo do TaskNotes, `valores: \"status\"`), o de escolha cujo valor de agora está na tabela.",
       "card": {
@@ -1047,7 +1090,7 @@
     {
       "name": "valorEmTexto",
       "path": "camposDoNo.ts",
-      "line": 169,
+      "line": 175,
       "module": "fn.trabalho",
       "summary": "o valor de um campo em texto, pelo tipo e pelo formato do modelo.",
       "card": {
@@ -1059,7 +1102,7 @@
     {
       "name": "mostraCampos",
       "path": "camposDoNo.ts",
-      "line": 193,
+      "line": 199,
       "module": "fn.trabalho",
       "summary": "diz se o modelo mostra algum campo no painel (o que tem `editar: false` é só do Novo).",
       "card": {
@@ -1069,7 +1112,7 @@
     {
       "name": "camposCrus",
       "path": "camposDoNo.ts",
-      "line": 210,
+      "line": 216,
       "module": "fn.trabalho",
       "summary": "o frontmatter de uma nota que nenhum modelo descreve (ou cujo modelo não declara campo), chave por chave, em texto, para ler.",
       "card": {
@@ -1082,7 +1125,7 @@
     {
       "name": "camposDoNo",
       "path": "camposDoNo.ts",
-      "line": 225,
+      "line": 231,
       "module": "fn.trabalho",
       "summary": "as linhas do painel de um nó, na ordem do modelo do tipo, e as chaves do modelo antigo que a nota tem.",
       "card": {
@@ -1102,33 +1145,33 @@
     {
       "name": "textoLimpoDoItem",
       "path": "checklist.ts",
-      "line": 27,
+      "line": 29,
       "module": "fn.trabalho",
       "summary": "limpa os links `[[alvo|rótulo]]` e `[[alvo]]` de um texto de item da checklist para mostrar na tela.",
       "card": {
         "does": "limpa os links `[[alvo|rótulo]]` e `[[alvo]]` de um texto de item da checklist para mostrar na tela.",
         "why": "itens de checklist com links internos aparecem no ramo e no painel como a pessoa os lê, enquanto a marcação continua conferindo a linha crua da nota (`marcarItem`).",
-        "io": "o texto cru do item → o texto com cada `[[...]]` trocado pelo rótulo ou pelo nome sem o caminho.",
-        "errors": "sem `[[...]]`, devolve o próprio texto; links vazios `[[]]` ficam vazios.",
+        "io": "o texto cru do item → o texto com cada `[[...]]` trocado pelo rótulo ou pelo nome sem o caminho. O negrito (`**…**`, `__…__`) sai também: o item da 🔎 Conferência (\"**A fonte primária.** O site…\") aparecia com os asteriscos no painel e no ramo (a percorrida de 06/11).",
+        "errors": "sem `[[...]]`, devolve o próprio texto; links vazios `[[]]` ficam vazios; o `**` sem par fica.",
         "proof": "tests/missao/checklist.test.ts."
       }
     },
     {
       "name": "checklistDoTexto",
       "path": "checklist.ts",
-      "line": 69,
+      "line": 72,
       "module": "fn.trabalho",
       "summary": "os itens da checklist de uma nota, na ordem do texto.",
       "card": {
         "does": "os itens da checklist de uma nota, na ordem do texto.",
         "io": "o texto da nota → os itens (vazio sem checklist).",
-        "errors": "o frontmatter e os blocos de código não têm item; o texto que não é texto dá vazio."
+        "errors": "o frontmatter e os blocos de código não têm item; o item sem texto (o lugar vazio do modelo) não conta; o texto que não é texto dá vazio."
       }
     },
     {
       "name": "checagensDoTexto",
       "path": "checklist.ts",
-      "line": 91,
+      "line": 96,
       "module": "fn.trabalho",
       "summary": "as checagens de uma nota de função (o \"como se faz\", 30/10): cada item da checklist dela, marcado ou não, vira o texto curto da checagem. O item escrito \"**A checagem:** o detalhe. Porquê: …\" dá só o que está em negrito no começo; o item sem negrito, o texto até o \"Porquê:\". O \":\" e o \".\" do fim saem.",
       "card": {
@@ -1142,7 +1185,7 @@
     {
       "name": "marcarItem",
       "path": "checklist.ts",
-      "line": 112,
+      "line": 117,
       "module": "fn.trabalho",
       "summary": "marca ou desmarca um item: só a caixa daquela linha muda (`[ ]` ↔ `[x]`).",
       "card": {
@@ -1155,7 +1198,7 @@
     {
       "name": "acrescentarItem",
       "path": "checklist.ts",
-      "line": 131,
+      "line": 136,
       "module": "fn.trabalho",
       "summary": "acrescenta um item aberto (`- [ ] texto`) no fim do bloco da última checklist da nota, com o recuo e o marcador do item de cima; sem checklist, no fim do corpo.",
       "card": {
@@ -1167,7 +1210,7 @@
     {
       "name": "tirarItem",
       "path": "checklist.ts",
-      "line": 162,
+      "line": 167,
       "module": "fn.trabalho",
       "summary": "tira um item acrescentado (o Desfazer do \"+ Item\"): só se a linha ainda é aquele item aberto, com o mesmo texto; as outras linhas não mudam.",
       "card": {
@@ -1178,7 +1221,7 @@
     {
       "name": "chaveDaFonte",
       "path": "colecoes.ts",
-      "line": 27,
+      "line": 28,
       "module": "fn.lugar",
       "summary": "A chave de uma fonte (o protocolo, o modelo ou a casa dita direto, e o tipo), a mesma do leitor.",
       "card": {}
@@ -1186,7 +1229,7 @@
     {
       "name": "nomesDoCampo",
       "path": "colecoes.ts",
-      "line": 31,
+      "line": 32,
       "module": "fn.lugar",
       "summary": "os nomes que um campo de link aponta (um ou uma lista; o texto solto vale como nome).",
       "card": {
@@ -1196,7 +1239,7 @@
     {
       "name": "noDaNota",
       "path": "colecoes.ts",
-      "line": 74,
+      "line": 77,
       "module": "fn.lugar",
       "summary": "o nó de uma nota de coleção (`n:<caminho>`): o título, a linha dos campos e o tipo dela; com o estado da tabela do modelo (02/11), o rótulo dele abre a linha no lugar do `status` cru, e a forma vai no cartão.",
       "card": {
@@ -1206,7 +1249,7 @@
     {
       "name": "passaNoFiltro",
       "path": "colecoes.ts",
-      "line": 90,
+      "line": 93,
       "module": "fn.lugar",
       "summary": "diz se uma nota passa no filtro da fonte: cada campo do filtro tem um dos valores aceitos (o campo lista vale se um item casa); sem filtro, toda nota passa.",
       "card": {
@@ -1219,7 +1262,7 @@
     {
       "name": "indiceDasColecoes",
       "path": "colecoes.ts",
-      "line": 116,
+      "line": 119,
       "module": "fn.lugar",
       "summary": "o índice das coleções de uma versão do cofre: cada nota de cada fonte, com os trechos de tempo em que cai, e as notas das coleções de vínculo pelo nome.",
       "card": {
@@ -1233,7 +1276,7 @@
     {
       "name": "colecoesDaLinha",
       "path": "colecoes.ts",
-      "line": 211,
+      "line": 214,
       "module": "fn.lugar",
       "summary": "os nós das coleções numa linha (do dia `de` ao dia `ate`) e as ligações entre eles: a nota que segue outra → a outra; a nota de lugar → a passagem dela; o alvo do vínculo → as notas que o apontam.",
       "card": {
@@ -1244,9 +1287,23 @@
       }
     },
     {
+      "name": "contasDaLinha",
+      "path": "colecoes.ts",
+      "line": 265,
+      "module": "fn.lugar",
+      "summary": "a contagem que as coleções com `conta` deram aos nós de uma linha, pelo id do nó: o rótulo da primeira coleção contada (as Peças), a linha e a conta crua de `comAContagem`.",
+      "card": {
+        "does": "a contagem que as coleções com `conta` deram aos nós de uma linha, pelo id do nó: o rótulo da primeira coleção contada (as Peças), a linha e a conta crua de `comAContagem`.",
+        "why": "05/11, a frente de renda no Projetos: o cartão do projeto (o `p:<nome>`, o mesmo nó que a coluna Frentes da Criação mostra) leva a contagem das peças da linha, pela mesma conta, e nenhuma outra.",
+        "io": "o índice e os nós das coleções na linha (`colecoesDaLinha(...).nos`) → id → a contagem.",
+        "errors": "o nó sem contagem (a coleção sem `conta`) não entra; dois alvos com o mesmo id ficam com o primeiro.",
+        "proof": "tests/engine/refinosDosRamos.test.ts (\"a frente de renda\")."
+      }
+    },
+    {
       "name": "ordemPelaData",
       "path": "colecoes.ts",
-      "line": 262,
+      "line": 324,
       "module": "fn.lugar",
       "summary": "a comparação de uma coleção com `ordem` numa linha que começa em `de`: primeiro as notas com a data do campo em `de` ou depois, da mais perto à mais longe; depois as sem a data, pelo começo no tempo (as mais novas primeiro com `recente`, as mais velhas com `antigo`); por fim as com a data antes de `de`, da mais recente à mais velha. O empate cai na ordem de sempre (`desempate`).",
       "card": {
@@ -1260,7 +1317,7 @@
     {
       "name": "noDaColecaoPeloNome",
       "path": "colecoes.ts",
-      "line": 290,
+      "line": 352,
       "module": "fn.lugar",
       "summary": "o nó de uma nota de coleção (com tempo) pelo nome da nota ou pelo título dela.",
       "card": {
@@ -1273,7 +1330,7 @@
     {
       "name": "noDoVinculo",
       "path": "colecoes.ts",
-      "line": 302,
+      "line": 364,
       "module": "fn.lugar",
       "summary": "o nó de um nome que um vínculo aponta (P10c, as conexões do painel): a nota do alvo, quando existe; senão o nó só com o nome, quando alguma nota da coleção de origem o aponta pelo campo do vínculo (o país sem nota de uma cidade).",
       "card": {
@@ -1284,7 +1341,7 @@
     {
       "name": "idDoTrecho",
       "path": "colecoes.ts",
-      "line": 317,
+      "line": 379,
       "module": "fn.lugar",
       "summary": "",
       "card": {}
@@ -1292,7 +1349,7 @@
     {
       "name": "trechosPlanejados",
       "path": "colecoes.ts",
-      "line": 328,
+      "line": 390,
       "module": "fn.lugar",
       "summary": "os trechos planejados: cada nota de uma fonte com `trecho`, com o dia de hoje em diante, vira um trecho de onde ela diz para onde ela diz (ou \"a decidir\"), no dia que ela diz.",
       "card": {
@@ -1305,7 +1362,7 @@
     {
       "name": "noDoTrecho",
       "path": "colecoes.ts",
-      "line": 343,
+      "line": 405,
       "module": "fn.lugar",
       "summary": "o nó de um trecho: de → para, o dia e de onde vem (\"pela chegada\" ou \"planejado\").",
       "card": {
@@ -1315,7 +1372,7 @@
     {
       "name": "linhasDaNota",
       "path": "colecoes.ts",
-      "line": 353,
+      "line": 415,
       "module": "fn.lugar",
       "summary": "os campos de uma nota no painel, pela fonte (o valor formatado; vazio, \"sem dado\").",
       "card": {
@@ -1325,7 +1382,7 @@
     {
       "name": "detalheDoNo",
       "path": "colecoes.ts",
-      "line": 370,
+      "line": 432,
       "module": "fn.lugar",
       "summary": "o detalhe de um nó que não é tarefa, projeto nem período: a nota de uma coleção (`n:`), o trecho (`r:`) e o alvo do vínculo sem nota (`c:`).",
       "card": {
@@ -1442,7 +1499,7 @@
     {
       "name": "somaDoPeriodo",
       "path": "dinheiro.ts",
-      "line": 93,
+      "line": 99,
       "module": "fn.lugar",
       "summary": "a soma de um período (os dias dele): o que entrou, o que saiu, quantos dias têm valor e quantos, até hoje, não têm.",
       "card": {
@@ -1453,7 +1510,7 @@
     {
       "name": "marcaDoDia",
       "path": "dinheiro.ts",
-      "line": 108,
+      "line": 114,
       "module": "fn.lugar",
       "summary": "a marca do nó do dia: \"💸 R$ 52\" (o que saiu) ou \"+R$ 300\"; sem valor, `null` (o atalho \"＋ R$\").",
       "card": {
@@ -1463,7 +1520,7 @@
     {
       "name": "reserva",
       "path": "dinheiro.ts",
-      "line": 131,
+      "line": 137,
       "module": "fn.lugar",
       "summary": "a reserva: o último saldo informado na nota (`saldo`, `atualizado_em`), mais o que entrou e menos o que saiu nas Days depois dele (só os dias com valor), e os meses pela média de gasto: a declarada (`gasto_mensal_medio`) até haver 14 dias com valor nos últimos 30, então a medida, dizendo sempre qual.",
       "card": {
@@ -1477,7 +1534,7 @@
     {
       "name": "diasDasNotas",
       "path": "dinheiro.ts",
-      "line": 174,
+      "line": 180,
       "module": "fn.lugar",
       "summary": "os dias de uma lista de notas (o caminho e o frontmatter): as Days direto na pasta dos dias, com o nome `AAAA-MM-DD`, e só o que entrou e saiu.",
       "card": {
@@ -1490,7 +1547,7 @@
     {
       "name": "custoDaPassagem",
       "path": "dinheiro.ts",
-      "line": 196,
+      "line": 202,
       "module": "fn.lugar",
       "summary": "o que saiu durante uma passagem: a soma do `saiu` das Days dela, os dias com valor e, em palavras, os dias sem valor; e a linha da reserva de hoje.",
       "card": {
@@ -1504,7 +1561,7 @@
     {
       "name": "entradaVazia",
       "path": "entrada.ts",
-      "line": 151,
+      "line": 193,
       "module": "base",
       "summary": "uma entrada vazia para hoje: o ponto de partida dos testes e do leitor.",
       "card": {
@@ -1517,7 +1574,7 @@
     {
       "name": "dentro",
       "path": "entrada.ts",
-      "line": 212,
+      "line": 254,
       "module": "base",
       "summary": "diz se um caminho está dentro de uma pasta (a própria pasta não conta).",
       "card": {
@@ -1527,7 +1584,7 @@
     {
       "name": "direto",
       "path": "entrada.ts",
-      "line": 218,
+      "line": 260,
       "module": "base",
       "summary": "diz se o arquivo está direto na pasta (sem subpasta no meio).",
       "card": {
@@ -1537,7 +1594,7 @@
     {
       "name": "excluido",
       "path": "entrada.ts",
-      "line": 228,
+      "line": 270,
       "module": "base",
       "summary": "as exclusões que valem para todas as casas: os modelos e os templates (`200 - FUNCTIONS/Models`, `200 - FUNCTIONS/Templates`, toda pasta com \"Templates\" no nome), os arquivos (`300 - ARCHIVES`) e a lixeira.",
       "card": {
@@ -1548,7 +1605,7 @@
     {
       "name": "nomeDeModelo",
       "path": "entrada.ts",
-      "line": 236,
+      "line": 278,
       "module": "base",
       "summary": "diz se o nome é de um modelo de nota (`Task modelo`, `NotaExecução_template`).",
       "card": {
@@ -1558,7 +1615,7 @@
     {
       "name": "tarefaEmCasa",
       "path": "entrada.ts",
-      "line": 245,
+      "line": 287,
       "module": "base",
       "summary": "diz se uma TaskNote mora na casa das tarefas (as pastas do TaskNotes), fora dos modelos.",
       "card": {
@@ -1569,7 +1626,7 @@
     {
       "name": "periodoDaNota",
       "path": "entrada.ts",
-      "line": 259,
+      "line": 301,
       "module": "base",
       "summary": "o período de uma nota pela casa e pelo nome estrito (`Day/2026-10-27.md` → dia `2026-10-27`); qualquer outra nota dessas pastas (a do mês \"2026-10-\", a duplicada \" 2024-02-18\", o banco de sugestões) → `null`.",
       "card": {
@@ -1580,7 +1637,7 @@
     {
       "name": "indiceDeProjeto",
       "path": "entrada.ts",
-      "line": 273,
+      "line": 315,
       "module": "base",
       "summary": "diz se uma nota é o índice de um projeto ou departamento: `100 - AREAS/<área>/100 - PROJECTS/<coluna>/<P>/<P>.md` ou `100 - AREAS/<área>/200 - DEPARTMENTS/<D>/<D>.md`.",
       "card": {
@@ -1590,7 +1647,7 @@
     {
       "name": "caminhoImporta",
       "path": "entrada.ts",
-      "line": 295,
+      "line": 337,
       "module": "base",
       "summary": "diz se uma mudança num caminho do cofre pede remontar a Missão: só as casas (as TaskNotes, as notas de período, os índices de projeto, a Caixa, as ideias, as pessoas, a visão, as cidades e os países, a reserva e o tracker), fora das exclusões.",
       "card": {
@@ -1933,7 +1990,7 @@
     {
       "name": "tabelasVazias",
       "path": "estados.ts",
-      "line": 59,
+      "line": 85,
       "module": "base",
       "summary": "As tabelas vazias: o ponto de partida da entrada, antes de o leitor ler os modelos.",
       "card": {}
@@ -1941,7 +1998,7 @@
     {
       "name": "estadoDaTarefa",
       "path": "estados.ts",
-      "line": 74,
+      "line": 100,
       "module": "base",
       "summary": "a linha da tabela da tarefa para um status (sem diferença de maiúsculas).",
       "card": {
@@ -1952,7 +2009,7 @@
     {
       "name": "classeDaTarefa",
       "path": "estados.ts",
-      "line": 87,
+      "line": 113,
       "module": "base",
       "summary": "a classe de lugar de uma TaskNote pelo `lugar` do estado dela.",
       "card": {
@@ -1964,7 +2021,7 @@
     {
       "name": "rotuloDoStatus",
       "path": "estados.ts",
-      "line": 93,
+      "line": 119,
       "module": "base",
       "summary": "o rótulo do status na tela (o da tabela); sem linha, o próprio status, ou \"aberta\" quando vazio.",
       "card": {
@@ -1974,7 +2031,7 @@
     {
       "name": "estadoDoProjeto",
       "path": "estados.ts",
-      "line": 101,
+      "line": 127,
       "module": "base",
       "summary": "a linha da tabela do projeto para uma coluna do portfólio; o departamento (sem coluna) não tem.",
       "card": {
@@ -1984,7 +2041,7 @@
     {
       "name": "chavesDoLegado",
       "path": "estados.ts",
-      "line": 111,
+      "line": 137,
       "module": "base",
       "summary": "as chaves do `legado` presentes no frontmatter, na ordem da lista.",
       "card": {
@@ -1996,7 +2053,7 @@
     {
       "name": "estadoDaNota",
       "path": "estados.ts",
-      "line": 125,
+      "line": 151,
       "module": "base",
       "summary": "a linha da tabela de estados de uma nota pelo modelo do tipo dela (o `type`) e pelo `status` dela, o campo do estado, como na TaskNote (30/10: a estadia na triagem, reservada, em curso…).",
       "card": {
@@ -2008,9 +2065,23 @@
       }
     },
     {
+      "name": "feitaPeloModelo",
+      "path": "estados.ts",
+      "line": 165,
+      "module": "base",
+      "summary": "diz se uma nota está feita pelo modelo do tipo dela: a de um tipo com formatos (a peça), publicada (`publicadaPeloModelo`); a outra, no estado que o cartão mostra cheio.",
+      "card": {
+        "does": "diz se uma nota está feita pelo modelo do tipo dela: a de um tipo com formatos (a peça), publicada (`publicadaPeloModelo`); a outra, no estado que o cartão mostra cheio.",
+        "why": "05/11, a campanha da semana: a contagem das coleções conta a feita pelo modelo, e a peça feita é a publicada.",
+        "io": "o frontmatter e os modelos → feita ou não.",
+        "errors": "sem `type`, sem modelo ou sem estado: não feita.",
+        "proof": "tests/missao/contaDaColecao.test.ts."
+      }
+    },
+    {
       "name": "formaDoEstado",
       "path": "estados.ts",
-      "line": 140,
+      "line": 182,
       "module": "base",
       "summary": "a forma do cartão de um estado da tabela (a mesma do cartão da tarefa: cheio, contorno, claro).",
       "card": {
@@ -2264,14 +2335,39 @@
       }
     },
     {
+      "name": "porComArtigo",
+      "path": "frases.ts",
+      "line": 199,
+      "module": "base",
+      "summary": "\"por\" com o artigo do começo, contraído (\"a regra de X\" → \"pela regra de X\"; \"os perfis\" → \"pelos perfis\"); sem artigo, \"por\" e o texto.",
+      "card": {
+        "does": "\"por\" com o artigo do começo, contraído (\"a regra de X\" → \"pela regra de X\"; \"os perfis\" → \"pelos perfis\"); sem artigo, \"por\" e o texto.",
+        "why": "sem a contração, o campo dos destinos dizia \"Sugerido por a regra de X\"."
+      }
+    },
+    {
+      "name": "soPassoAPasso",
+      "path": "gaveta.ts",
+      "line": 94,
+      "module": "fn.formularios",
+      "summary": "o protocolo só roda passo a passo: algum passo dele se decide na hora, pelo motor, e não cabe num campo do formulário (o passo `fila` do 🗣️ Inglês de hoje: a próxima frase da fila do dia, com o `diga` que o passo seguinte mostra).",
+      "card": {
+        "does": "o protocolo só roda passo a passo: algum passo dele se decide na hora, pelo motor, e não cabe num campo do formulário (o passo `fila` do 🗣️ Inglês de hoje: a próxima frase da fila do dia, com o `diga` que o passo seguinte mostra).",
+        "why": "06/11, a conferência de ponta a ponta: aberto pelo painel do módulo, o 🗣️ abria a gaveta com o campo da fila vazio, sem o `diga` nem a frase; só o \"Abrir no protocolo\" funcionava.",
+        "io": "o JSON do protocolo → se ele foge da gaveta.",
+        "errors": "o JSON sem passos fica na gaveta, como sempre.",
+        "proof": "tests/missao/gaveta.test.ts (\"só passo a passo\")."
+      }
+    },
+    {
       "name": "pedidoDoCiclo",
       "path": "gaveta.ts",
-      "line": 100,
+      "line": 114,
       "module": "fn.formularios",
       "summary": "o pedido de um botão do ciclo: o protocolo dele; o dia da rodada (o `_context_date` que o ramo dá, senão hoje), a semana e o trimestre que ele fixa (`_target_week_pin`, `_target_quarter_pin`), as outras variáveis como respostas; o modo e os passos do topo, pela tabela dos botões do ciclo quando ela tem o mesmo emoji e o papel dela é o protocolo do botão, pela tabela vigente (`idDoPapel`; sem ela, a dos padrões da v0) (senão a ponta do botão: o do começo planeja, o do fim revisa).",
       "card": {
         "does": "o pedido de um botão do ciclo: o protocolo dele; o dia da rodada (o `_context_date` que o ramo dá, senão hoje), a semana e o trimestre que ele fixa (`_target_week_pin`, `_target_quarter_pin`), as outras variáveis como respostas; o modo e os passos do topo, pela tabela dos botões do ciclo quando ela tem o mesmo emoji e o papel dela é o protocolo do botão, pela tabela vigente (`idDoPapel`; sem ela, a dos padrões da v0) (senão a ponta do botão: o do começo planeja, o do fim revisa).",
-        "why": "§5.3, 6, \"as datas vão sempre explícitas\" (a nota ativa é o painel); o passo a passo de hoje roda com as variáveis do ramo, e o dia que ela não diz é o de hoje, o mesmo em que o modal rodaria; §5.5, o 📨 abre o 📅 com os líderes no topo.",
+        "why": "§5.3, 6, \"as datas vão sempre explícitas\" (a nota ativa é o painel); o passo a passo de hoje roda com as variáveis do ramo, e o dia que ela não diz é o de hoje, o mesmo em que o modal rodaria; §5.5, o 📅 abre com os líderes no topo (os do 📨, desde 05/11).",
         "io": "o botão do período (com os valores resolvidos) e hoje → o pedido, ou `null` (sem protocolo, ou o dia fora do formato).",
         "errors": "o `_context_date` vazio (a prateleira) cai em hoje; o pino fora do formato vai assim mesmo e a rodada diz o problema (`rodadaDoFormulario`).",
         "proof": "tests/missao/gaveta.test.ts (\"o pedido do botão\")."
@@ -2280,7 +2376,7 @@
     {
       "name": "variaveisDasDatas",
       "path": "gaveta.ts",
-      "line": 123,
+      "line": 137,
       "module": "fn.formularios",
       "summary": "As variáveis das datas da rodada (as que o motor lê para o contexto e o leitor).",
       "card": {}
@@ -2288,7 +2384,7 @@
     {
       "name": "vistaDaGaveta",
       "path": "gaveta.ts",
-      "line": 186,
+      "line": 200,
       "module": "fn.formularios",
       "summary": "o formulário na gaveta: cada campo visível com o valor de agora (o digitado; senão o de abertura, pela mesma função do modal, `aberturaDoCampo`; senão a resposta vazia que o modal daria), de onde veio, e as opções; as condições relidas com esses valores até ficarem paradas (a resposta de um passo escondido sai, a regra do laço); os do topo e o resto.",
       "card": {
@@ -2302,7 +2398,7 @@
     {
       "name": "criacoesAoGravar",
       "path": "gaveta.ts",
-      "line": 252,
+      "line": 266,
       "module": "fn.formularios",
       "summary": "as notas que a gaveta cria ao gravar: os passos de nota que deixam criar (`allowCreate`), com o \"criar\" pedido na gaveta e um título que nenhuma candidata tem.",
       "card": {
@@ -2316,7 +2412,7 @@
     {
       "name": "conferirGaveta",
       "path": "gaveta.ts",
-      "line": 271,
+      "line": 285,
       "module": "fn.formularios",
       "summary": "os problemas da gaveta antes de gravar: os do formulário (o obrigatório vazio, as marcadas a mais), pelas funções do laço (`validarFormulario`).",
       "card": {
@@ -2329,20 +2425,20 @@
     {
       "name": "rodadaDaGaveta",
       "path": "gaveta.ts",
-      "line": 285,
+      "line": 299,
       "module": "fn.formularios",
       "summary": "as variáveis com que \"Gravar\" roda o protocolo: as respostas da gaveta (com as das notas criadas no passo) pelo formulário do motor (`rodadaDoFormulario`, com `_respondidos` e as datas explícitas).",
       "card": {
         "does": "as variáveis com que \"Gravar\" roda o protocolo: as respostas da gaveta (com as das notas criadas no passo) pelo formulário do motor (`rodadaDoFormulario`, com `_respondidos` e as datas explícitas).",
         "why": "§5.3, 6: gravar é o `run()` de sempre com as respostas; o motor pergunta no modal só o que ficou sem resposta ou para o modal.",
         "io": "o protocolo, a vista, as respostas das notas criadas e as datas → a rodada.",
-        "proof": "tests/missao/gaveta.test.ts e tests/missao/componenteGaveta.test.ts (a gaveta grava o mesmo que o passo a passo, nos seis do ciclo e no 📨)."
+        "proof": "tests/missao/gaveta.test.ts e tests/missao/componenteGaveta.test.ts (a gaveta grava o mesmo que o passo a passo, nos seis do ciclo, com o topo do 📅)."
       }
     },
     {
       "name": "rodadaCompletaDaGaveta",
       "path": "gaveta.ts",
-      "line": 296,
+      "line": 310,
       "module": "fn.formularios",
       "summary": "as variáveis com que \"Abrir no protocolo\" roda: todo passo no modal, aberto com o valor da gaveta (`rodadaCompleta`, `_valoresIniciais`), e o que o botão dá.",
       "card": {
@@ -2355,7 +2451,7 @@
     {
       "name": "rotuloDoPasso",
       "path": "gaveta.ts",
-      "line": 304,
+      "line": 318,
       "module": "fn.formularios",
       "summary": "a primeira linha do texto de um passo, sem o \"OPCIONAL:\" da frente (o rótulo do campo).",
       "card": {
@@ -2363,19 +2459,46 @@
       }
     },
     {
+      "name": "primeiraFrase",
+      "path": "gaveta.ts",
+      "line": 331,
+      "module": "fn.formularios",
+      "summary": "a descrição do protocolo em duas partes: a primeira frase (a que a gaveta mostra) e o resto (o histórico, recolhido).",
+      "card": {
+        "does": "a descrição do protocolo em duas partes: a primeira frase (a que a gaveta mostra) e o resto (o histórico, recolhido).",
+        "why": "a percorrida de 06/11: o 📹 abria com oito linhas de histórico antes do primeiro campo.",
+        "io": "o texto → `{ primeira, resto }`; sem ponto que feche a frase, tudo é a primeira.",
+        "errors": "a abreviação seguida de minúscula (\"ex.: a\", \"p. ex.\") não corta; espaços sobrando saem.",
+        "proof": "tests/missao/gaveta.test.ts (\"a descrição recolhida\")."
+      }
+    },
+    {
+      "name": "respondidosPeloNo",
+      "path": "gaveta.ts",
+      "line": 344,
+      "module": "fn.formularios",
+      "summary": "os campos que o nó já responde, quando a gaveta abre pelo protocolo de um nó: o que o botão deu (`doBotao`) e o operador não mexeu. A gaveta não os desenha; o nó é o contexto, e a linha \"Do nó\" os nomeia.",
+      "card": {
+        "does": "os campos que o nó já responde, quando a gaveta abre pelo protocolo de um nó: o que o botão deu (`doBotao`) e o operador não mexeu. A gaveta não os desenha; o nó é o contexto, e a linha \"Do nó\" os nomeia.",
+        "why": "a percorrida de 06/11: o 📹 aberto pela peça perguntava a peça de novo, e o 🔎 da pesquisa, a tarefa.",
+        "io": "a vista → os campos respondidos pelo nó, na ordem do protocolo.",
+        "proof": "tests/missao/gaveta.test.ts (\"o gesto curto do nó\")."
+      }
+    },
+    {
       "name": "resumoDoResto",
       "path": "gaveta.ts",
-      "line": 310,
+      "line": 349,
       "module": "fn.formularios",
-      "summary": "quantos campos do resto têm valor e quantos deles vieram de uma sugestão (o resumo da parte recolhida do 📨).",
+      "summary": "quantos campos do resto têm valor e quantos deles vieram de uma sugestão (o resumo da parte recolhida do 📅).",
       "card": {
-        "does": "quantos campos do resto têm valor e quantos deles vieram de uma sugestão (o resumo da parte recolhida do 📨)."
+        "does": "quantos campos do resto têm valor e quantos deles vieram de uma sugestão (o resumo da parte recolhida do 📅)."
       }
     },
     {
       "name": "chaveDoRascunho",
       "path": "gaveta.ts",
-      "line": 319,
+      "line": 358,
       "module": "fn.formularios",
       "summary": "a chave do rascunho em memória de um botão num período (o mesmo botão no mesmo período volta com o que estava).",
       "card": {
@@ -2537,18 +2660,18 @@
     {
       "name": "lerRamoDoCofre",
       "path": "hosts/lugar.ts",
-      "line": 59,
+      "line": 62,
       "module": "liga.lugares",
-      "summary": "lê o ramo do cofre (`200 - FUNCTIONS/Config/ramos/<id>.json`); o id antigo de um ramo renomeado (o `antes` dele, 03/11: o Roteiros virou Criação) lê o ramo de agora.",
+      "summary": "lê o ramo do cofre (`200 - FUNCTIONS/Config/ramos/<id>.json`); o id antigo de um ramo renomeado (o `antes` dele, 03/11: o Roteiros virou Criação) lê o ramo de agora; as coleções por referência (05/11) vêm do ramo que elas citam.",
       "card": {
-        "does": "lê o ramo do cofre (`200 - FUNCTIONS/Config/ramos/<id>.json`); o id antigo de um ramo renomeado (o `antes` dele, 03/11: o Roteiros virou Criação) lê o ramo de agora.",
+        "does": "lê o ramo do cofre (`200 - FUNCTIONS/Config/ramos/<id>.json`); o id antigo de um ramo renomeado (o `antes` dele, 03/11: o Roteiros virou Criação) lê o ramo de agora; as coleções por referência (05/11) vêm do ramo que elas citam.",
         "errors": "arquivo que falta (e que nenhum ramo teve como id) ou não passa na forma vira erro com o motivo (o componente mostra o aviso); nada é gravado."
       }
     },
     {
       "name": "ramosDoCofre",
       "path": "hosts/lugar.ts",
-      "line": 79,
+      "line": 88,
       "module": "liga.lugares",
       "summary": "os ramos da pasta (`Config/ramos/*.json`) que se leem, com o título de cada uma, para a escolha do ⋯ (P10b).",
       "card": {
@@ -2559,7 +2682,7 @@
     {
       "name": "vocabulariosDoTaskNotes",
       "path": "hosts/lugar.ts",
-      "line": 106,
+      "line": 115,
       "module": "liga.lugares",
       "summary": "os vocabulários do catálogo do TaskNotes (o status e a prioridade, com os rótulos dele) e os contextos do sistema.",
       "card": {
@@ -2571,7 +2694,7 @@
     {
       "name": "gravarDoQuadro",
       "path": "hosts/lugar.ts",
-      "line": 132,
+      "line": 141,
       "module": "liga.lugares",
       "summary": "as gravações que a Missão usa neste lugar: as do quadro (`board.gravacoes`, pela tabela das setas e pela pilha única do Desfazer), mais o catálogo e o nome do arquivo. No celular (`canvasWritesAllowed`) não há gravação: a Missão fica só leitura (§9.1).",
       "card": {
@@ -2581,7 +2704,7 @@
     {
       "name": "ligacoesNoCache",
       "path": "hosts/lugar.ts",
-      "line": 208,
+      "line": 229,
       "module": "liga.lugares",
       "summary": "as ligações de uma nota no cofre, pelo cache de metadados: os links do frontmatter (pela chave de cima: `projects.0` → `projects`) e os do texto, cada um com a nota que acha; e as notas que apontam para ela (`resolvedLinks`), com o `type` de cada uma.",
       "card": {
@@ -2593,7 +2716,7 @@
     {
       "name": "protocolosNoCofre",
       "path": "hosts/lugar.ts",
-      "line": 238,
+      "line": 259,
       "module": "liga.lugares",
       "summary": "o que a seção Protocolos de um nó lê (a peça 2b, 30/10): as Days que ligam a nota (pelo cache de metadados) e as rodadas nelas (`rodadasNaNota`, pela regra do uso recente), os campos de cada protocolo para os pesos (`nucleo.camposDosProtocolos`) e o modelo `protocolos` com os pontos (`nucleo.loadDomain`), o mesmo dos routers.",
       "card": {
@@ -2604,7 +2727,7 @@
     {
       "name": "reputacaoNoCofre",
       "path": "hosts/lugar.ts",
-      "line": 280,
+      "line": 301,
       "module": "liga.lugares",
       "summary": "a linha \"Reputação\" do painel do nó de uma nota (o acabamento, 30/10), pelo núcleo (`nucleo.reputacaoDaNota`): o nível e o porquê, quando a nota é uma função com reputação.",
       "card": {
@@ -2615,7 +2738,7 @@
     {
       "name": "abridorDoGrafo",
       "path": "hosts/lugar.ts",
-      "line": 310,
+      "line": 331,
       "module": "liga.lugares",
       "summary": "abre a vista de grafo do Obsidian numa aba nova, ao lado da Missão, sem trocar a aba dela; quando a aba do grafo fecha, o foco volta à aba da Missão (que ficou no Sistema). Um grafo aberto por aqui que ainda está aberto é mostrado de novo, em vez de abrir outro.",
       "card": {
@@ -2629,7 +2752,7 @@
     {
       "name": "montarNoLugar",
       "path": "hosts/lugar.ts",
-      "line": 351,
+      "line": 372,
       "module": "liga.lugares",
       "summary": "monta a Missão num contêiner do Obsidian e liga o tamanho e as versões.",
       "card": {
@@ -2890,7 +3013,7 @@
     {
       "name": "ligacoesEntre",
       "path": "ligar.ts",
-      "line": 101,
+      "line": 113,
       "module": "compoe.modelo",
       "summary": "o que ligar o nó `de` (quem tem a alça, ou o \"Ligar\") ao nó `para` grava: - a alça da SMART numa ação: acrescenta a mãe, como sempre (`intencaoDaAlca`), direto; - senão, os campos de link dos dois modelos que apontam a espécie do outro, na ordem do ramo que a alça desenha (o alvo embaixo de quem tem a alça; quem tem a alça embaixo do alvo; o lado; o abaixo); a primeira vai direto quando o alvo fica embaixo, ou quando é a única; - sem campo, o soltar de um sobre o outro (pôr no dia ou na semana, mudar de projeto, ligar à SMART); - sem nada disso, o porquê: o que o gesto recusou (já estão ligados), ou que nenhum campo liga os dois.",
       "card": {
@@ -3249,7 +3372,7 @@
     {
       "name": "MissaoService.registrar",
       "path": "missaoService.ts",
-      "line": 140,
+      "line": 148,
       "module": "liga.leitor",
       "summary": "liga as escutas do cofre (só as pastas que importam) e dos dois avisos do sistema.",
       "card": {
@@ -3259,7 +3382,7 @@
     {
       "name": "MissaoService.versaoAtual",
       "path": "missaoService.ts",
-      "line": 157,
+      "line": 165,
       "module": "liga.leitor",
       "summary": "a versão de agora (sobe uma vez a cada rajada de mudanças, depois da espera).",
       "card": {
@@ -3269,7 +3392,7 @@
     {
       "name": "MissaoService.assinar",
       "path": "missaoService.ts",
-      "line": 162,
+      "line": 170,
       "module": "liga.leitor",
       "summary": "avisa quem assina a cada versão nova; devolve o desligar.",
       "card": {
@@ -3279,7 +3402,7 @@
     {
       "name": "MissaoService.agendar",
       "path": "missaoService.ts",
-      "line": 168,
+      "line": 176,
       "module": "liga.leitor",
       "summary": "espera 250 ms depois do último aviso e passa à versão seguinte (a entrada é relida no próximo pedido).",
       "card": {
@@ -3289,7 +3412,7 @@
     {
       "name": "MissaoService.modelo",
       "path": "missaoService.ts",
-      "line": 183,
+      "line": 191,
       "module": "liga.leitor",
       "summary": "o modelo da versão de agora para os filtros dados (padrão: os da página); montado uma vez.",
       "card": {
@@ -3299,7 +3422,7 @@
     {
       "name": "MissaoService.entrada",
       "path": "missaoService.ts",
-      "line": 219,
+      "line": 227,
       "module": "liga.leitor",
       "summary": "a entrada da versão de agora; relida só quando a versão ou o dia mudam.",
       "card": {
@@ -3309,7 +3432,7 @@
     {
       "name": "MissaoService.destruir",
       "path": "missaoService.ts",
-      "line": 233,
+      "line": 241,
       "module": "liga.leitor",
       "summary": "desliga a espera e os ouvintes (o plugin chama ao descarregar).",
       "card": {
@@ -3319,7 +3442,7 @@
     {
       "name": "MissaoService.casasSincronas",
       "path": "missaoService.ts",
-      "line": 252,
+      "line": 260,
       "module": "liga.leitor",
       "summary": "as casas que se sabem sem ler nada (as do plugin e do TaskNotes; as dos protocolos, da última leitura).",
       "card": {
@@ -3329,7 +3452,7 @@
     {
       "name": "MissaoService.lerFontesDosRamos",
       "path": "missaoService.ts",
-      "line": 276,
+      "line": 284,
       "module": "liga.leitor",
       "summary": "as fontes das coleções de todos os ramos da pasta, cada uma com a casa (a `targetFolder` do protocolo dono) e o `type`.",
       "card": {
@@ -3341,7 +3464,7 @@
     {
       "name": "MissaoService.lerCasas",
       "path": "missaoService.ts",
-      "line": 330,
+      "line": 338,
       "module": "liga.leitor",
       "summary": "as casas de cada coisa: as do plugin, as do TaskNotes e o `targetFolder` dos protocolos donos (o 🔭, o ✈️, o 🏳️, o 👤, o 💡). O protocolo que não se lê deixa a casa de sempre.",
       "card": {
@@ -3351,7 +3474,7 @@
     {
       "name": "MissaoService.lerEntrada",
       "path": "missaoService.ts",
-      "line": 354,
+      "line": 362,
       "module": "liga.leitor",
       "summary": "lê a entrada de hoje: as TaskNotes, os projetos, a Temporada e o foco, as notas de período, os lugares, as pessoas, a visão, a reserva, os hábitos, a Caixa de entrada, as ideias e o par de valores das semanas perto de hoje.",
       "card": {
@@ -3362,7 +3485,7 @@
     {
       "name": "MissaoService.estadosDaTarefa",
       "path": "missaoService.ts",
-      "line": 467,
+      "line": 562,
       "module": "liga.leitor",
       "summary": "a tabela de estados da tarefa já lida (vazia antes da primeira leitura), para o contexto dos gestos.",
       "card": {
@@ -3372,7 +3495,7 @@
     {
       "name": "MissaoService.lerTabelas",
       "path": "missaoService.ts",
-      "line": 471,
+      "line": 566,
       "module": "liga.leitor",
       "summary": "",
       "card": {}
@@ -3380,7 +3503,7 @@
     {
       "name": "MissaoService.lerPortfolio",
       "path": "missaoService.ts",
-      "line": 504,
+      "line": 599,
       "module": "liga.leitor",
       "summary": "os projetos e departamentos pelas pastas do portfólio, com a área, a coluna, a nota-índice, a central a que servem e o canvas.",
       "card": {
@@ -3782,7 +3905,7 @@
     {
       "name": "filhosDoTipo",
       "path": "novo.ts",
-      "line": 137,
+      "line": 141,
       "module": "fn.formularios",
       "summary": "os filhos de um tipo pelos modelos: cada tipo com um campo de link `ramo: \"acima\"` cujo alvo é o domínio do pai (a cidade pelo `pais`, a subtarefa pelo `projects` da tarefa).",
       "card": {
@@ -3793,7 +3916,7 @@
     {
       "name": "novosDoNo",
       "path": "novo.ts",
-      "line": 157,
+      "line": 161,
       "module": "fn.formularios",
       "summary": "o que se cria a partir de um nó, num lugar só (29/10): o que o ramo declara para a espécie dele e, pelos modelos, cada filho do tipo do nó (\"+ <Tipo>\", com o link de volta já respondido no campo do filho); só dos tipos que o seletor tem. O filho do mesmo tipo é o \"Sub\" dele (\"+ Subtarefa\"); o tipo que o ramo já declara fica com o botão do ramo.",
       "card": {
@@ -3806,7 +3929,7 @@
     {
       "name": "nomeParaOLink",
       "path": "novo.ts",
-      "line": 176,
+      "line": 184,
       "module": "fn.formularios",
       "summary": "o nome que o link de um filho grava para apontar o nó: o nome da nota dele, ou, sem nota, o nome do lugar (o país sem nota) ou do projeto.",
       "card": {
@@ -3817,7 +3940,7 @@
     {
       "name": "origemDoNovo",
       "path": "novo.ts",
-      "line": 192,
+      "line": 200,
       "module": "fn.formularios",
       "summary": "a origem do Novo: aberto num período, a linha é ele; numa TaskNote (a SMART), a linha fica de fora, e o tempo vem da herança (a ação nasce na semana da SMART, como no ⚡); em outro nó (projeto, área, lugar) ou no \"+ Novo\", a linha em foco.",
       "card": {
@@ -3828,7 +3951,7 @@
     {
       "name": "origemEmPalavras",
       "path": "novo.ts",
-      "line": 200,
+      "line": 208,
       "module": "fn.formularios",
       "summary": "a origem em palavras, para o formulário (\"Aberto em qui 29/10 · SMART X\").",
       "card": {
@@ -3838,7 +3961,7 @@
     {
       "name": "contextoDoNovo",
       "path": "novo.ts",
-      "line": 234,
+      "line": 242,
       "module": "fn.formularios",
       "summary": "o contexto das sugestões a partir da origem: os nós que o nó de onde abriu dá (a SMART dá a herança e o projeto; o projeto dá a central e a área; o lugar dá a cidade e o país), o fio do projeto, o lugar do dia da linha e a última passagem.",
       "card": {
@@ -3850,7 +3973,7 @@
     {
       "name": "candidatosDoCampo",
       "path": "novo.ts",
-      "line": 298,
+      "line": 306,
       "module": "fn.formularios",
       "summary": "os candidatos de um campo de link, pelos tipos do `alvo`, do modelo da Missão: as TaskNotes abertas pelo `type` do modelo do alvo (a SMART, a ação), os projetos e os departamentos que não se encerraram, as áreas, as cidades e os países das passagens.",
       "card": {
@@ -3861,7 +3984,7 @@
     {
       "name": "smartDosValores",
       "path": "novo.ts",
-      "line": 321,
+      "line": 329,
       "module": "fn.formularios",
       "summary": "a SMART que os valores do formulário ligam (o primeiro link que é de uma SMART aberta do modelo), ou `null`.",
       "card": {
@@ -3872,7 +3995,7 @@
     {
       "name": "sugestoesDoNovo",
       "path": "novo.ts",
-      "line": 340,
+      "line": 348,
       "module": "fn.formularios",
       "summary": "as sugestões de todos os campos de um tipo, pela função única (`sugestaoDoCampo`).",
       "card": {
@@ -3883,7 +4006,7 @@
     {
       "name": "entradasDoNovo",
       "path": "novo.ts",
-      "line": 350,
+      "line": 358,
       "module": "fn.formularios",
       "summary": "a entrada de cada campo: a digitada (mesmo vazia) vence a sugestão.",
       "card": {
@@ -3893,7 +4016,7 @@
     {
       "name": "comEtiquetas",
       "path": "novo.ts",
-      "line": 370,
+      "line": 378,
       "module": "fn.formularios",
       "summary": "os valores da tarefa nova com as etiquetas do ramo (`novo.etiquetas`, P10c), sem repetir as que já vieram.",
       "card": {
@@ -3906,7 +4029,7 @@
     {
       "name": "validarCampos",
       "path": "novo.ts",
-      "line": 391,
+      "line": 399,
       "module": "fn.formularios",
       "summary": "confere os campos do formulário (`validarCampos`, §4.4) pela validação única do campo (`valorDoCampo`): obrigatório, formato, valores do catálogo, link que existe e as regras do tipo. O problema sai em palavras, no campo; nada é gravado com ele.",
       "card": {
@@ -3920,7 +4043,7 @@
     {
       "name": "frontmatterInicial",
       "path": "novo.ts",
-      "line": 414,
+      "line": 422,
       "module": "fn.formularios",
       "summary": "o frontmatter inicial da tarefa nova: os valores conferidos e, dentro de uma SMART, o patch da mãe, a mesma regra da seta e do \"Ligar a uma SMART…\" (sai o vínculo direto com o projeto dela, entra a SMART; a semana e o impacto só onde vieram vazios).",
       "card": {
@@ -3934,7 +4057,7 @@
     {
       "name": "casaNoModulo",
       "path": "novo.ts",
-      "line": 445,
+      "line": 453,
       "module": "fn.formularios",
       "summary": "a pasta onde a nota nasce dentro de um módulo: a subpasta numerada que já existe com o nome (`NN - <subpasta>`, como um `04 - Funções/` que um projeto já tem), senão a própria subpasta, que nasce com a nota.",
       "card": {
@@ -3948,7 +4071,7 @@
     {
       "name": "pastaDoModulo",
       "path": "novo.ts",
-      "line": 459,
+      "line": 467,
       "module": "fn.formularios",
       "summary": "a pasta do módulo que o campo da casa aponta: o link do campo (`criar.casa.campo`) achado pelo candidato do Novo, e a pasta da nota-índice dele.",
       "card": {
@@ -3959,7 +4082,7 @@
     {
       "name": "pedidoDaNota",
       "path": "novo.ts",
-      "line": 481,
+      "line": 489,
       "module": "fn.formularios",
       "summary": "o pedido da nota simples de um tipo `via: nota` (a estadia, 30/10): a pasta do modelo, o nome do arquivo pelo campo do título (sem os caracteres que o cofre recusa) e o frontmatter inicial, com o `type` do modelo na frente e os valores conferidos (sem os vazios).",
       "card": {
@@ -3972,7 +4095,7 @@
     {
       "name": "notaDoMolde",
       "path": "novo.ts",
-      "line": 511,
+      "line": 519,
       "module": "fn.formularios",
       "summary": "a nota nova pelo molde já renderizado (02/11, a nota de função): o frontmatter do pedido na frente, as chaves do molde que o pedido não tem logo depois (como vieram, linha por linha: a data do `created`), e o corpo do molde (📋 Planejar · ✅ Executar · 🔄 Revisar).",
       "card": {
@@ -3986,7 +4109,7 @@
     {
       "name": "respostasDoProtocolo",
       "path": "novo.ts",
-      "line": 560,
+      "line": 568,
       "module": "fn.formularios",
       "summary": "as variáveis com que o protocolo dono roda a partir do formulário do Novo: a resposta de cada passo como o modal a daria (o texto como veio; a opção do `suggest` pelo valor dela ou pelo texto; a nota do `suggest_note` pelo nome, com o caminho dela em `_path`, que é a nota escolhida, não um derivado) e as datas da rodada, sempre explícitas (`_context_date`, o dia da linha ou hoje, e as do `criar.datas`). \"Criar\" (`modo: 'criar'`) roda pelo formulário do motor (`rodadaDoFormulario`): os passos respondidos vão em `_respondidos`, e o campo opcional deixado vazio vai com a resposta vazia que o modal daria, para não ser perguntado de novo; os derivados (`_value`, `_num`, `_display`, `_folder`, `_prop_*`) são do motor, pela mesma função da resposta dada no modal. \"Abrir o protocolo completo\" (`modo: 'completo'`) roda com `_valoresIniciais` (`rodadaCompleta`): todo passo aparece, aberto com o valor daqui.",
       "card": {
@@ -4000,7 +4123,7 @@
     {
       "name": "GravacoesDoNovo.tarefa",
       "path": "novoWrites.ts",
-      "line": 73,
+      "line": 85,
       "module": "liga.gravar",
       "summary": "cria a tarefa pela API do TaskNotes: o frontmatter inicial (os valores do formulário e o patch da mãe), o pedido com o `type`, e o Desfazer que manda a nota para a lixeira do sistema enquanto ela está como nasceu.",
       "card": {
@@ -4011,7 +4134,7 @@
     {
       "name": "GravacoesDoNovo.nota",
       "path": "novoWrites.ts",
-      "line": 97,
+      "line": 109,
       "module": "liga.gravar",
       "summary": "cria a nota simples de um tipo `via: nota` (a estadia, 30/10): o arquivo na pasta do modelo, com o frontmatter do pedido, e o mesmo Desfazer da tarefa (a lixeira do sistema enquanto ela está como nasceu).",
       "card": {
@@ -4023,18 +4146,18 @@
     {
       "name": "GravacoesDoNovo.noTaskNotes",
       "path": "novoWrites.ts",
-      "line": 137,
+      "line": 152,
       "module": "liga.gravar",
-      "summary": "\"Abrir no TaskNotes\": o formulário nativo, preenchido com o título, o onde, a estimativa e o projeto (com a herança); depois que ele salva, o `type: task` que ele não grava e a herança da mãe, pelo patch de sempre (só o que veio vazio).",
+      "summary": "\"Abrir no TaskNotes\": o formulário nativo, preenchido com o título, o onde, a estimativa e o projeto (com a herança), para a pessoa completar; depois que ele salva, a herança da mãe pelo patch de sempre (só o que veio vazio) e o frontmatter na forma única do criador de tarefa (`patchDaFormaUnica`: o `type`, a tag `task`, as listas e os números; o `status`, a prioridade e a data de criação que o formulário deu ficam), numa gravação só. A tarefa que ganhou a semana ou o dia (da mãe, ou no formulário) sai da entrada pela regra D1 (06/11), no mesmo patch; o status escolhido fica.",
       "card": {
-        "does": "\"Abrir no TaskNotes\": o formulário nativo, preenchido com o título, o onde, a estimativa e o projeto (com a herança); depois que ele salva, o `type: task` que ele não grava e a herança da mãe, pelo patch de sempre (só o que veio vazio).",
+        "does": "\"Abrir no TaskNotes\": o formulário nativo, preenchido com o título, o onde, a estimativa e o projeto (com a herança), para a pessoa completar; depois que ele salva, a herança da mãe pelo patch de sempre (só o que veio vazio) e o frontmatter na forma única do criador de tarefa (`patchDaFormaUnica`: o `type`, a tag `task`, as listas e os números; o `status`, a prioridade e a data de criação que o formulário deu ficam), numa gravação só. A tarefa que ganhou a semana ou o dia (da mãe, ou no formulário) sai da entrada pela regra D1 (06/11), no mesmo patch; o status escolhido fica.",
         "io": "os valores conferidos, a SMART mãe e o aviso → o resultado (o formulário fechado sem salvar não cria nada)."
       }
     },
     {
       "name": "contextoDoPainel",
       "path": "painel.ts",
-      "line": 34,
+      "line": 36,
       "module": "compoe.modelo",
       "summary": "o contexto dos nós do painel, a partir do modelo: o índice dele, os registros do índice e os sinais do modelo agrupados por alvo (`sinaisPorAlvo`).",
       "card": {
@@ -4160,13 +4283,25 @@
       }
     },
     {
+      "name": "preencherPelasSituacoes",
+      "path": "protocolosDoNo.ts",
+      "line": 102,
+      "module": "fn.formularios",
+      "summary": "as fichas com que cada protocolo subido pela situação abre (o `preencher` da situação, 06/11), por id; a primeira situação que preenche um passo vale.",
+      "card": {
+        "does": "as fichas com que cada protocolo subido pela situação abre (o `preencher` da situação, 06/11), por id; a primeira situação que preenche um passo vale.",
+        "why": "o 🔄 que a tarefa em curso sobe abria com a tarefa do dia; com o `preencher` da situação, abre com a do nó, como o `preencher` do bloco `protocolos` já faz no painel da peça.",
+        "proof": "tests/missao/protocolosDoNo.test.ts (\"o preencher da situação\")."
+      }
+    },
+    {
       "name": "candidatosDoNo",
       "path": "protocolosDoNo.ts",
-      "line": 88,
+      "line": 122,
       "module": "fn.formularios",
-      "summary": "os protocolos do tipo e da nota, antes da ordem: os donos dos campos (`dono: protocolo:<id>#<passo>`, a resposta é o valor do campo), o do `criar` (o protocolo e o completo, as respostas pelos `passos`), os do bloco `protocolos` (o papel e o `preencher`) e os que já rodaram, cada um uma vez, com os papéis somados e as datas da rodada na frente.",
+      "summary": "os protocolos do tipo e da nota, antes da ordem: os donos dos campos (`dono: protocolo:<id>#<passo>`, a resposta é o valor do campo), o do `criar` (o protocolo e o completo, as respostas pelos `passos`), os do bloco `protocolos` (o papel e o `preencher`) e os que já rodaram, cada um uma vez, com os papéis somados e as datas da rodada na frente; os que a situação sobe levam as respostas do `preencher` dela (06/11).",
       "card": {
-        "does": "os protocolos do tipo e da nota, antes da ordem: os donos dos campos (`dono: protocolo:<id>#<passo>`, a resposta é o valor do campo), o do `criar` (o protocolo e o completo, as respostas pelos `passos`), os do bloco `protocolos` (o papel e o `preencher`) e os que já rodaram, cada um uma vez, com os papéis somados e as datas da rodada na frente.",
+        "does": "os protocolos do tipo e da nota, antes da ordem: os donos dos campos (`dono: protocolo:<id>#<passo>`, a resposta é o valor do campo), o do `criar` (o protocolo e o completo, as respostas pelos `passos`), os do bloco `protocolos` (o papel e o `preencher`) e os que já rodaram, cada um uma vez, com os papéis somados e as datas da rodada na frente; os que a situação sobe levam as respostas do `preencher` dela (06/11).",
         "io": "o modelo do tipo (ou `null`), o nó e as rodadas → os candidatos, na ordem dos papéis.",
         "errors": "a resposta sem valor não vai (o protocolo pergunta); a ficha sem valor também não."
       }
@@ -4174,7 +4309,7 @@
     {
       "name": "protocolosDoNo",
       "path": "protocolosDoNo.ts",
-      "line": 128,
+      "line": 167,
       "module": "fn.formularios",
       "summary": "a seção \"Protocolos\" de um nó: os candidatos (`candidatosDoNo`) na ordem dos pesos (`rankOptions`, o mesmo dos routers, com os campos de cada protocolo), cada um com a linha do porquê (os papéis, o porquê do peso com o nível da reputação citado e os dias em que rodou nesta nota) e as respostas do nó.",
       "card": {
@@ -4187,7 +4322,7 @@
     {
       "name": "rodadasNaNota",
       "path": "protocolosDoNo.ts",
-      "line": 159,
+      "line": 198,
       "module": "fn.formularios",
       "summary": "os dias em que cada protocolo rodou sobre uma nota: as linhas das Days que ligam a nota (`[[Nome]]`, com ou sem o rótulo), lidas pela regra do uso recente (`usoDatas`), protocolo por protocolo.",
       "card": {
@@ -4312,7 +4447,7 @@
     {
       "name": "lerColecoes",
       "path": "ramoPrincipal.ts",
-      "line": 306,
+      "line": 321,
       "module": "ramo-principal",
       "summary": "lê e confere as coleções de um ramo.",
       "card": {
@@ -4324,9 +4459,35 @@
       }
     },
     {
+      "name": "ramosCitadosPelasColecoes",
+      "path": "ramoPrincipal.ts",
+      "line": 398,
+      "module": "ramo-principal",
+      "summary": "os ids dos ramos que as coleções por referência de um ramo cru citam (`{ \"id\": \"<coleção>\", \"de\": \"<ramo>\" }`), sem repetir e sem o próprio.",
+      "card": {
+        "does": "os ids dos ramos que as coleções por referência de um ramo cru citam (`{ \"id\": \"<coleção>\", \"de\": \"<ramo>\" }`), sem repetir e sem o próprio.",
+        "why": "quem lê o ramo do cofre lê também esses arquivos antes de `comAsColecoesDosOutros` (a leitura é da borda).",
+        "io": "o ramo cru → os ids, na ordem em que aparecem."
+      }
+    },
+    {
+      "name": "comAsColecoesDosOutros",
+      "path": "ramoPrincipal.ts",
+      "line": 417,
+      "module": "ramo-principal",
+      "summary": "o ramo cru com as coleções por referência resolvidas: cada `{ \"id\": \"<coleção>\", \"de\": \"<ramo>\" }` vira uma cópia da coleção de mesmo id do outro ramo, um nível só (a coleção de lá que também é referência não se segue).",
+      "card": {
+        "does": "o ramo cru com as coleções por referência resolvidas: cada `{ \"id\": \"<coleção>\", \"de\": \"<ramo>\" }` vira uma cópia da coleção de mesmo id do outro ramo, um nível só (a coleção de lá que também é referência não se segue).",
+        "why": "05/11, a frente de renda no Projetos: o projeto conta as peças da semana pelas mesmas coleções da Criação, e a coleção tem um dono só (as sete fontes das peças moram no ramo Criação, e não numa cópia no Projetos). O juiz em Python resolve igual (`resolve_branch_references`).",
+        "io": "o ramo cru e o leitor dos outros ramos crus pelo id → o ramo cru (uma cópia rasa; a entrada não muda).",
+        "errors": "o ramo que não se lê (o leitor lança ou devolve nada), a coleção que ele não tem e a referência ao próprio ramo ficam como estão, e `lerColecoes` diz o problema; o leitor é chamado uma vez por ramo.",
+        "proof": "tests/engine/refinosDosRamos.test.ts e os casos compartilhados com o juiz."
+      }
+    },
+    {
       "name": "habitosDoCentro",
       "path": "ramoPrincipal.ts",
-      "line": 438,
+      "line": 527,
       "module": "ramo-principal",
       "summary": "os hábitos do dia que o centro do ramo mostra: todos (`true`), nenhum (`false`) ou só os da lista, pelo nome da nota (sem a pasta e o `.md`) ou pelo título, sem maiúscula nem acento.",
       "card": {
@@ -4340,7 +4501,7 @@
     {
       "name": "naEscala",
       "path": "ramoPrincipal.ts",
-      "line": 447,
+      "line": 536,
       "module": "ramo-principal",
       "summary": "um valor por escala (o mesmo em todas, ou um por escala).",
       "card": {
@@ -4350,7 +4511,7 @@
     {
       "name": "ramoQueAmplia",
       "path": "ramoPrincipal.ts",
-      "line": 517,
+      "line": 606,
       "module": "ramo-principal",
       "summary": "o ramo que amplia um nó: o do lugar, quando o nó mora no lugar (a passagem); a da coluna dele; ou a que declara o tipo dele (o domínio do modelo: a cidade, o país).",
       "card": {
@@ -4364,7 +4525,7 @@
     {
       "name": "dataDoPeriodo",
       "path": "ramoPrincipal.ts",
-      "line": 660,
+      "line": 770,
       "module": "ramo-principal",
       "summary": "o dia de contexto de um período: hoje, quando hoje cai nele; senão, o primeiro dia dele (a segunda-feira da semana; no trimestre, a da primeira semana dele, cuja quinta-feira é do trimestre).",
       "card": {
@@ -4376,7 +4537,7 @@
     {
       "name": "ciclosDoPeriodo",
       "path": "ramoPrincipal.ts",
-      "line": 680,
+      "line": 790,
       "module": "ramo-principal",
       "summary": "os botões do ciclo de um período, com as variáveis resolvidas (`{chave}`, `{data}`).",
       "card": {
@@ -4390,7 +4551,7 @@
     {
       "name": "idAtualDoRamo",
       "path": "ramoPrincipal.ts",
-      "line": 721,
+      "line": 831,
       "module": "ramo-principal",
       "summary": "o id atual de um ramo pedido por um id que talvez seja antigo: o próprio, quando um ramo tem esse id; o do ramo que o tem no `antes`, quando é antigo; senão, `null`.",
       "card": {
@@ -4403,7 +4564,7 @@
     {
       "name": "lerRamoPrincipal",
       "path": "ramoPrincipal.ts",
-      "line": 737,
+      "line": 847,
       "module": "ramo-principal",
       "summary": "lê e confere um ramo: o centro, as duas asas, os painéis, as ligações e a formação.",
       "card": {
@@ -4417,7 +4578,7 @@
     {
       "name": "planoDaGrade",
       "path": "ramoPrincipal.ts",
-      "line": 829,
+      "line": 939,
       "module": "ramo-principal",
       "summary": "o plano da grade de um ramo numa escala: as colunas à vista (lugar, asa do trabalho, centro, asa do tempo), o `grid-template-columns` largo e o do celular, e a extensão de cada painel nas duas formas.",
       "card": {
@@ -4431,7 +4592,7 @@
     {
       "name": "colunaDoHorizonte",
       "path": "ramoPrincipal.ts",
-      "line": 888,
+      "line": 998,
       "module": "ramo-principal",
       "summary": "a coluna do horizonte mais longo de um plano: a de fora da asa do tempo, e o painel dela.",
       "card": {
@@ -4445,7 +4606,7 @@
     {
       "name": "nosDaFonte",
       "path": "ramoPrincipal.ts",
-      "line": 901,
+      "line": 1011,
       "module": "ramo-principal",
       "summary": "os nós de uma coluna numa linha aberta: a lista da fonte, só os tipos pedidos. A fonte com ponto anda pelas chaves (`colecoes.cidades` = a coleção `cidades` da linha).",
       "card": {
@@ -4506,7 +4667,7 @@
     {
       "name": "sinais",
       "path": "sinais.ts",
-      "line": 52,
+      "line": 53,
       "module": "fn.sinais",
       "summary": "os sinais do cofre de hoje, nesta ordem: os da semana (com os dias úteis vazios e o projeto fora do foco, 02/11), os das centrais e os de cada tarefa (a SMART sem ação, o prazo, o que ficou de antes, as faltas de dado e as datas que se contradizem, 02/11) e os da direção do trabalho (a SMART sem condição de fim e a ação para fora que espera, 02/11).",
       "card": {
@@ -4520,7 +4681,7 @@
     {
       "name": "sinaisDosTrechos",
       "path": "sinais.ts",
-      "line": 128,
+      "line": 129,
       "module": "fn.sinais",
       "summary": "o trecho fechado sem a revisão: a SMART do trecho concluída (a que tem o `destino`, a que o 🤝 Decidir do 🌍 cria; ou a de manutenção de rotina da linhagem de viagem, a mudança de cidade) e ainda sem o `revisado`, que o 🔄 Revisar o trecho grava nela. O fato diz o dia em que fechou; o próximo passo é o protocolo que a situação do nó sobe na seção Protocolos (o P13, o modelo da SMART), por isso sem o id aqui.",
       "card": {
@@ -4532,9 +4693,23 @@
       }
     },
     {
+      "name": "sinaisDasConferencias",
+      "path": "sinais.ts",
+      "line": 153,
+      "module": "fn.sinais",
+      "summary": "a conferência das tarefas de pesquisa (05/11): a tarefa com a tag de uma declaração, aberta e sem os itens da seção da conferência na nota, dá `pesquisa-sem-conferencia` (o próximo passo é o protocolo que leva a lista, e a situação do modelo o sobe no painel); a concluída com item da seção ainda aberto dá `conferencia-aberta`, com quantos, e o próximo passo é abrir a nota.",
+      "card": {
+        "does": "a conferência das tarefas de pesquisa (05/11): a tarefa com a tag de uma declaração, aberta e sem os itens da seção da conferência na nota, dá `pesquisa-sem-conferencia` (o próximo passo é o protocolo que leva a lista, e a situação do modelo o sobe no painel); a concluída com item da seção ainda aberto dá `conferencia-aberta`, com quantos, e o próximo passo é abrir a nota.",
+        "why": "nenhuma pesquisa de agente é aceita sem a conferência dos itens críticos; a tag e a seção moram no modelo (`sinais.conferencias`), e o leitor conta os itens da seção (`ConferenciaLida`).",
+        "io": "o índice, as declarações e o que o leitor contou (`undefined` = não leu) → os sinais.",
+        "errors": "sem a leitura, nenhum sinal (ausência não é zero); a tarefa sem a tag, a cancelada e a de algum dia não dão sinal; a concluída sem a seção não dá sinal (a conferência não foi levada a ela, e o sinal é do item aberto); a seção sem item vale como sem a conferência.",
+        "proof": "tests/missao/sinais.test.ts (\"a conferência de uma pesquisa\")."
+      }
+    },
+    {
       "name": "sinaisPorAlvo",
       "path": "sinais.ts",
-      "line": 140,
+      "line": 173,
       "module": "fn.sinais",
       "summary": "os sinais por nó (a marca discreta no nó e o texto no título e no painel).",
       "card": {
@@ -4544,7 +4719,7 @@
     {
       "name": "declaracoesDosModelos",
       "path": "sinais.ts",
-      "line": 157,
+      "line": 190,
       "module": "fn.sinais",
       "summary": "as declarações de sinal dos modelos dos tipos (o bloco `sinais`: `prazos` e `limites`), só as que têm o que pedem; a conferência com o problema dito é a do modelo (`domainModel.signalProblems`) e a do juiz.",
       "card": {
@@ -4555,7 +4730,7 @@
     {
       "name": "sinaisDasDatas",
       "path": "sinais.ts",
-      "line": 197,
+      "line": 256,
       "module": "fn.sinais",
       "summary": "a conferência das datas das notas seguidas (as estadias, 02/11): na ordem da entrada, entre uma nota que conta e a próxima, a noite sem nota (a saída antes da entrada seguinte) e as duas na mesma noite (a entrada seguinte antes da saída); a saída antes da entrada na mesma nota; e a saída que já passou numa reserva aberta. Cada aviso diz o fato e as datas e vai para a nota que o mostra (as duas, entre duas notas).",
       "card": {
@@ -4569,7 +4744,7 @@
     {
       "name": "chegadaNoLugar",
       "path": "sinais.ts",
-      "line": 245,
+      "line": 304,
       "module": "fn.sinais",
       "summary": "a chegada no país (o lugar) da passagem de hoje: a primeira de uma sequência de passagens seguidas no mesmo país, sem dia vazio entre elas.",
       "card": {
@@ -4580,7 +4755,7 @@
     {
       "name": "sinaisDeclarados",
       "path": "sinais.ts",
-      "line": 304,
+      "line": 363,
       "module": "fn.sinais",
       "summary": "os sinais que os modelos dos tipos declaram (P10b, §8.8): o prazo adiante (a data de um campo, de hoje em diante: \"saída planejada para 05/11\") e o limite no lugar, no país da passagem de hoje: pela data até quando ele vale (\"último dia do visto: 11/12 (faltam 43 dias)\", com a saída da passagem quando ela vai além), ou pelos dias contados da chegada (\"último dia do visto: 11/12 (o 45º dia desde a chegada no país, em 28/10)\").",
       "card": {
@@ -4589,6 +4764,48 @@
         "io": "as notas (com o frontmatter, o `type` dentro), as passagens, as declarações e hoje → `Sinal[]`.",
         "errors": "a data que passou não é prazo adiante (o trecho feito vem das passagens); sem país na passagem, sem data nem número de dias, ou nenhuma nota do país, o limite fica inerte (nenhum sinal, nenhum número inventado); a data do limite de antes da chegada é de outra entrada e não vale; as declarações com o mesmo `fato` dão um sinal só (a primeira que tem o dado); a mesma nota lida duas vezes conta uma.",
         "proof": "tests/missao/sinais.test.ts (\"os sinais declarados\")."
+      }
+    },
+    {
+      "name": "sinaisDeOrigem",
+      "path": "sinais.ts",
+      "line": 412,
+      "module": "fn.sinais",
+      "summary": "a origem que falta: cada nota do tipo, num dos formatos da declaração, sem a nota de origem no campo (o corte sem a peça-mãe), ou com a de origem que não é nota do tipo (\"aponta X, que não é peça\"). O fato diz isso, sem julgar; o sinal vai para a nota.",
+      "card": {
+        "does": "a origem que falta: cada nota do tipo, num dos formatos da declaração, sem a nota de origem no campo (o corte sem a peça-mãe), ou com a de origem que não é nota do tipo (\"aponta X, que não é peça\"). O fato diz isso, sem julgar; o sinal vai para a nota.",
+        "why": "05/11, a campanha da semana: o corte sai de um longo, e o corte solto não se liga a frente nem a canal pelo longo; só informa, e o próximo passo é o protocolo que a declaração diz.",
+        "io": "as notas (com o frontmatter) e as declarações `origens` → `Sinal[]`.",
+        "errors": "a nota no estado oculto (o arquivado) e a de outro formato ficam de fora; o link vazio do protocolo (`[[]]`) conta como sem origem; a mesma nota lida duas vezes conta uma.",
+        "proof": "tests/missao/sinaisDaCampanha.test.ts."
+      }
+    },
+    {
+      "name": "sinaisDeVazio",
+      "path": "sinais.ts",
+      "line": 441,
+      "module": "fn.sinais",
+      "summary": "o campo vazio num estado: cada nota do tipo num dos estados da declaração (sem a lista, em qualquer um que não é oculto) com o campo vazio; o fato diz isso, sem julgar, e o sinal vai para a nota.",
+      "card": {
+        "does": "o campo vazio num estado: cada nota do tipo num dos estados da declaração (sem a lista, em qualquer um que não é oculto) com o campo vazio; o fato diz isso, sem julgar, e o sinal vai para a nota.",
+        "why": "05/11, o gerenciamento dos destinos: \"para qual perfil ou rede vai cada conteúdo\"; a peça editada ou aprovada sem destino ainda não sabe aonde vai. Só informa; nada se cria.",
+        "io": "as notas (com o frontmatter, os nomes antigos já lidos) e as declarações `vazios` → `Sinal[]`.",
+        "errors": "o texto em branco, a lista vazia e o link vazio (`[[]]`) contam como vazio; o estado compara sem caixa; o oculto (o arquivado) fica de fora; a mesma nota lida duas vezes conta uma.",
+        "proof": "tests/engine/destinosDaPeca.test.ts."
+      }
+    },
+    {
+      "name": "sinaisDeCadencia",
+      "path": "sinais.ts",
+      "line": 470,
+      "module": "fn.sinais",
+      "summary": "a cadência da semana de hoje: cada valor declarado (o canal) sem nenhuma nota do tipo publicada nesta semana, pelo dia de ir ao ar e pelo modelo. O sinal vai para o nó do valor (o canal na coluna Canais), quando a borda o dá; senão, para a semana.",
+      "card": {
+        "does": "a cadência da semana de hoje: cada valor declarado (o canal) sem nenhuma nota do tipo publicada nesta semana, pelo dia de ir ao ar e pelo modelo. O sinal vai para o nó do valor (o canal na coluna Canais), quando a borda o dá; senão, para a semana.",
+        "why": "05/11, a campanha da semana: um longo por semana e cortes todos os dias em cada canal; o sinal só diz o fato (\"o canal X está sem peça publicada nesta semana\") e nunca cria tarefa: a semana é dele.",
+        "io": "as notas, as declarações `cadencias`, hoje e o nó de um valor (opcional) → `Sinal[]`.",
+        "errors": "a nota sem o dia de ir ao ar, ou com o dia fora da semana, não conta; o valor compara sem acento nem caixa; a mesma nota lida duas vezes conta uma.",
+        "proof": "tests/missao/sinaisDaCampanha.test.ts."
       }
     },
     {
@@ -5496,7 +5713,7 @@
     {
       "name": "pastaDoDestino",
       "path": "triagemWrites.ts",
-      "line": 75,
+      "line": 84,
       "module": "liga.gravar",
       "summary": "a pasta de um destino da Caixa: a fixa (Histórico, Side Quest, Virar tarefa) ou a escolhida (o projeto ou a área, o tipo de Recursos).",
       "card": {
@@ -5507,7 +5724,7 @@
     {
       "name": "continuarDoRascunho",
       "path": "triagemWrites.ts",
-      "line": 86,
+      "line": 95,
       "module": "liga.gravar",
       "summary": "o `vars` do bloco \"▶️ Continuar Protocolo\" de um rascunho: o id do protocolo e as respostas já dadas (base64 de JSON, `encodeVariablesForButton`).",
       "card": {
@@ -5518,7 +5735,7 @@
     {
       "name": "GravacoesDaTriagem.caixa",
       "path": "triagemWrites.ts",
-      "line": 121,
+      "line": 130,
       "module": "liga.gravar",
       "summary": "uma nota da Caixa de entrada vai para o destino (a pasta escolhida ou a fixa); o Side Quest e o \"Virar tarefa\" ganham antes o frontmatter da TaskNote. O Desfazer: a nota volta ao caminho de antes, e o frontmatter volta só no que ainda tem o valor gravado.",
       "card": {
@@ -5528,7 +5745,7 @@
     {
       "name": "GravacoesDaTriagem.ideia",
       "path": "triagemWrites.ts",
-      "line": 176,
+      "line": 192,
       "module": "liga.gravar",
       "summary": "a ideia ganha destino pelo 🗂️ protocolo do destino da ideia, com a ideia e o destino já respondidos (e a SMART, quando a ideia foi solta sobre uma). Espera o protocolo acabar e compara os campos da ideia: mudou, entra no Desfazer (que volta só os campos da ideia; a linha na Day e a 🔥 criada ficam, e o aviso diz); não mudou (fechou sem responder), avisa sem gravar nada.",
       "card": {
@@ -5538,7 +5755,7 @@
     {
       "name": "GravacoesDaTriagem.arquivarRascunho",
       "path": "triagemWrites.ts",
-      "line": 219,
+      "line": 235,
       "module": "liga.gravar",
       "summary": "arquiva o rascunho parado em `900 - ARCHIVE/Rascunhos/`, pelo `renameFile`. O Desfazer devolve a nota ao caminho de antes.",
       "card": {
@@ -5548,7 +5765,7 @@
     {
       "name": "GravacoesDaTriagem.retomarRascunho",
       "path": "triagemWrites.ts",
-      "line": 246,
+      "line": 262,
       "module": "liga.gravar",
       "summary": "retoma o rascunho pelo ▶️ Continuar dele: abre a nota (o protocolo fecha o rascunho ao fim, pela nota ativa) e roda o protocolo com as respostas já dadas. Não grava nada aqui (quem grava é o protocolo, no fim), e por isso não entra no Desfazer.",
       "card": {
@@ -5557,9 +5774,173 @@
       }
     },
     {
+      "name": "lerConfigDaTrilha",
+      "path": "trilha.ts",
+      "line": 48,
+      "module": "fn.trilha",
+      "summary": "o arquivo da trilha lido: os textos da acolhida e do cartão, os gestos na ordem (com as contas de cada um) e as dicas.",
+      "card": {
+        "does": "o arquivo da trilha lido: os textos da acolhida e do cartão, os gestos na ordem (com as contas de cada um) e as dicas.",
+        "io": "o JSON cru → a configuração, ou `null` quando não é um objeto.",
+        "errors": "o gesto sem id válido, sem título ou sem nenhuma conta que sirva fica de fora; o id repetido vale pela primeira vez; a dica sem `act` ou sem texto fica de fora; a janela fora de 1 a 366 é a de partida.",
+        "proof": "tests/missao/trilha.test.ts (\"o arquivo da trilha\")."
+      }
+    },
+    {
+      "name": "diaSemRegistro",
+      "path": "trilha.ts",
+      "line": 82,
+      "module": "fn.trilha",
+      "summary": "diz se um dia ficou sem registro: sem a Day, ou com a Day sem o que o ▶️ e o 🌙 gravam, sem as pessoas e o dinheiro, sem linha de protocolo do motor, sem tarefa concluída e sem marca de hábito nesse dia.",
+      "card": {
+        "does": "diz se um dia ficou sem registro: sem a Day, ou com a Day sem o que o ▶️ e o 🌙 gravam, sem as pessoas e o dinheiro, sem linha de protocolo do motor, sem tarefa concluída e sem marca de hábito nesse dia.",
+        "why": "a acolhida aparece quando o dia de hoje ainda não tem nada, e os dias de antes sem nada ficam à mão para registrar depois; o dia com qualquer registro já foi tocado.",
+        "io": "a entrada, o índice, os protocolos de cada Day e o dia → `true` quando nada se registrou.",
+        "errors": "a tarefa cancelada não é registro; o lugar do dia (`cidade`) não conta (é do plano).",
+        "proof": "tests/missao/trilha.test.ts (\"o dia sem registro\")."
+      }
+    },
+    {
+      "name": "diasPassadosSemRegistro",
+      "path": "trilha.ts",
+      "line": 97,
+      "module": "fn.trilha",
+      "summary": "os dias de antes de hoje sem registro, do mais recente ao mais antigo, até `n` dias para trás.",
+      "card": {
+        "does": "os dias de antes de hoje sem registro, do mais recente ao mais antigo, até `n` dias para trás.",
+        "io": "a entrada, o índice, os protocolos de cada Day, hoje e n → os dias `AAAA-MM-DD`.",
+        "errors": "n zero ou negativo dá a lista vazia.",
+        "proof": "tests/missao/trilha.test.ts (\"o dia sem registro\")."
+      }
+    },
+    {
+      "name": "mostraAcolhida",
+      "path": "trilha.ts",
+      "line": 112,
+      "module": "fn.trilha",
+      "summary": "a acolhida aparece agora? Só depois da hora da tarde (`HH:MM`, a das definições).",
+      "card": {
+        "does": "a acolhida aparece agora? Só depois da hora da tarde (`HH:MM`, a das definições).",
+        "io": "a acolhida do dia (ou `null`) e a hora de agora → sim ou não.",
+        "errors": "sem acolhida, ou a hora fora do formato, não aparece.",
+        "proof": "tests/missao/trilha.test.ts (\"a acolhida\")."
+      }
+    },
+    {
+      "name": "assinaturaDaTrilha",
+      "path": "trilha.ts",
+      "line": 127,
+      "module": "fn.trilha",
+      "summary": "o que a trilha põe no centro de uma linha, em texto: a acolhida do dia, se ela aparece agora, e o cartão do gesto da semana. A linha da Missão se redesenha quando este texto muda.",
+      "card": {
+        "does": "o que a trilha põe no centro de uma linha, em texto: a acolhida do dia, se ela aparece agora, e o cartão do gesto da semana. A linha da Missão se redesenha quando este texto muda.",
+        "why": "a percorrida de 06/11 nas Definições: desligar a acolhida (ou ligá-la, ou passar da hora da tarde) não mudava a linha aberta, porque a assinatura da linha só lia os dados dela, e a trilha vem à parte no modelo; a acolhida só saía ao reabrir a Missão.",
+        "io": "a trilha do modelo (ou nada), o dia da linha e a hora de agora → o texto (vazio sem trilha).",
+        "errors": "sem trilha, o texto vazio; nada lança.",
+        "proof": "tests/missao/componenteTrilha.test.ts (\"desligar nas Definições\")."
+      }
+    },
+    {
+      "name": "fontesDoUso",
+      "path": "trilha.ts",
+      "line": 138,
+      "module": "fn.trilha",
+      "summary": "as fontes do uso (a contagem do motor) pela entrada da Missão: os protocolos de cada Day, as TaskNotes com a origem, a conclusão, a criação e a SMART mãe, e as marcas do salvamento.",
+      "card": {
+        "does": "as fontes do uso (a contagem do motor) pela entrada da Missão: os protocolos de cada Day, as TaskNotes com a origem, a conclusão, a criação e a SMART mãe, e as marcas do salvamento.",
+        "proof": "tests/missao/trilha.test.ts (\"o gesto da vez\")."
+      }
+    },
+    {
+      "name": "usosDosGestos",
+      "path": "trilha.ts",
+      "line": 156,
+      "module": "fn.trilha",
+      "summary": "os dias de uso de cada gesto da trilha, na janela do arquivo (de hoje para trás).",
+      "card": {
+        "does": "os dias de uso de cada gesto da trilha, na janela do arquivo (de hoje para trás).",
+        "io": "a configuração, as fontes e hoje → id → dias de uso.",
+        "proof": "tests/missao/trilha.test.ts (\"o gesto da vez\")."
+      }
+    },
+    {
+      "name": "gestoDaVez",
+      "path": "trilha.ts",
+      "line": 168,
+      "module": "fn.trilha",
+      "summary": "o gesto da vez: o primeiro da ordem da trilha com menos dias de uso que a meta; todos na meta, o fim.",
+      "card": {
+        "does": "o gesto da vez: o primeiro da ordem da trilha com menos dias de uso que a meta; todos na meta, o fim.",
+        "why": "um gesto por vez até virar hábito; o uso real o marca, e o seguinte vem quando ele chega à meta (a árvore de uso, com o critério `uso`, propõe o seguinte pela triagem).",
+        "io": "a configuração, os usos e a meta → o gesto da vez, ou `null` sem gesto declarado.",
+        "proof": "tests/missao/trilha.test.ts (\"o gesto da vez\")."
+      }
+    },
+    {
+      "name": "comValores",
+      "path": "trilha.ts",
+      "line": 180,
+      "module": "fn.trilha",
+      "summary": "um texto do arquivo com os valores no lugar das chaves (`{n} de {meta} dias`).",
+      "card": {
+        "does": "um texto do arquivo com os valores no lugar das chaves (`{n} de {meta} dias`).",
+        "errors": "a chave sem valor fica como está; o texto vazio dá vazio.",
+        "proof": "tests/missao/trilha.test.ts (\"o gesto da vez\")."
+      }
+    },
+    {
+      "name": "trilhaDoModelo",
+      "path": "trilha.ts",
+      "line": 190,
+      "module": "fn.trilha",
+      "summary": "a trilha no modelo de uma versão: a acolhida de cada dia, o gesto da vez, os usos e as dicas, cada parte pelo que as definições ligam.",
+      "card": {
+        "does": "a trilha no modelo de uma versão: a acolhida de cada dia, o gesto da vez, os usos e as dicas, cada parte pelo que as definições ligam.",
+        "io": "a entrada, o índice e hoje → a trilha, ou `null` sem o arquivo da trilha (ou com ele ilegível).",
+        "proof": "tests/missao/trilha.test.ts (\"no modelo\")."
+      }
+    },
+    {
+      "name": "estadoDaTrilha",
+      "path": "trilha.ts",
+      "line": 224,
+      "module": "fn.trilha",
+      "summary": "o estado da trilha lido do salvamento, limpo: as marcas só com dias válidos, as dicas vistas só com ids, o gesto da vez como texto.",
+      "card": {
+        "does": "o estado da trilha lido do salvamento, limpo: as marcas só com dias válidos, as dicas vistas só com ids, o gesto da vez como texto.",
+        "errors": "o que não é objeto vale como vazio; a chave que não é id fica de fora; nada lança.",
+        "proof": "tests/missao/trilha.test.ts (\"o salvamento\")."
+      }
+    },
+    {
+      "name": "comMarca",
+      "path": "trilha.ts",
+      "line": 241,
+      "module": "fn.trilha",
+      "summary": "o estado com a marca de um gesto num dia; o mesmo dia de novo não muda nada (`null`).",
+      "card": {
+        "does": "o estado com a marca de um gesto num dia; o mesmo dia de novo não muda nada (`null`).",
+        "io": "o estado, o gesto e o dia → o estado novo, ou `null` quando já estava marcado ou o pedido não serve.",
+        "proof": "tests/missao/trilha.test.ts (\"o salvamento\")."
+      }
+    },
+    {
+      "name": "marcaDoMovimento",
+      "path": "trilha.ts",
+      "line": 255,
+      "module": "fn.trilha",
+      "summary": "a marca que um movimento da Missão deixa na trilha: pôr a tarefa numa SMART é `ligar_smart`; dar um dia ou uma semana à que ficou de antes é `mover_de_antes`; o resto, nenhuma.",
+      "card": {
+        "does": "a marca que um movimento da Missão deixa na trilha: pôr a tarefa numa SMART é `ligar_smart`; dar um dia ou uma semana à que ficou de antes é `mover_de_antes`; o resto, nenhuma.",
+        "why": "os dois gestos não deixam rastro próprio na nota (o `projects` e o `scheduled` mudam igual por qualquer caminho); a Missão marca quando o gesto é feito nela.",
+        "io": "se a tarefa ficou de antes e o destino → o nome da marca, ou `null`.",
+        "proof": "tests/missao/trilha.test.ts (\"o salvamento\")."
+      }
+    },
+    {
       "name": "passouDoLimiar",
       "path": "view/arrasto.ts",
-      "line": 82,
+      "line": 89,
       "module": "vista.entrada",
       "summary": "diz se o ponteiro andou mais que o limiar da casa desde onde o gesto começou: aí o aperto vira arrasto.",
       "card": {
@@ -5573,7 +5954,7 @@
     {
       "name": "ligarArrasto",
       "path": "view/arrasto.ts",
-      "line": 121,
+      "line": 130,
       "module": "vista.entrada",
       "summary": "liga o arrasto na raiz do componente (o apertar, o mover, o soltar e o desistir) e devolve o que o componente pergunta dele.",
       "card": {
@@ -5603,9 +5984,21 @@
       }
     },
     {
+      "name": "caixaDeMarcas",
+      "path": "view/campos.ts",
+      "line": 116,
+      "module": "vista.base",
+      "summary": "as caixas de marcar de um campo de lista: uma por opção, marcadas as do valor; cada caixa leva os atributos de quem a trata (o painel grava a lista inteira ao marcar ou desmarcar uma).",
+      "card": {
+        "does": "as caixas de marcar de um campo de lista: uma por opção, marcadas as do valor; cada caixa leva os atributos de quem a trata (o painel grava a lista inteira ao marcar ou desmarcar uma).",
+        "why": "a lista do vocabulário (os contextos) e, desde 06/11, os destinos da peça pelos perfis do canal (a percorrida achou os destinos num campo de texto de uma linha, cortado).",
+        "io": "o contexto, o campo, as opções, as marcadas e os atributos → o grupo (`.ctxs`)."
+      }
+    },
+    {
       "name": "linhaDeCampo",
       "path": "view/campos.ts",
-      "line": 140,
+      "line": 152,
       "module": "vista.base",
       "summary": "uma linha de campo, a mesma para todo tipo de nó: o rótulo à esquerda e, na coluna do valor, o valor em cima e a origem (o protocolo dono, \"definido ao criar\", o editor) embaixo.",
       "card": {
@@ -5618,7 +6011,7 @@
     {
       "name": "valorEmSpan",
       "path": "view/campos.ts",
-      "line": 151,
+      "line": 163,
       "module": "vista.base",
       "summary": "o valor em texto de uma linha (`span.ro`; o vazio em tom apagado).",
       "card": {
@@ -5628,7 +6021,7 @@
     {
       "name": "noDoLink",
       "path": "view/campos.ts",
-      "line": 160,
+      "line": 172,
       "module": "vista.base",
       "summary": "o nó que um link acha, a partir de uma nota: a nota que o link escrito acha e o nó dela; senão o nó do nome (o país sem nota); senão a nota, quando existe.",
       "card": {
@@ -5639,7 +6032,7 @@
     {
       "name": "valorDeLinks",
       "path": "view/campos.ts",
-      "line": 176,
+      "line": 188,
       "module": "vista.base",
       "summary": "o valor de um campo de link: um botão por nó que o link acha (leva ao painel dele), e o nome escrito quando não acha nada.",
       "card": {
@@ -5651,7 +6044,7 @@
     {
       "name": "estadoDoNo",
       "path": "view/campos.ts",
-      "line": 216,
+      "line": 228,
       "module": "vista.base",
       "summary": "o estado de um nó para o menu de status: a TaskNote lê a tabela das TaskNotes (a SMART inclusive); a nota de outro tipo lê a tabela do modelo dela, quando o campo dono do estado se edita na nota. O resto não tem menu.",
       "card": {
@@ -5663,7 +6056,7 @@
     {
       "name": "botaoDoStatus",
       "path": "view/campos.ts",
-      "line": 238,
+      "line": 250,
       "module": "vista.base",
       "summary": "o botão que abre o menu de status (o mesmo no painel, no campo do estado e no cartão), com a tecla S.",
       "card": {
@@ -5673,7 +6066,7 @@
     {
       "name": "montarMissao",
       "path": "view/componente.ts",
-      "line": 388,
+      "line": 402,
       "module": "vista.casco",
       "summary": "monta a Missão no lugar dado e devolve os cinco gestos de fora.",
       "card": {
@@ -5871,7 +6264,7 @@
     {
       "name": "secoesDosCamposEditaveis",
       "path": "view/edicao.ts",
-      "line": 273,
+      "line": 296,
       "module": "vista.painel",
       "summary": "as seções dos campos de um nó, editáveis onde o modelo deixa (`comoEdita`): o campo da nota vira caixa; o do TaskNotes (o título, nome do arquivo) abre o editor dele; o do protocolo e o derivado aparecem para ler, com o porquê embaixo do valor. Os campos de um mesmo protocolo (dois ou mais) ficam sob um título só, com um botão só (o do ciclo, quando é).",
       "card": {
@@ -5883,7 +6276,7 @@
     {
       "name": "periodoEmPalavras",
       "path": "view/gaveta.ts",
-      "line": 60,
+      "line": 66,
       "module": "vista.gaveta",
       "summary": "o período em palavras curtas (\"W44\", \"qua 28/10\", \"2026-Q4\").",
       "card": {
@@ -5893,7 +6286,7 @@
     {
       "name": "campoDaGavetaEl",
       "path": "view/gaveta.ts",
-      "line": 71,
+      "line": 77,
       "module": "vista.gaveta",
       "summary": "um campo do formulário na gaveta: o rótulo (a pergunta do passo, com * no obrigatório e \"opcional\"), a caixa pelo tipo do campo, o porquê do valor sugerido e o problema.",
       "card": {
@@ -5904,7 +6297,7 @@
     {
       "name": "planoDoPeriodoEl",
       "path": "view/gaveta.ts",
-      "line": 195,
+      "line": 201,
       "module": "vista.gaveta",
       "summary": "o plano do período ao lado da linha do tempo (o protótipo, `planContext`): a linha pela forma de mostrar, as SMART da semana \"de até 3\" ou a carga do dia, as tarefas como os nós da Missão, o que se cria a partir do período (o ramo) e o convite a arrastar; no trimestre, a linha e os projetos.",
       "card": {
@@ -5915,7 +6308,7 @@
     {
       "name": "perguntasDoDonoEl",
       "path": "view/gaveta.ts",
-      "line": 251,
+      "line": 257,
       "module": "vista.gaveta",
       "summary": "a parte do Novo com as perguntas do protocolo dono que o modelo do tipo não tem, pelos mesmos campos da gaveta (`data-gv`, com o valor de abertura e o porquê).",
       "card": {
@@ -5926,11 +6319,11 @@
     {
       "name": "conteudoDaGaveta",
       "path": "view/gaveta.ts",
-      "line": 303,
+      "line": 309,
       "module": "vista.gaveta",
-      "summary": "o conteúdo da gaveta: a cabeça, as ações de cima, o plano do período, o que já está registrado, os campos (o topo e, no 📨, o resto recolhido com o resumo), o que o protocolo pergunta no fim e as ações do rodapé.",
+      "summary": "o conteúdo da gaveta: a cabeça, as ações de cima, o plano do período, o que já está registrado, os campos (o topo e, no 📅, o resto recolhido com o resumo), o que o protocolo pergunta no fim e as ações do rodapé.",
       "card": {
-        "does": "o conteúdo da gaveta: a cabeça, as ações de cima, o plano do período, o que já está registrado, os campos (o topo e, no 📨, o resto recolhido com o resumo), o que o protocolo pergunta no fim e as ações do rodapé.",
+        "does": "o conteúdo da gaveta: a cabeça, as ações de cima, o plano do período, o que já está registrado, os campos (o topo e, no 📅, o resto recolhido com o resumo), o que o protocolo pergunta no fim e as ações do rodapé.",
         "io": "o contexto do desenho e o formulário → o elemento."
       }
     },
@@ -6175,7 +6568,7 @@
     {
       "name": "linhaAbertaEl",
       "path": "view/linhas.ts",
-      "line": 152,
+      "line": 154,
       "module": "vista.linhas",
       "summary": "a linha aberta: o lugar, a asa do trabalho, o centro (com ▲▼ e os hábitos do dia, quando é o foco), a asa do tempo; e o SVG das ligações por baixo.",
       "card": {
@@ -6186,7 +6579,7 @@
     {
       "name": "linhaFechadaEl",
       "path": "view/linhas.ts",
-      "line": 328,
+      "line": 349,
       "module": "vista.linhas",
       "summary": "a linha fechada: o lugar (com a cidade no dia da chegada), as marcas na coluna que o ramo diz, o rótulo no centro (com \"hoje\"/\"agora\") e a nota de começo.",
       "card": {
@@ -6265,7 +6658,7 @@
     {
       "name": "amostraEl",
       "path": "view/nos.ts",
-      "line": 278,
+      "line": 282,
       "module": "vista.base",
       "summary": "a amostra de um cartão na legenda (a cor do ramo e o preenchimento do estado), compacta e sem nó: o mesmo `.node` do mapa, só com o rótulo.",
       "card": {
@@ -6276,7 +6669,7 @@
     {
       "name": "periodoEl",
       "path": "view/nos.ts",
-      "line": 288,
+      "line": 292,
       "module": "vista.base",
       "summary": "o nó do centro aberto (o período grande): \"hoje\", o título, a linha de cima, as marcas (pessoas, dinheiro, modelo antigo) e a forma de mostrar com os traços.",
       "card": {
@@ -6286,7 +6679,7 @@
     {
       "name": "botaoDoCiclo",
       "path": "view/nos.ts",
-      "line": 329,
+      "line": 333,
       "module": "vista.base",
       "summary": "um botão do ciclo (▶️ abrir o dia, 🌳 planejar…), com a dica dele; o componente roda o protocolo pelo `data-act=\"ciclo\"` (a escala, a chave e o índice levam ao botão do ramo).",
       "card": {
@@ -6296,7 +6689,7 @@
     {
       "name": "cicloEl",
       "path": "view/nos.ts",
-      "line": 336,
+      "line": 340,
       "module": "vista.base",
       "summary": "a fila dos botões do ciclo de um período numa ponta (todas, sem `ponta`); `null` sem botão.",
       "card": {
@@ -6306,7 +6699,7 @@
     {
       "name": "marcaEl",
       "path": "view/nos.ts",
-      "line": 345,
+      "line": 349,
       "module": "vista.base",
       "summary": "a marca de uma tarefa (ou SMART, projeto, trimestre) na linha fechada.",
       "card": {
@@ -6338,7 +6731,7 @@
     {
       "name": "linhaDoNoPainel",
       "path": "view/painelDoNo.ts",
-      "line": 1040,
+      "line": 1077,
       "module": "vista.painel",
       "summary": "a escala e a linha onde um nó do painel mora, para \"ir até\" ele.",
       "card": {
@@ -6397,6 +6790,53 @@
       "card": {
         "does": "o conteúdo da tela da triagem (o cabeçalho, os filtros, o item à vista com as ações e o formulário aberto, os alvos Algum dia e Cancelar, os próximos e a legenda).",
         "io": "os dados → o elemento (o componente troca o conteúdo inteiro a cada pintura)."
+      }
+    },
+    {
+      "name": "acolhidaEl",
+      "path": "view/trilha.ts",
+      "line": 27,
+      "module": "vista.linhas",
+      "summary": "a acolhida no centro do dia de hoje: a pergunta, o \"＋ O que fiz\" (abre o formulário do painel do dia), o 🌙 do ciclo que veio (o mesmo botão), as linhas sobre o 📖 e o compromisso de amanhã e os dias de antes sem registro (cada um leva ao nó do dia).",
+      "card": {
+        "does": "a acolhida no centro do dia de hoje: a pergunta, o \"＋ O que fiz\" (abre o formulário do painel do dia), o 🌙 do ciclo que veio (o mesmo botão), as linhas sobre o 📖 e o compromisso de amanhã e os dias de antes sem registro (cada um leva ao nó do dia).",
+        "io": "o contexto, o dia, a acolhida e a fila do 🌙 (ou `null`) → o bloco.",
+        "errors": "o texto que o arquivo não traz não aparece (nenhum texto de reserva no código)."
+      }
+    },
+    {
+      "name": "gestoEl",
+      "path": "view/trilha.ts",
+      "line": 60,
+      "module": "vista.linhas",
+      "summary": "o cartão do gesto da semana: o gesto, a contagem pelo uso real, como se faz, para quê, o link do guia e o seguinte; com todos os gestos em uso, a frase do fim.",
+      "card": {
+        "does": "o cartão do gesto da semana: o gesto, a contagem pelo uso real, como se faz, para quê, o link do guia e o seguinte; com todos os gestos em uso, a frase do fim.",
+        "io": "o contexto e o gesto da vez → o cartão."
+      }
+    },
+    {
+      "name": "seletorDaDica",
+      "path": "view/trilha.ts",
+      "line": 94,
+      "module": "vista.linhas",
+      "summary": "o seletor do botão de uma dica (o `data-act` e, no botão do ciclo, o protocolo).",
+      "card": {
+        "does": "o seletor do botão de uma dica (o `data-act` e, no botão do ciclo, o protocolo).",
+        "errors": "o `act` e o protocolo já vêm limpos do leitor do arquivo (letras, números, `-` e `_`)."
+      }
+    },
+    {
+      "name": "porDica",
+      "path": "view/trilha.ts",
+      "line": 107,
+      "module": "vista.linhas",
+      "summary": "a dica da primeira vez: tira a que estava e, da primeira dica ainda não vista cujo botão está na tela, põe a linha logo depois do botão, com o \"Entendi\". Uma dica por vez.",
+      "card": {
+        "does": "a dica da primeira vez: tira a que estava e, da primeira dica ainda não vista cujo botão está na tela, põe a linha logo depois do botão, com o \"Entendi\". Uma dica por vez.",
+        "why": "\"na primeira vez que um gesto ou botão aparece, uma linha de dica, que some depois de vista\": a dica mostrada vira vista no salvamento (não volta na próxima abertura) e fica nesta abertura até o \"Entendi\".",
+        "io": "a raiz, o documento, as dicas, as vistas e as desta abertura (as que já apareceram e as fechadas) → o id da dica posta, ou `null`.",
+        "errors": "o botão escondido (`hidden` ou dentro de um escondido) não conta; o seletor que não serve é pulado."
       }
     },
     {

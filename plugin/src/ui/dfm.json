@@ -1,0 +1,394 @@
+{
+  "dfm": 1,
+  "system": "ui",
+  "purpose": "A interface antiga do dfm-system (`src/ui`): os modais e os seletores dos protocolos, a dica, as telas da conclusão, a aba de configurações com as definições do sistema, as portas das ferramentas aposentadas, as visões do Mission Control antigo que o painel ainda hospeda e as vistas do DSH e dos arquivos recentes. Este mapa declara os módulos em três espécies (as funções, a vista, os que ligam) e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "default_grade": "G1",
+  "effects": [
+    "app.vault.*",
+    "app.metadataCache.*",
+    "app.workspace.*",
+    "this.app.*",
+    "new Notice"
+  ],
+  "modules": [
+    {
+      "id": "fn.definicoes",
+      "paths": [
+        "definicoesDaAba.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. A edição das definições do sistema sem o Obsidian: o que cada campo mostra e o que uma edição vira no bloco `definicoes` do salvamento (esparso: só o que difere do padrão).",
+      "why": "B2 do mapa da v0: as definições são de cada pessoa; a conta da edição é testável sem a aba.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/definicoesDaAba.test.ts"
+      ]
+    },
+    {
+      "id": "fn.portas",
+      "paths": [
+        "portasAposentadas.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. As portas das ferramentas antigas que a Missão substitui: o id de sempre, o nome, o destino (a Missão, o painel, a semana ou o trimestre) e o período que a porta abre.",
+      "why": "O id fica (um botão numa nota ou um atalho continua valendo) e abre o lugar novo; o código aposentado saiu em 03/11/2026.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/portas.test.ts tests/ui/portasAposentadas.test.ts"
+      ]
+    },
+    {
+      "id": "vista.base",
+      "paths": [
+        "stepHeader.ts",
+        "dica.ts"
+      ],
+      "role": "module",
+      "does": "Vista. As peças pequenas de desenho: o cabeçalho de um passo de protocolo (stepHeader) e a dica, o nome de um botão no mouse, no teclado e no toque (dica).",
+      "why": "Os modais, os seletores, o painel e a Missão usam o mesmo cabeçalho e a mesma dica.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/contrato.test.ts tests/ui/dica.test.ts"
+      ]
+    },
+    {
+      "id": "vista.modais",
+      "paths": [
+        "modals.ts",
+        "suggesters.ts",
+        "completionModals.ts",
+        "arvoreModals.ts"
+      ],
+      "role": "module",
+      "does": "Vista. Os modais e os seletores dos passos de protocolo (modals, suggesters), as duas telas da conclusão (\"Quando terminou?\" e o que fica; completionModals) e o modal da árvore nova (arvoreModals).",
+      "why": "O motor de protocolos e o quadro pedem a entrada por estas telas; quem decide e quem grava é quem chama.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/protocolForm.test.ts tests/engine/protocolNucleo.test.ts tests/engine/q4Round2.test.ts tests/engine/routerCentralCompleto.test.ts tests/ui/arvoreEmbedMobile.test.ts tests/ui/completionModals.test.ts tests/ui/modals.test.ts tests/ui/noteSuggesterDefault.test.ts tests/ui/nowSuggester.test.ts tests/ui/suggestChoiceLifecycle.test.ts tests/ui/suggesters.test.ts"
+      ]
+    },
+    {
+      "id": "vista.painel-base",
+      "paths": [
+        "mission/tokens.ts",
+        "mission/primitives.ts",
+        "mission/context.ts",
+        "mission/modals.ts"
+      ],
+      "role": "module",
+      "does": "Vista. A base dos painéis do Mission Control antigo: os tokens visuais (só variáveis do tema), as primitivas de DOM, o contexto que cada painel recebe (o snapshot) e os modais de apoio (o drill-down de um bucket).",
+      "why": "Um painel só recebe `(host, ctx)`: não conhece a vista, não busca estado e não guarda cache próprio.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/missionControlFixesValidation.test.ts tests/ui/missionKanbanPanel.test.ts tests/ui/missionTokens.test.ts"
+      ]
+    },
+    {
+      "id": "vista.paineis",
+      "paths": [
+        "mission/panel*.ts"
+      ],
+      "role": "module",
+      "does": "Vista. As visões do console antigo que o painel ainda hospeda: a bancada, a escolha e o esperando, os hábitos, o kanban das tarefas, a matriz, o operador, o portfólio, a estrutura e as ferramentas.",
+      "why": "São os cartões que a Missão não faz (ou faz em parte); ficam até o uso dizer, pelas perguntas do inventário da aposentadoria.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/missionCanvasIndexPanel.test.ts tests/ui/missionKanbanPanel.test.ts tests/ui/missionPortfolioContract.test.ts"
+      ]
+    },
+    {
+      "id": "liga.definicoes",
+      "paths": [
+        "settingsTab.ts",
+        "abaDasDefinicoes.ts"
+      ],
+      "role": "module",
+      "does": "Liga. A aba de configurações do plugin (settingsTab) e a seção \"Definições do sistema\" dela (abaDasDefinicoes), que mostra e grava as definições pelo fn.definicoes.",
+      "why": "As definições não ficam escritas no código; a aba é onde a pessoa as vê e as muda.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/contracts/gamificacaoArquivada.test.ts"
+      ]
+    },
+    {
+      "id": "liga.triagem",
+      "paths": [
+        "abrirTriagem.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Abre a Missão já na triagem, de fora dela (o comando \"📥 SMART de semanas passadas\").",
+      "why": "O comando antigo do rollover ficou só como porta para o grupo da triagem (02/11/2026)."
+    },
+    {
+      "id": "liga.dsh",
+      "paths": [
+        "views/dshView.ts",
+        "views/dshWebview.ts",
+        "views/mobileDshView.ts"
+      ],
+      "role": "module",
+      "does": "Liga. A vista do DSH, o operador: no desktop, num `<webview>` do Electron (dshView, dshWebview); no celular, pelo cliente do operador (mobileDshView).",
+      "why": "O DSH recusa a origem do iframe do Obsidian; a vista própria é o único caminho, e não é papel da Missão.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/dshWebview.test.ts"
+      ]
+    },
+    {
+      "id": "liga.recentes",
+      "paths": [
+        "views/recentFilesView.ts"
+      ],
+      "role": "module",
+      "does": "Liga. A vista \"Arquivos Recentes (DFM)\": a lista dos arquivos abertos.",
+      "why": "Não é papel da Missão; fica como vista própria (inventário 7.6)."
+    },
+    {
+      "id": "liga.captura",
+      "paths": [
+        "mission/captureCore.ts"
+      ],
+      "role": "module",
+      "does": "Liga. A captura rápida num lugar só: o saneamento do nome, o corpo canônico e a escrita na Caixa de entrada, pelo vault que recebe.",
+      "why": "A 💡 da Missão e o quadro gravam a mesma captura.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/refinos.test.ts"
+      ]
+    },
+    {
+      "id": "ext.board",
+      "role": "external",
+      "does": "Fora desta pasta: o quadro e o painel do Mission Control (`src/board`), com o mapa deles: o MissionBoard, a conclusão de uma tarefa, os menus do canvas.",
+      "why": "As gravações de tarefa e os menus passam pelo quadro, com a conclusão de sempre."
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "does": "Fora desta pasta: a camada de canvas (`src/canvas`), com o mapa dela: os ids e a zona gerida, as setas que gravam campos, a cor e o cartão da tarefa.",
+      "why": "Quem desenha num canvas usa a mesma zona gerida e a mesma tabela das setas."
+    },
+    {
+      "id": "ext.child_process",
+      "role": "external",
+      "does": "O child_process do Node, só como tipo (o `require` roda na hora, no desktop).",
+      "why": "Os scripts da bancada e dos juízes rodam no desktop pelo `exec`; no celular, o caminho não existe."
+    },
+    {
+      "id": "ext.definicoes",
+      "role": "external",
+      "does": "Fora desta pasta: as definições do sistema (`src/definicoes.ts`), o leitor puro do bloco `definicoes` do salvamento.",
+      "why": "As pastas, as áreas e os valores vêm das definições, não de um nome no código."
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia."
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "does": "Fora desta pasta: o plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; nada aqui importa o main em execução."
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "does": "Fora desta pasta: a Missão (`src/missao`), com o mapa e o guarda dela: o estado da tela, as intenções, os gestos, as gravações e os hospedeiros.",
+      "why": "O sistema antigo abre e grava pela Missão o que ela já faz, em vez de manter a cópia."
+    },
+    {
+      "id": "ext.mobile",
+      "role": "external",
+      "does": "Fora desta pasta: o operador no celular (`src/mobile`): a configuração, a sessão, os segredos e a atividade.",
+      "why": "A vista do DSH no celular usa o mesmo cliente do operador."
+    },
+    {
+      "id": "ext.modulosopcionais",
+      "role": "external",
+      "does": "Fora desta pasta: os módulos opcionais do plugin (`src/modulosOpcionais.ts`).",
+      "why": "A aba de configurações liga e desliga os módulos opcionais pela lista deles."
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo."
+    },
+    {
+      "id": "ext.project",
+      "role": "external",
+      "does": "Fora desta pasta: os canvas de projeto (`src/project`), com o mapa deles: o caminho, o modelo e o gerente do canvas de um projeto.",
+      "why": "O projeto tem uma árvore só (SMART, ações, progresso), lida do mesmo modelo."
+    }
+  ],
+  "connections": [
+    {
+      "from": "fn.definicoes",
+      "to": "ext.definicoes",
+      "carries": "ehPorta, lerDefinicoes; tipos: AreaDefinida, Definicoes, ValorDefinido"
+    },
+    {
+      "from": "fn.definicoes",
+      "to": "ext.engine",
+      "carries": "PAPEIS; tipos: Papel"
+    },
+    {
+      "from": "fn.portas",
+      "to": "ext.engine",
+      "carries": "currentQuarter, isoWeekOf, quarterOfWeek"
+    },
+    {
+      "from": "fn.portas",
+      "to": "ext.missao",
+      "carries": "portaDoPeriodo; tipos: PortaDoPeriodo"
+    },
+    {
+      "from": "vista.base",
+      "to": "ext.obsidian",
+      "carries": "displayTooltip, setTooltip"
+    },
+    {
+      "from": "vista.modais",
+      "to": "ext.board",
+      "carries": "COMPLETION_PLACE_CONFIRM, COMPLETION_PLACE_INFO, COMPLETION_PLACE_PROMPT, COMPLETION_PLACE_SKIP, COMPLETION_WHEN_OPTIONS, COMPLETION_WHEN_PROMPT, NIGHT_COMPLETIONS_INFO, NIGHT_COMPLETIONS_PROMPT, NIGHT_CONFIRM_LABEL, NIGHT_SKIP_LABEL, asksCompletionPlace, completionWhen, shiftDay, withCompletionPlace; tipos: CompletionWhen, CompletionWhenChoice, NightCandidate"
+    },
+    {
+      "from": "vista.modais",
+      "to": "ext.canvas",
+      "carries": "canvasWritesAllowed"
+    },
+    {
+      "from": "vista.modais",
+      "to": "ext.definicoes",
+      "carries": "definicoesDe, rotuloDoAgente"
+    },
+    {
+      "from": "vista.modais",
+      "to": "ext.engine",
+      "carries": "NOW_TIME_OPTIONS, STAGE, TASK_CONTEXTS, notasCandidatas, noteLinkName, nowSuggestionText; tipos: ChoiceRankItem, NotePropertyFilter, NowItem"
+    },
+    {
+      "from": "vista.modais",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "vista.modais",
+      "to": "ext.obsidian",
+      "carries": "App, Modal, Notice, SuggestModal, TFile, TFolder, TextAreaComponent"
+    },
+    {
+      "from": "vista.modais",
+      "to": "ext.project",
+      "carries": "conventionalCanvasPath"
+    },
+    {
+      "from": "vista.modais",
+      "to": "vista.base",
+      "carries": "renderStepHeader"
+    },
+    {
+      "from": "vista.painel-base",
+      "to": "ext.engine",
+      "carries": "MissionHealth, MissionSnapshot, MissionTask"
+    },
+    {
+      "from": "vista.painel-base",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "vista.painel-base",
+      "to": "ext.obsidian",
+      "carries": "App, Modal, Notice, Setting, TFile, setIcon"
+    },
+    {
+      "from": "vista.paineis",
+      "to": "ext.board",
+      "carries": "missionProjectGrammar"
+    },
+    {
+      "from": "vista.paineis",
+      "to": "ext.engine",
+      "carries": "BENCH_COMMAND, BENCH_EMPTY_TEXT, BenchReport, CanvasIndexEntry, Habit, KANBAN_STATUSES, KanbanCard, KanbanColumnRect, KanbanStatus, MissionArea, MissionBucketSpec, MissionCanvas, MissionCanvasIndex, MissionHabitRow, MissionOperator, MissionProject, MissionProtocol, MissionTask, MissionTree, PortfolioProject, STAGE, areaCockpitOf, benchSubtitle, buildKanbanBoard, canvasIndexOf, canvasesOfArea, columnIndexAtPoint, hiddenMatrixCount, isKanbanStatus, matrixCellTone, matrixCellWide, matrixView, parseBenchReport, parseHabit, planKanbanDrop, projectCanvasFor, resolveClick, stageLabel, visibleMatrixTasks; tipos: MissionTask"
+    },
+    {
+      "from": "vista.paineis",
+      "to": "ext.obsidian",
+      "carries": "Platform, TFile"
+    },
+    {
+      "from": "vista.paineis",
+      "to": "vista.painel-base",
+      "carries": "MissionPanelContext, actionButton, applyTone, card, el, emptyState, formatAge, formatTimestamp, healthToken, icon, impactTone, kv, metric, openVaultPath, pill, priorityToken, rowLink, stackedBar, statusToken, tierToken, truncate, vaultBasePath; tipos: MissionPanelContext"
+    },
+    {
+      "from": "liga.definicoes",
+      "to": "ext.engine",
+      "carries": "PAPEIS; tipos: Papel"
+    },
+    {
+      "from": "liga.definicoes",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.definicoes",
+      "to": "ext.modulosopcionais",
+      "carries": "MODULOS_OPCIONAIS"
+    },
+    {
+      "from": "liga.definicoes",
+      "to": "ext.obsidian",
+      "carries": "App, Modal, Notice, PluginSettingTab, Setting, TFile; tipos: App"
+    },
+    {
+      "from": "liga.definicoes",
+      "to": "fn.definicoes",
+      "carries": "editarLista, editarPapel, editarPonteLigada, editarPortaDaPonte, editarTexto, formatoDaLista, opcoesDoPapel, textoDaLista; tipos: CampoDeLista, CampoDeTexto, Edicao"
+    },
+    {
+      "from": "liga.definicoes",
+      "to": "vista.modais",
+      "carries": "NovaArvoreModal"
+    },
+    {
+      "from": "liga.triagem",
+      "to": "ext.obsidian",
+      "carries": "App, Notice"
+    },
+    {
+      "from": "liga.dsh",
+      "to": "ext.engine",
+      "carries": "DSH_OFFLINE_TITLE, DshService, createCorrelationId, redactDshUrl, resolveDshViewTarget; tipos: DoctorSummary, DshStatus, RemeStatus"
+    },
+    {
+      "from": "liga.dsh",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.dsh",
+      "to": "ext.mobile",
+      "carries": "MobileAgentRuntime, MobileSessionStore, resolveGitHubSecret, resolveMobileSecret, secretIdForProvider, summarizeToolActivity; tipos: AgentMessage, MobileAgentProgress, MobileAgentSession, MobileToolActivity, MutationProposal"
+    },
+    {
+      "from": "liga.dsh",
+      "to": "ext.obsidian",
+      "carries": "Component, ItemView, MarkdownRenderer, Modal, Notice, Platform, TFile, WorkspaceLeaf, setIcon"
+    },
+    {
+      "from": "liga.recentes",
+      "to": "ext.main",
+      "carries": "tipos: DFMPlugin"
+    },
+    {
+      "from": "liga.recentes",
+      "to": "ext.obsidian",
+      "carries": "ItemView, TFile, WorkspaceLeaf"
+    },
+    {
+      "from": "vista.paineis",
+      "to": "ext.child_process",
+      "carries": "tipos: typeof import('child_process')"
+    },
+    {
+      "from": "liga.captura",
+      "to": "ext.engine",
+      "carries": "DIA (a data da captura, 05/11)"
+    }
+  ]
+}

@@ -82,17 +82,8 @@ export function caixaDoCampo(ctx: Contexto, campo: DomainField, cru: unknown, ro
         return box;
     }
     if (campo.tipo === 'lista' && typeof campo.valores === 'string') {
-        const box = el(doc, 'div', 'ctxs', { role: 'group', ...base });
         const marcados = new Set(Array.isArray(cru) ? cru.map(String) : atual ? atual.split(', ') : []);
-        for (const o of opcoesDoCampo(ctx, campo, rotulos)) {
-            const lab = el(doc, 'label', 'ctx');
-            const input = el(doc, 'input', null, { ...atributos, type: 'checkbox', value: o.valor, 'data-lista': '1', checked: marcados.has(o.valor) });
-            (input as HTMLInputElement).checked = marcados.has(o.valor);
-            (input as HTMLInputElement).value = o.valor;
-            lab.append(input, el(doc, 'span', null, null, o.rotulo));
-            box.appendChild(lab);
-        }
-        return box;
+        return caixaDeMarcas(ctx, campo, opcoesDoCampo(ctx, campo, rotulos), marcados, atributos);
     }
     // A lista livre com vírgula num item (as checagens da estadia, 30/10): um item por linha.
     if (listaPorLinha(campo, cru)) {
@@ -113,6 +104,27 @@ export function caixaDoCampo(ctx: Contexto, campo: DomainField, cru: unknown, ro
     input.value = atual;
     if (longo) input.textContent = atual;
     return input;
+}
+
+/**
+ * O que faz: as caixas de marcar de um campo de lista: uma por opção, marcadas as do valor; cada caixa leva os
+ * atributos de quem a trata (o painel grava a lista inteira ao marcar ou desmarcar uma).
+ * Por quê: a lista do vocabulário (os contextos) e, desde 06/11, os destinos da peça pelos perfis do canal (a
+ * percorrida achou os destinos num campo de texto de uma linha, cortado).
+ * Entra → sai: o contexto, o campo, as opções, as marcadas e os atributos → o grupo (`.ctxs`).
+ */
+export function caixaDeMarcas(ctx: Contexto, campo: DomainField, opcoes: readonly OpcaoDoCampo[], marcados: ReadonlySet<string>, atributos: Record<string, string>): HTMLElement {
+    const doc = ctx.doc;
+    const box = el(doc, 'div', 'ctxs', { role: 'group', ...atributos, 'aria-label': campo.rotulo });
+    for (const o of opcoes) {
+        const lab = el(doc, 'label', 'ctx');
+        const input = el(doc, 'input', null, { ...atributos, type: 'checkbox', value: o.valor, 'data-lista': '1', checked: marcados.has(o.valor) });
+        (input as HTMLInputElement).checked = marcados.has(o.valor);
+        (input as HTMLInputElement).value = o.valor;
+        lab.append(input, el(doc, 'span', null, null, o.rotulo));
+        box.appendChild(lab);
+    }
+    return box;
 }
 
 /* ------------------------------------------------------------ a linha de campo (uma só para todo tipo) */

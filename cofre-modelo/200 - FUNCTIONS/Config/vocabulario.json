@@ -150,6 +150,18 @@
           "motivo": "Os modos de falha de um plano: o risco que a própria pessoa escreveu, não um veredito sobre ela."
         }
       ]
+    },
+    {
+      "id": "nome_antigo_do_planejamento_semanal",
+      "termo": "\"📅 Planejamento Semanal\", o nome antigo do planejamento da semana",
+      "padrao": "📅\\s*Planejamento\\s+Semanal",
+      "caixa": true,
+      "severidade": "erro",
+      "motivo": "Um sinal por gesto do ciclo da semana: o 🌳 planeja e o 📅 revisa. O mesmo 📅 nos dois deixava a semana com dois botões iguais para gestos diferentes.",
+      "alcance": "O nome do protocolo e o texto que o sistema mostra: os protocolos, o código vivo, a configuração e os documentos vivos. As linhas que o motor já gravou nas Days são história e não se leem; a marca invisível do id (dfm-protocolo:planejamento_semanal) mantém o uso contado depois da troca.",
+      "onde": [
+        "protocolos"
+      ]
     }
   ]
 }

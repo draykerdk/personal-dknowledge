@@ -10,7 +10,11 @@
  * pomodoro: o bloco é registrado como estimado.
  */
 import type { App } from 'obsidian';
-import { comTipoNaCriacao } from './tasknotesCreate';
+import { carimboDoMomento } from './dia';
+import {
+    comTipoNaCriacao, frontmatterDaTarefaNova, frontmatterDoPedido, nomeDaTarefaNova, pedidoDoFrontmatter, PASTA_DAS_TAREFAS, textoDaTarefa,
+    type PedidoDeCriacao,
+} from './tasknotesCreate';
 
 /** O que faz: a API pública do TaskNotes, ou `null` se o plugin não está carregado. */
 export function tasknotesApi(app: App): any | null {
@@ -77,21 +81,77 @@ export function onPomodoroEnd(app: App, listener: (taskPath: string, event: stri
     return () => { for (const ref of refs) { try { api.events.off(ref); } catch (e) { /* já desligado */ } } };
 }
 
+/** O que a borda única aceita além do pedido: o corpo da nota e o relógio. */
+export interface OpcoesDaCriacao {
+    /**
+     * O corpo da nota, pelo nome final do arquivo (o título do corpo é o nome com o " (2)"). Sem ele, o
+     * corpo é o do modelo do TaskNotes (pela API) ou o título (pela volta).
+     */
+    corpo?: (nome: string) => string;
+    /** O momento da criação (o relógio chega pela borda; sem ele, agora). */
+    agora?: Date;
+}
+
 /**
- * O que faz: cria a tarefa pela API do TaskNotes (`api.tasks.create`) com o `type` garantido
- * (`comTipoNaCriacao`) e devolve o caminho dela.
- * Por quê: o caminho único das criações do plugin por essa API (a Missão, P8): sem ele a
- * tarefa nascia sem `type: task`.
- * Erro e ataque: sem a API (o TaskNotes desligado, ou de outra versão), lança com o motivo em
- * palavras; a recusa do TaskNotes (título vazio, pasta) sobe como veio.
+ * O que faz: a borda única que cria uma tarefa (o criador único, D5, 05/11): o frontmatter na forma
+ * única (`frontmatterDaTarefaNova`, com o carimbo do momento), o nome livre pela regra do TaskNotes com o
+ * " (2)" (`nomeDaTarefaNova`), e a criação pela API do TaskNotes (`api.tasks.create`, com o `type`
+ * garantido); o corpo do protocolo, quando há, entra depois no lugar do corpo do modelo. Sem a API (o
+ * TaskNotes desligado), a volta: `vault.create` do mesmo frontmatter (`frontmatterDoPedido`). Devolve o
+ * caminho.
+ * Por quê: o diagnóstico do fluxo SMART (02/11, §3.2, "Criar uma tarefa"): oito caminhos, cada um com o
+ * seu padrão; passam por aqui o Novo e o "＋ O que fiz" da Missão, o `createTask` do motor e o "➕ Criar a
+ * que falta" de um passo.
+ * Erro e ataque: sem a API e sem o cofre, lança com o motivo em palavras; a recusa do TaskNotes (título
+ * vazio, pasta) sobe como veio, sem a volta (a volta é para o TaskNotes ausente, não para a recusa dele);
+ * título que limpo fica vazio lança antes de gravar.
+ * Prova: tests/engine/tasknotesCreate.test.ts ("a borda") e tests/engine/criadorUnico.test.ts.
  */
-export async function createTaskViaApi(app: App, pedido: Record<string, unknown>, contexto?: Record<string, unknown>): Promise<string> {
+export async function createTaskViaApi(app: App, pedido: Record<string, unknown>, contexto?: Record<string, unknown>, opcoes: OpcoesDaCriacao = {}): Promise<string> {
     const api = tasknotesApi(app);
-    if (typeof api?.tasks?.create !== 'function') throw new Error('o TaskNotes não está carregado (a API de criar tarefa não respondeu)');
-    const criada = await api.tasks.create(comTipoNaCriacao(pedido), contexto);
-    const path = String(criada?.path ?? '');
-    if (!path) throw new Error('o TaskNotes não disse onde a tarefa nasceu');
+    const vault: any = (app as any)?.vault;
+    const temApi = typeof api?.tasks?.create === 'function';
+    if (!temApi && typeof vault?.create !== 'function') throw new Error('o TaskNotes não está carregado (a API de criar tarefa não respondeu)');
+    const carimbo = carimboDoMomento(opcoes.agora ?? new Date());
+    const titulo = String(pedido?.title ?? '').trim();
+    const fm = frontmatterDaTarefaNova(frontmatterDoPedido(comTipoNaCriacao(pedido) as PedidoDeCriacao, ''), carimbo);
+    const existe = (nome: string) => Boolean(vault?.getAbstractFileByPath?.(`${PASTA_DAS_TAREFAS}/${nome}.md`));
+    const nome = titulo ? nomeDaTarefaNova(titulo, existe) : '';
+    if (temApi) {
+        const criada = await api.tasks.create(pedidoDoFrontmatter({ ...fm, title: nome || titulo }), contexto);
+        const path = String(criada?.path ?? '');
+        if (!path) throw new Error('o TaskNotes não disse onde a tarefa nasceu');
+        if (opcoes.corpo) await trocarCorpo(app, path, opcoes.corpo(path.slice(path.lastIndexOf('/') + 1).replace(/\.md$/, '')));
+        return path;
+    }
+    if (!nome) throw new Error('Title is required');
+    const path = `${PASTA_DAS_TAREFAS}/${nome}.md`;
+    if (!vault.getAbstractFileByPath?.(PASTA_DAS_TAREFAS)) {
+        try { await vault.createFolder(PASTA_DAS_TAREFAS); } catch (e) { /* já existe */ }
+    }
+    const gravado = frontmatterDoPedido(pedidoDoFrontmatter({ ...fm, title: nome }), nome);
+    await vault.create(path, textoDaTarefa(gravado, opcoes.corpo ? opcoes.corpo(nome) : `# ${nome}\n`));
     return path;
+}
+
+/**
+ * O que faz: troca o corpo da nota recém-criada pelo do protocolo, guardando o frontmatter que o TaskNotes
+ * gravou. Falha não desfaz a tarefa: ela fica com o corpo do modelo, e o console diz.
+ */
+async function trocarCorpo(app: App, path: string, corpo: string): Promise<void> {
+    try {
+        const vault: any = (app as any).vault;
+        const file = vault.getAbstractFileByPath(path);
+        if (!file) return;
+        const trocar = (texto: string) => {
+            const fm = /^---\n[\s\S]*?\n---\n?/.exec(texto);
+            return `${fm ? fm[0] : ''}\n${corpo.replace(/^\n+/, '')}`;
+        };
+        if (typeof vault.process === 'function') await vault.process(file, trocar);
+        else await vault.modify(file, trocar(await vault.read(file)));
+    } catch (e) {
+        console.error('DFM criar tarefa: o corpo do protocolo não entrou na nota (fica o do modelo):', e);
+    }
 }
 
 /** Os campos que o formulário nativo do TaskNotes aceita preenchidos (`openTaskCreationModal`). */

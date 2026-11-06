@@ -51,10 +51,11 @@
         "camposDoNo.ts",
         "conexoes.ts",
         "checklist.ts",
-        "proximaAcao.ts"
+        "proximaAcao.ts",
+        "aprendizado.ts"
       ],
       "role": "functions",
-      "does": "Funções do trabalho: a linhagem de cada tarefa (projeto, SMART, área, ramo), os filtros (e os lugares do \"Onde estou\", pelo vocabulário dos contextos), a busca, os campos de um nó pelo modelo do tipo e as conexões de uma nota, e a próxima ação real de cada projeto (proximaAcao, 02/11: a fixada na nota, ou a primeira pela ordem padrão que quem compõe passa).",
+      "does": "Funções do trabalho: a linhagem de cada tarefa (projeto, SMART, área, ramo), os filtros (e os lugares do \"Onde estou\", pelo vocabulário dos contextos), a busca, os campos de um nó pelo modelo do tipo e as conexões de uma nota, e a próxima ação real de cada projeto (proximaAcao, 02/11: a fixada na nota, ou a primeira pela ordem padrão que quem compõe passa). E o centro do módulo de aprendizado (05/11, aprendizado): a fila do dia, o nível em curso na forma de mostrar e as peças do nível.",
       "why": "Cada pergunta sobre uma tarefa ou um projeto tem uma resposta só, testável sem a tela.",
       "proof": [
         "cd ../.. && npx vitest run tests/missao/linhagem.test.ts tests/missao/filtros.test.ts tests/missao/busca.test.ts tests/missao/camposDoNo.test.ts tests/missao/conexoes.test.ts tests/missao/onde.test.ts"
@@ -132,6 +133,18 @@
       ]
     },
     {
+      "id": "fn.trilha",
+      "paths": [
+        "trilha.ts"
+      ],
+      "role": "functions",
+      "does": "Funções da trilha de uso (05/11): o arquivo da trilha lido (os textos, os gestos com a forma de contar e as dicas), o dia sem registro e os dias de antes sem registro, a acolhida de quem chega à tarde ou à noite, os usos de cada gesto pela contagem do motor (engine/usoDosGestos.ts), o gesto da vez, a trilha no modelo e o estado que a Missão guarda no salvamento (as marcas e as dicas vistas).",
+      "why": "A porta de entrada e o gesto da semana decidem pelos dados, sem tela e sem texto no código: os textos são do arquivo, o que liga é das definições.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/trilha.test.ts"
+      ]
+    },
+    {
       "id": "compoe.modelo",
       "paths": [
         "borboleta.ts",
@@ -170,10 +183,11 @@
     {
       "id": "vista.linhas",
       "paths": [
-        "view/linhas.ts"
+        "view/linhas.ts",
+        "view/trilha.ts"
       ],
       "role": "module",
-      "does": "Vista, uma parte: as linhas abertas e fechadas. Só emite intenções. A construir: view/grade.ts (a grade das colunas do ramo).",
+      "does": "Vista, uma parte: as linhas abertas e fechadas. Só emite intenções. A construir: view/grade.ts (a grade das colunas do ramo); e a trilha de uso na tela (view/trilha.ts, 05/11): a acolhida, o cartão do gesto da semana e a dica da primeira vez.",
       "why": "A linha do tempo se desenha sem saber do cofre nem da gravação.",
       "proof": [
         "cd ../.. && npx vitest run tests/missao/componente"
@@ -428,7 +442,7 @@
     {
       "from": "compoe.modelo",
       "to": "fn.sinais",
-      "carries": "CONFIG_PADRAO, prateleira, sinais, sinaisDeclarados, sinaisDosTrechos, sinaisPorAlvo; tipos: ConfigDosSinais"
+      "carries": "CONFIG_PADRAO, prateleira, sinais, sinaisDasConferencias, sinaisDeclarados, sinaisDosTrechos, sinaisPorAlvo; tipos: ConfigDosSinais"
     },
     {
       "from": "compoe.modelo",
@@ -513,7 +527,7 @@
     {
       "from": "fn.sinais",
       "to": "base",
-      "carries": "addDays, addWeeks, chaveDeHoje, dataDoCampo, diaMes, ehDia, semanaCurta, textoDoCampo, diaNoInicio, partesDoDia, diaDaSemana; tipos: DeclaracoesDeSinais, Passagem, GrupoDaTriagem, ItemDaTriagem, MissaoEntrada, MissaoIndice, MissaoTarefa, NotaComCampos, PassoDeclarado, Prateleira, ProximoPasso, Sinal, TipoDeSinal"
+      "carries": "addDays, addWeeks, chaveDeHoje, dataDoCampo, diaMes, ehDia, semanaCurta, textoDoCampo, diaNoInicio, partesDoDia, diaDaSemana; tipos: ConferenciaDeclarada, ConferenciaLida, DeclaracoesDeSinais, Passagem, GrupoDaTriagem, ItemDaTriagem, MissaoEntrada, MissaoIndice, MissaoTarefa, NotaComCampos, PassoDeclarado, Prateleira, ProximoPasso, Sinal, TipoDeSinal"
     },
     {
       "from": "fn.sinais",
@@ -533,7 +547,7 @@
     {
       "from": "fn.trabalho",
       "to": "ext.engine",
-      "carries": "camposNoFormato, fieldNumber, fixadaEntre, isoWeekOf, quarterOfWeek, quarterWeeks, weekDates; tipos: DomainField, DomainModel, DomainState"
+      "carries": "TIPO_DA_TAREFA, camposNoFormato, fieldNumber, fixadaEntre, isoWeekOf, quarterOfWeek, quarterWeeks, weekDates; tipos: DomainField, DomainModel, DomainState"
     },
     {
       "from": "fn.trabalho",
@@ -573,7 +587,7 @@
     {
       "from": "liga.gravar",
       "to": "ext.engine",
-      "carries": "TASK_CONTEXTS, TIPO_DA_TAREFA, pedidoDoFrontmatter, HISTORY_FOLDER, TASKNOTES_FOLDER, captureTaskFrontMatter, isDeadFolder, sideQuestFrontMatter, targetPathFor; tipos: DatasDaRodada, PedidoDeCriacao, WeightReason"
+      "carries": "TASK_CONTEXTS, TIPO_DA_TAREFA, frontmatterDaTarefaNova, patchDaFormaUnica, pedidoDoFrontmatter, HISTORY_FOLDER, TASKNOTES_FOLDER, captureTaskFrontMatter, isDeadFolder, sideQuestFrontMatter, targetPathFor; tipos: DatasDaRodada, PedidoDeCriacao, WeightReason"
     },
     {
       "from": "liga.gravar",
@@ -598,7 +612,7 @@
     {
       "from": "liga.leitor",
       "to": "base",
-      "carries": "CASAS_PADRAO, addWeeks, caminhoImporta, chaveDeHoje, chavesDoLegado, dentro, direto, entradaVazia, excluido, periodoDaNota, tabelasVazias; tipos: CasasDaMissao, MarcaDoRamo, MissaoEntrada, MissaoFiltros, MissaoModelo, NotaComCampos, ParDaSemana, ProjetoEntrada, TabelasDaMissao"
+      "carries": "CASAS_PADRAO, addWeeks, caminhoImporta, chaveDeHoje, chavesDoLegado, dentro, direto, entradaVazia, excluido, periodoDaNota, tabelasVazias; tipos: CasasDaMissao, ConferenciaLida, MarcaDoRamo, MissaoEntrada, MissaoFiltros, MissaoModelo, NotaComCampos, ParDaSemana, ProjetoEntrada, TabelasDaMissao"
     },
     {
       "from": "liga.leitor",
@@ -608,7 +622,7 @@
     {
       "from": "liga.leitor",
       "to": "ext.engine",
-      "carries": "DOMAIN_MODELS_FOLDER, EXPOSICAO_TIPO, HABIT_TRACKER_FOLDER, dayOf, focoDoTrimestre, isRecordPathCounted, linkNames, matchesRecord, parseDomainModel, parseHabit, temporadaFrom, DEFAULT_INBOX_FOLDER, triageCandidates, declaredNextAction, quarterWeeks, DECISION_WEIGHTS_PATH, parsePanelWeights, CAMPOS_DO_COMANDO; tipos: DomainModel, TaskScore"
+      "carries": "DOMAIN_MODELS_FOLDER, EXPOSICAO_TIPO, HABIT_TRACKER_FOLDER, dayOf, focoDoTrimestre, isRecordPathCounted, linkNames, matchesRecord, parseDomainModel, parseHabit, temporadaFrom, DEFAULT_INBOX_FOLDER, triageCandidates, declaredNextAction, quarterWeeks, DECISION_WEIGHTS_PATH, parsePanelWeights, CAMPOS_DO_COMANDO, itensDaSecao, novasDeHojeNaDay; tipos: DomainModel, TaskScore"
     },
     {
       "from": "liga.leitor",
@@ -678,7 +692,7 @@
     {
       "from": "liga.lugares",
       "to": "fn.formularios",
-      "carries": "rodadasNaNota; tipos: NotaCandidata, ProtocoloDaGaveta"
+      "carries": "rodadasNaNota, soPassoAPasso; tipos: NotaCandidata, ProtocoloDaGaveta"
     },
     {
       "from": "liga.lugares",
@@ -824,6 +838,11 @@
       "from": "vista.casco",
       "to": "vista.triagem",
       "carries": "conteudoDaTriagem; tipos: FormDaTriagem"
+    },
+    {
+      "from": "vista.casco",
+      "to": "fn.trilha",
+      "carries": "assinaturaDaTrilha (a acolhida e o gesto na assinatura da linha em foco)"
     },
     {
       "from": "vista.entrada",
@@ -999,6 +1018,31 @@
       "from": "vista.casco",
       "to": "ext.definicoes",
       "carries": "DEFINICOES_PADRAO (a tabela dos papéis sem a leitura do lugar)"
+    },
+    {
+      "from": "fn.trilha",
+      "to": "base",
+      "carries": "addDays, DIA; tipos: AcolhidaDoDia, ChavesDaTrilha, ConfigDaTrilha, DicaDaTrilha, GestoDaTrilha, GestoDaVez, MissaoEntrada, MissaoIndice, TrilhaDoModelo"
+    },
+    {
+      "from": "fn.trilha",
+      "to": "ext.engine",
+      "carries": "CAMPOS_DO_COMANDO, diasDeUso, lerContaDoGesto; tipos: ContaDoGesto, FontesDoUso"
+    },
+    {
+      "from": "compoe.modelo",
+      "to": "fn.trilha",
+      "carries": "trilhaDoModelo"
+    },
+    {
+      "from": "vista.linhas",
+      "to": "fn.trilha",
+      "carries": "comValores, mostraAcolhida"
+    },
+    {
+      "from": "liga.lugares",
+      "to": "fn.trilha",
+      "carries": "marcaDoMovimento"
     }
   ]
 }

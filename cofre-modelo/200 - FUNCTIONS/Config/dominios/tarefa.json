@@ -233,5 +233,18 @@
       "mostrar": "oculto",
       "lugar": "fora"
     }
-  ]
+  ],
+  "sinais": {
+    "conferencias": [
+      {
+        "tag": "pesquisa",
+        "secao": "## 🔎 Conferência",
+        "fato": "a pesquisa",
+        "passo": {
+          "protocolo": "conferir_pesquisa",
+          "rotulo": "🔎 Conferir uma pesquisa"
+        }
+      }
+    ]
+  }
 }

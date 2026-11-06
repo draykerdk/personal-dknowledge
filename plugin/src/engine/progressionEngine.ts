@@ -2,6 +2,9 @@ import { TFile, TFolder, Notice } from "obsidian";
 import type DFMPlugin from "../main";
 import { contarRegistros, parseRecordCriterion } from "./records";
 import { notasDoVault } from "./recordsVault";
+import { contasDoAprendizado } from "./repeticao";
+import { criterioDeUso } from "./usoDosGestos";
+import { definicoesDe } from "../definicoes";
 
 /**
  * Motor da Árvore de Progressão — porta de `200 - FUNCTIONS/Scripts/progression_tree.py`.
@@ -362,6 +365,25 @@ export class ProgressionEngine {
             if (!consulta || !Number.isFinite(n)) return false;
             return contarRegistros(consulta, notasDoVault(this.app)) >= n;
         }
+        // `uso | <gesto> | <n>` (a trilha de uso, 05/11/2026): o gesto feito em n dias, pela contagem única
+        // (`engine/usoDosGestos.ts`) que a Missão fez na última leitura (`board.usoDoGesto`); sem o número, a
+        // meta das definições (`trilha.vezes`). Sem a leitura ainda, o nível espera a próxima reavaliação.
+        const uso = criterioDeUso(tier.criterio);
+        if (uso) {
+            const n = (this.plugin as any).board?.usoDoGesto?.(uso.gesto);
+            const meta = uso.meta ?? definicoesDe(this.plugin).trilha.vezes;
+            return typeof n === "number" && n >= meta;
+        }
+        // `aprendizado | <tipo>[; campo=valor] | <dominadas> [| <usos>]` (05/11, o módulo de idiomas): as notas do tipo
+        // consolidadas e os usos de campo delas (o `usado_em`); a gêmea em Python é `contar_aprendizado`.
+        if (kind === "aprendizado" && (tier.criterio.length === 3 || tier.criterio.length === 4)) {
+            const consulta = parseRecordCriterion(tier.criterio[1]);
+            const n = parseInt(tier.criterio[2], 10);
+            const m = tier.criterio.length === 4 ? parseInt(tier.criterio[3], 10) : 0;
+            if (!consulta || !Number.isFinite(n) || !Number.isFinite(m)) return false;
+            const contas = contasDoAprendizado(notasDoVault(this.app), consulta);
+            return contas.dominadas >= n && contas.usos >= m;
+        }
         if (kind === "tarefas") {
             if (tier.tarefas.length === 0) return false;
             return tier.tarefas.every(t => this.taskDoneInTaskNotes(t));
@@ -469,7 +491,7 @@ export class ProgressionEngine {
                     projeto: tree.projectLink,
                     semana: l.week || undefined,
                     campos,
-                    porque: `🌳 Nível ${tierLabel(tier)} (${tier.nome}) da Árvore de ${tree.projectLink}`,
+                    porque: `🪜 Nível ${tierLabel(tier)} (${tier.nome}) da Árvore de ${tree.projectLink}`,
                 });
                 if (ok) propostas++;
             } catch (e) {

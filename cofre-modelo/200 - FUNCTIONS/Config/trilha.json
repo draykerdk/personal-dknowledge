@@ -1,0 +1,156 @@
+{
+  "_sobre": "A trilha de uso da Missão: os textos das três partes (receber quem chega à tarde ou à noite, o gesto da semana e a dica da primeira vez). A acolhida é só a pergunta, os dois botões e os dias sem registro. O que liga, desliga e as horas e números ficam nas definições do sistema (aba de configurações do plugin, Definições do sistema, Trilha de uso). Cada gesto diz como o uso dele se conta: protocolos (a linha do motor na Day, pelo id), origem (a TaskNote concluída com essa origem), ligada_a_smart (a ação criada com uma SMART mãe) ou marca (o gesto que a Missão marca, porque não deixa outro rastro). A ordem da lista é a ordem da trilha. O `guia` de cada gesto é opcional: o link para a seção de uma nota sua que explica o gesto. Os textos são seus: troque-os pela sua língua e pelo seu jeito.",
+  "janela_dias": 56,
+  "acolhida": {
+    "titulo": "O que você fez hoje?",
+    "feito": "＋ O que fiz",
+    "feito_dica": "＋ O que fiz: uma linha por coisa feita; a tarefa nasce feita, no dia, sem data de plano",
+    "passados": "Dias sem registro",
+    "passado_dica": "Abrir este dia: lá ficam o ＋ O que fiz e o 🌙 dele"
+  },
+  "cartao": {
+    "titulo": "O gesto da semana",
+    "contagem": "{n} de {meta} dias",
+    "como": "Como",
+    "para": "Para quê",
+    "guia": "No guia",
+    "guia_dica": "Abre a seção do Guia da Missão sobre este gesto",
+    "proximo": "Depois: {gesto}",
+    "fim": "Os gestos da trilha já viraram uso. A trilha recomeça quando um gesto novo entrar nesta lista."
+  },
+  "gestos": [
+    {
+      "id": "fechar_dia",
+      "emoji": "🌙",
+      "titulo": "Fechar o dia pelo que fez",
+      "como": "À tarde ou à noite, na Missão: ＋ O que fiz para o que foi feito fora do plano, depois o 🌙 Fechar o dia.",
+      "para": "O dia fica registrado mesmo sem ter começado pela manhã, e o compromisso de amanhã abre o dia seguinte.",
+      "conta": [
+        {
+          "origem": [
+            "registrar_feito"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mover_de_antes",
+      "emoji": "⏭️",
+      "titulo": "Mover a que ficou para trás",
+      "como": "Na tarefa que ficou de antes (a curva tracejada), o Mover para… do cartão, ou arrastar o cartão para um dia ou para a semana.",
+      "para": "O que ficou volta a ter um lugar no tempo, em vez de se acumular atrás.",
+      "conta": [
+        {
+          "marca": "mover_de_antes"
+        }
+      ]
+    },
+    {
+      "id": "ligar_smart",
+      "emoji": "🔗",
+      "titulo": "Ligar uma tarefa a uma SMART",
+      "como": "Arrastar o cartão da tarefa sobre a SMART, ou a alça da SMART até a tarefa; na triagem, a tecla M.",
+      "para": "A tarefa passa a contar no avanço da SMART e da semana.",
+      "conta": [
+        {
+          "ligada_a_smart": true
+        },
+        {
+          "marca": "ligar_smart"
+        }
+      ]
+    },
+    {
+      "id": "planejar_semana",
+      "emoji": "🌳",
+      "titulo": "Planejar a semana no 🌳",
+      "como": "Na escala Semana, a semana seguinte: o 🌳 planejar no centro dela; no fim, Abrir na Missão e pôr as tarefas nos dias.",
+      "para": "A semana começa com as SMART e as tarefas no lugar, escolhidas por você.",
+      "conta": [
+        {
+          "protocolos": [
+            "planejamento_semanal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "revisar_semana",
+      "emoji": "📅",
+      "titulo": "Revisar no 📅",
+      "como": "Na escala Semana, a semana que fecha: o 📅 revisar no centro dela.",
+      "para": "O que foi feito, o que ficou e o que veio fora do plano viram a base do 🌳 seguinte.",
+      "conta": [
+        {
+          "protocolos": [
+            "review_semanal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conferir_pesquisa",
+      "emoji": "🔎",
+      "titulo": "Conferir uma pesquisa",
+      "como": "Na tarefa com a etiqueta pesquisa, o 🔎 Conferir uma pesquisa da seção Protocolos do painel; cada item vira um nó que se marca ali.",
+      "para": "Nenhuma pesquisa entra no plano sem a conferência dos itens que importam.",
+      "conta": [
+        {
+          "protocolos": [
+            "conferir_pesquisa"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "capturar_triar",
+      "emoji": "💡",
+      "titulo": "Capturar e triar",
+      "como": "A ideia que ainda não é tarefa vai pelo 💡 Captura; depois, a Triagem (tecla T) dá um lugar a cada uma.",
+      "para": "A cabeça esvazia, e nada fica sem lugar por muito tempo.",
+      "conta": [
+        {
+          "marca": "capturar"
+        },
+        {
+          "marca": "triar"
+        }
+      ]
+    }
+  ],
+  "dicas": [
+    {
+      "id": "o_que_fiz",
+      "act": "feito-abrir",
+      "texto": "＋ O que fiz: o que foi feito fora do plano vira uma tarefa já feita, no dia."
+    },
+    {
+      "id": "planejar_semana",
+      "act": "ciclo",
+      "protocolo": "planejamento_semanal",
+      "texto": "🌳 planejar: escolhe as SMART e as tarefas da semana; a semana é sua, o sistema só propõe."
+    },
+    {
+      "id": "revisar_semana",
+      "act": "ciclo",
+      "protocolo": "review_semanal",
+      "texto": "📅 revisar: o que foi feito, o que ficou e o que veio fora do plano na semana."
+    },
+    {
+      "id": "mover_para",
+      "act": "mover-para",
+      "texto": "Mover para…: dá um dia ou uma semana à tarefa que ficou de antes."
+    },
+    {
+      "id": "triagem",
+      "act": "triagem",
+      "texto": "Triagem: o que ainda não tem lugar, um item por vez, com uma tecla para cada destino."
+    },
+    {
+      "id": "captura",
+      "act": "captura",
+      "texto": "💡 Captura: a ideia que ainda não é tarefa; ela espera na triagem."
+    }
+  ],
+  "dica_fechar": "Entendi"
+}

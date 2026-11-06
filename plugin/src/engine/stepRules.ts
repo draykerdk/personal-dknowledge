@@ -14,13 +14,16 @@ import { selectionCount } from './stepDefault';
  * A condição (de um passo ou de um modo do protocolo) casa com as respostas da
  * rodada? `{ variable, value }` compara por igualdade, e `value` em lista aceita
  * qualquer um; `{ variable, filled: true }` só pede que a resposta exista (ex.: o
- * impacto da ação do valor, só se houve ação). Sem condição, nada casa.
+ * impacto da ação do valor, só se houve ação); `{ variable, filled: false }`, que ela
+ * ainda não exista (06/11: o formato e o tema do 📹 só no registro sem peça; aberto pela
+ * peça, o `peca_path` já vem e eles saem). Sem condição, nada casa.
  */
 export function conditionMatches(condition: any, variables: any): boolean {
     if (!condition || typeof condition !== 'object') return false;
     const target = variables?.[condition.variable];
-    if (condition.filled === true) {
-        return typeof target === 'string' ? target.trim() !== '' : Boolean(target);
+    if (condition.filled === true || condition.filled === false) {
+        const tem = typeof target === 'string' ? target.trim() !== '' : Boolean(target);
+        return condition.filled ? tem : !tem;
     }
     return Array.isArray(condition.value) ? condition.value.includes(target) : target === condition.value;
 }

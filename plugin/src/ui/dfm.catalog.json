@@ -1,0 +1,1706 @@
+{
+  "dfm": 1,
+  "system": "ui",
+  "purpose": "A interface antiga do dfm-system (`src/ui`): os modais e os seletores dos protocolos, a dica, as telas da conclusão, a aba de configurações com as definições do sistema, as portas das ferramentas aposentadas, as visões do Mission Control antigo que o painel ainda hospeda e as vistas do DSH e dos arquivos recentes. Este mapa declara os módulos em três espécies (as funções, a vista, os que ligam) e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "modules": [
+    {
+      "id": "fn.definicoes",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. A edição das definições do sistema sem o Obsidian: o que cada campo mostra e o que uma edição vira no bloco `definicoes` do salvamento (esparso: só o que difere do padrão).",
+      "why": "B2 do mapa da v0: as definições são de cada pessoa; a conta da edição é testável sem a aba.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/definicoesDaAba.test.ts"
+      ],
+      "connects_to": [
+        "ext.definicoes",
+        "ext.engine"
+      ],
+      "used_by": [
+        "liga.definicoes"
+      ]
+    },
+    {
+      "id": "fn.portas",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. As portas das ferramentas antigas que a Missão substitui: o id de sempre, o nome, o destino (a Missão, o painel, a semana ou o trimestre) e o período que a porta abre.",
+      "why": "O id fica (um botão numa nota ou um atalho continua valendo) e abre o lugar novo; o código aposentado saiu em 03/11/2026.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/portas.test.ts tests/ui/portasAposentadas.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine",
+        "ext.missao"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "vista.base",
+      "role": "module",
+      "state": "standard",
+      "does": "Vista. As peças pequenas de desenho: o cabeçalho de um passo de protocolo (stepHeader) e a dica, o nome de um botão no mouse, no teclado e no toque (dica).",
+      "why": "Os modais, os seletores, o painel e a Missão usam o mesmo cabeçalho e a mesma dica.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/contrato.test.ts tests/ui/dica.test.ts"
+      ],
+      "connects_to": [
+        "ext.obsidian"
+      ],
+      "used_by": [
+        "vista.modais"
+      ]
+    },
+    {
+      "id": "vista.modais",
+      "role": "module",
+      "state": "standard",
+      "does": "Vista. Os modais e os seletores dos passos de protocolo (modals, suggesters), as duas telas da conclusão (\"Quando terminou?\" e o que fica; completionModals) e o modal da árvore nova (arvoreModals).",
+      "why": "O motor de protocolos e o quadro pedem a entrada por estas telas; quem decide e quem grava é quem chama.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/protocolForm.test.ts tests/engine/protocolNucleo.test.ts tests/engine/q4Round2.test.ts tests/engine/routerCentralCompleto.test.ts tests/ui/arvoreEmbedMobile.test.ts tests/ui/completionModals.test.ts tests/ui/modals.test.ts tests/ui/noteSuggesterDefault.test.ts tests/ui/nowSuggester.test.ts tests/ui/suggestChoiceLifecycle.test.ts tests/ui/suggesters.test.ts"
+      ],
+      "connects_to": [
+        "ext.board",
+        "ext.canvas",
+        "ext.definicoes",
+        "ext.engine",
+        "ext.main",
+        "ext.obsidian",
+        "ext.project",
+        "vista.base"
+      ],
+      "used_by": [
+        "liga.definicoes"
+      ]
+    },
+    {
+      "id": "vista.painel-base",
+      "role": "module",
+      "state": "standard",
+      "does": "Vista. A base dos painéis do Mission Control antigo: os tokens visuais (só variáveis do tema), as primitivas de DOM, o contexto que cada painel recebe (o snapshot) e os modais de apoio (o drill-down de um bucket).",
+      "why": "Um painel só recebe `(host, ctx)`: não conhece a vista, não busca estado e não guarda cache próprio.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/missionControlFixesValidation.test.ts tests/ui/missionKanbanPanel.test.ts tests/ui/missionTokens.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine",
+        "ext.main",
+        "ext.obsidian"
+      ],
+      "used_by": [
+        "vista.paineis"
+      ]
+    },
+    {
+      "id": "vista.paineis",
+      "role": "module",
+      "state": "standard",
+      "does": "Vista. As visões do console antigo que o painel ainda hospeda: a bancada, a escolha e o esperando, os hábitos, o kanban das tarefas, a matriz, o operador, o portfólio, a estrutura e as ferramentas.",
+      "why": "São os cartões que a Missão não faz (ou faz em parte); ficam até o uso dizer, pelas perguntas do inventário da aposentadoria.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/missionCanvasIndexPanel.test.ts tests/ui/missionKanbanPanel.test.ts tests/ui/missionPortfolioContract.test.ts"
+      ],
+      "connects_to": [
+        "ext.board",
+        "ext.child_process",
+        "ext.engine",
+        "ext.obsidian",
+        "vista.painel-base"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "liga.definicoes",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. A aba de configurações do plugin (settingsTab) e a seção \"Definições do sistema\" dela (abaDasDefinicoes), que mostra e grava as definições pelo fn.definicoes.",
+      "why": "As definições não ficam escritas no código; a aba é onde a pessoa as vê e as muda.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/contracts/gamificacaoArquivada.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine",
+        "ext.main",
+        "ext.modulosopcionais",
+        "ext.obsidian",
+        "fn.definicoes",
+        "vista.modais"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "liga.triagem",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. Abre a Missão já na triagem, de fora dela (o comando \"📥 SMART de semanas passadas\").",
+      "why": "O comando antigo do rollover ficou só como porta para o grupo da triagem (02/11/2026).",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [
+        "ext.obsidian"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "liga.dsh",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. A vista do DSH, o operador: no desktop, num `<webview>` do Electron (dshView, dshWebview); no celular, pelo cliente do operador (mobileDshView).",
+      "why": "O DSH recusa a origem do iframe do Obsidian; a vista própria é o único caminho, e não é papel da Missão.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/ui/dshWebview.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine",
+        "ext.main",
+        "ext.mobile",
+        "ext.obsidian"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "liga.recentes",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. A vista \"Arquivos Recentes (DFM)\": a lista dos arquivos abertos.",
+      "why": "Não é papel da Missão; fica como vista própria (inventário 7.6).",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [
+        "ext.main",
+        "ext.obsidian"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "liga.captura",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. A captura rápida num lugar só: o saneamento do nome, o corpo canônico e a escrita na Caixa de entrada, pelo vault que recebe.",
+      "why": "A 💡 da Missão e o quadro gravam a mesma captura.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/missao/refinos.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine"
+      ],
+      "used_by": []
+    },
+    {
+      "id": "ext.board",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o quadro e o painel do Mission Control (`src/board`), com o mapa deles: o MissionBoard, a conclusão de uma tarefa, os menus do canvas.",
+      "why": "As gravações de tarefa e os menus passam pelo quadro, com a conclusão de sempre.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "vista.modais",
+        "vista.paineis"
+      ]
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: a camada de canvas (`src/canvas`), com o mapa dela: os ids e a zona gerida, as setas que gravam campos, a cor e o cartão da tarefa.",
+      "why": "Quem desenha num canvas usa a mesma zona gerida e a mesma tabela das setas.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "vista.modais"
+      ]
+    },
+    {
+      "id": "ext.child_process",
+      "role": "external",
+      "state": "standard",
+      "does": "O child_process do Node, só como tipo (o `require` roda na hora, no desktop).",
+      "why": "Os scripts da bancada e dos juízes rodam no desktop pelo `exec`; no celular, o caminho não existe.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "vista.paineis"
+      ]
+    },
+    {
+      "id": "ext.definicoes",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: as definições do sistema (`src/definicoes.ts`), o leitor puro do bloco `definicoes` do salvamento.",
+      "why": "As pastas, as áreas e os valores vêm das definições, não de um nome no código.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.definicoes",
+        "vista.modais"
+      ]
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.definicoes",
+        "fn.portas",
+        "liga.captura",
+        "liga.definicoes",
+        "liga.dsh",
+        "vista.modais",
+        "vista.paineis",
+        "vista.painel-base"
+      ]
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; nada aqui importa o main em execução.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.definicoes",
+        "liga.dsh",
+        "liga.recentes",
+        "vista.modais",
+        "vista.painel-base"
+      ]
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: a Missão (`src/missao`), com o mapa e o guarda dela: o estado da tela, as intenções, os gestos, as gravações e os hospedeiros.",
+      "why": "O sistema antigo abre e grava pela Missão o que ela já faz, em vez de manter a cópia.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.portas"
+      ]
+    },
+    {
+      "id": "ext.mobile",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o operador no celular (`src/mobile`): a configuração, a sessão, os segredos e a atividade.",
+      "why": "A vista do DSH no celular usa o mesmo cliente do operador.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.dsh"
+      ]
+    },
+    {
+      "id": "ext.modulosopcionais",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: os módulos opcionais do plugin (`src/modulosOpcionais.ts`).",
+      "why": "A aba de configurações liga e desliga os módulos opcionais pela lista deles.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.definicoes"
+      ]
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "state": "standard",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.definicoes",
+        "liga.dsh",
+        "liga.recentes",
+        "liga.triagem",
+        "vista.base",
+        "vista.modais",
+        "vista.paineis",
+        "vista.painel-base"
+      ]
+    },
+    {
+      "id": "ext.project",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: os canvas de projeto (`src/project`), com o mapa deles: o caminho, o modelo e o gerente do canvas de um projeto.",
+      "why": "O projeto tem uma árvore só (SMART, ações, progresso), lida do mesmo modelo.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "vista.modais"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "secaoDasDefinicoes",
+      "path": "abaDasDefinicoes.ts",
+      "line": 23,
+      "module": "liga.definicoes",
+      "summary": "A seção \"Definições do sistema\" da aba de configurações (B2 do mapa da v0).",
+      "card": {
+        "does": "mostra as definições lidas (`plugin.definicoes`: os padrões, as camadas de partida dos módulos, os nomes antigos do salvamento e o bloco salvo) e deixa a pessoa editar o nome e o fuso, o nome do agente, os valores e os das relações, as áreas, o foco do trimestre, as pastas, a nota da reserva, a ponte do agente (ligar e a porta) e o protocolo de cada papel; os arquivos de configuração (pesos, reputação, ECH, vocabulário) abrem para editar, e o caminho deles fica à vista.",
+        "why": "as definições são de cada pessoa e não ficam escritas no código; a aba é onde ela as vê e muda. O que a edição vira no bloco, e se vale, é de `definicoesDaAba.ts` (puro, testado à parte).",
+        "errors": "o campo grava ao sair dele (o evento `change`), não a cada tecla; a edição que o leitor recusaria avisa e volta ao valor que vale; nada grava enquanto nada muda.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (o que vira salvamento); a prévia no Obsidian (a tela)."
+      }
+    },
+    {
+      "name": "abrirTriagemDaMissao",
+      "path": "abrirTriagem.ts",
+      "line": 17,
+      "module": "liga.triagem",
+      "summary": "abre a Missão na aba dela e, quando ela termina de montar, aperta o botão \"Triagem\" (o mesmo do clique e da tecla T); se ele não aparece a tempo, o aviso diz a tecla.",
+      "card": {
+        "does": "abre a Missão na aba dela e, quando ela termina de montar, aperta o botão \"Triagem\" (o mesmo do clique e da tecla T); se ele não aparece a tempo, o aviso diz a tecla.",
+        "why": "a Missão não tem porta de fora para abrir a triagem (e a Missão não muda aqui); o botão é o gesto que ele faria.",
+        "errors": "a triagem já aberta (o botão com `aria-pressed=\"true\"`) não fecha."
+      }
+    },
+    {
+      "name": "embedArvoreNodeInProjectCanvas",
+      "path": "arvoreModals.ts",
+      "line": 105,
+      "module": "vista.modais",
+      "summary": "Embute o node do canvas — Árvore (ainda vazio, será gerado no próximo Reavaliar) no canvas estratégico do projeto, se ele já existir — espelha o embed manual feito nos 2 projetos atuais.",
+      "card": {}
+    },
+    {
+      "name": "NovaArvoreModal.open",
+      "path": "arvoreModals.ts",
+      "line": 165,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "CompletionWhenModal.onOpen",
+      "path": "completionModals.ts",
+      "line": 55,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "CompletionWhenModal.onClose",
+      "path": "completionModals.ts",
+      "line": 151,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "askCompletionWhen",
+      "path": "completionModals.ts",
+      "line": 162,
+      "module": "vista.modais",
+      "summary": "pergunta \"Quando terminou?\" e devolve a resposta, ou `null` se a tela fechou sem escolha. Com `probable`, a conclusão dita depois pergunta também onde foi e quanto levou (a segunda linha); sem ele (a seleção de várias tarefas), só o quando.",
+      "card": {
+        "does": "pergunta \"Quando terminou?\" e devolve a resposta, ou `null` se a tela fechou sem escolha. Com `probable`, a conclusão dita depois pergunta também onde foi e quanto levou (a segunda linha); sem ele (a seleção de várias tarefas), só o quando."
+      }
+    },
+    {
+      "name": "askNightCompletions",
+      "path": "completionModals.ts",
+      "line": 219,
+      "module": "vista.modais",
+      "summary": "mostra a tela do 🌙 e devolve as confirmadas, ou `null` (\"Agora não\").",
+      "card": {
+        "does": "mostra a tela do 🌙 e devolve as confirmadas, ou `null` (\"Agora não\")."
+      }
+    },
+    {
+      "name": "blocoComMudanca",
+      "path": "definicoesDaAba.ts",
+      "line": 57,
+      "module": "fn.definicoes",
+      "summary": "um bloco novo com o valor posto no caminho (`pessoa.nome` → `{ pessoa: { nome } }`); com `undefined`, tira a chave, e o objeto que fica vazio sai também.",
+      "card": {
+        "does": "um bloco novo com o valor posto no caminho (`pessoa.nome` → `{ pessoa: { nome } }`); com `undefined`, tira a chave, e o objeto que fica vazio sai também.",
+        "why": "o bloco é esparso; mudar um campo não pode apagar os outros que a pessoa já mudou.",
+        "io": "o bloco (qualquer valor), o caminho e o valor → o bloco novo; o de entrada não muda.",
+        "errors": "as chaves do caminho são as da seção (nunca do usuário); um pedaço do caminho que não é objeto é trocado por um objeto.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"o bloco esparso\")."
+      }
+    },
+    {
+      "name": "editarTexto",
+      "path": "definicoesDaAba.ts",
+      "line": 110,
+      "module": "fn.definicoes",
+      "summary": "o que a edição de um campo de texto vira no bloco: o texto aparado no caminho; nas pastas, o vazio tira a chave (volta ao de baixo).",
+      "card": {
+        "does": "o que a edição de um campo de texto vira no bloco: o texto aparado no caminho; nas pastas, o vazio tira a chave (volta ao de baixo).",
+        "why": "B2: a aba grava no bloco `definicoes`, e só o que mudou.",
+        "io": "o salvamento, as camadas de partida, o campo e o texto digitado → a edição.",
+        "errors": "o texto que o leitor recusaria (caminho absoluto, com `..`, fuso desconhecido) dá o erro e nada grava; o mesmo valor de antes dá `bloco: null` (nada a gravar).",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"os campos de texto\")."
+      }
+    },
+    {
+      "name": "itensDoTexto",
+      "path": "definicoesDaAba.ts",
+      "line": 137,
+      "module": "fn.definicoes",
+      "summary": "os itens de um campo de lista a partir do texto (um por linha): o valor é `nome | porquê`; a área, `nome | pasta | etiqueta`; o foco e as pastas excluídas, um texto.",
+      "card": {
+        "does": "os itens de um campo de lista a partir do texto (um por linha): o valor é `nome | porquê`; a área, `nome | pasta | etiqueta`; o foco e as pastas excluídas, um texto.",
+        "io": "o campo e o texto → os itens e as linhas que não servem (o número, a partir de 1).",
+        "errors": "a linha sem nome não serve; a área com mais de três partes não serve."
+      }
+    },
+    {
+      "name": "textoDaLista",
+      "path": "definicoesDaAba.ts",
+      "line": 162,
+      "module": "fn.definicoes",
+      "summary": "o texto que a caixa de um campo de lista mostra: um item por linha, no formato de `itensDoTexto` (ler o texto de volta dá os mesmos itens).",
+      "card": {
+        "does": "o texto que a caixa de um campo de lista mostra: um item por linha, no formato de `itensDoTexto` (ler o texto de volta dá os mesmos itens).",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"os campos de lista\")."
+      }
+    },
+    {
+      "name": "editarLista",
+      "path": "definicoesDaAba.ts",
+      "line": 182,
+      "module": "fn.definicoes",
+      "summary": "o que a edição de um campo de lista vira no bloco: a lista inteira, lida do texto.",
+      "card": {
+        "does": "o que a edição de um campo de lista vira no bloco: a lista inteira, lida do texto.",
+        "why": "B2: os valores, as áreas, o foco e as pastas excluídas são listas; a lista que a pessoa escreve troca a de baixo inteira (a lista vazia também: ela disse \"nenhum\").",
+        "io": "o salvamento, as camadas de partida, o campo e o texto → a edição.",
+        "errors": "uma linha que não serve dá o erro com o número dela, e nada grava; o item que o leitor recusaria (a pasta de fora do cofre) também; a mesma lista de antes não grava.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"os campos de lista\")."
+      }
+    },
+    {
+      "name": "formatoDaLista",
+      "path": "definicoesDaAba.ts",
+      "line": 190,
+      "module": "fn.definicoes",
+      "summary": "o formato de uma linha do campo de lista, para a descrição e para o erro.",
+      "card": {
+        "does": "o formato de uma linha do campo de lista, para a descrição e para o erro."
+      }
+    },
+    {
+      "name": "editarPapel",
+      "path": "definicoesDaAba.ts",
+      "line": 207,
+      "module": "fn.definicoes",
+      "summary": "o que a escolha do protocolo de um papel vira no bloco: o id, ou `null` (\"nenhum\": o botão e as opções do papel somem).",
+      "card": {
+        "does": "o que a escolha do protocolo de um papel vira no bloco: o id, ou `null` (\"nenhum\": o botão e as opções do papel somem).",
+        "why": "B2: a lista dos papéis com um seletor entre os protocolos carregados ou \"nenhum\".",
+        "io": "o salvamento, as camadas de partida, o papel e o id escolhido (`''` ou `null` = nenhum) → a edição.",
+        "errors": "id fora do formato (espaço, barra, ponto) dá o erro; papel fora da lista dá o erro; a mesma escolha de antes não grava.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"os protocolos por papel\")."
+      }
+    },
+    {
+      "name": "editarPonteLigada",
+      "path": "definicoesDaAba.ts",
+      "line": 222,
+      "module": "fn.definicoes",
+      "summary": "o que ligar ou desligar a ponte do agente vira no bloco (`ponte.ligada`).",
+      "card": {
+        "does": "o que ligar ou desligar a ponte do agente vira no bloco (`ponte.ligada`).",
+        "why": "a ponte só sobe quando a pessoa a liga; o cofre que tem a camada de partida ligada não ganha nada no bloco enquanto a escolha não muda.",
+        "io": "o salvamento, as camadas de partida e a escolha → a edição.",
+        "errors": "o que não é sim/não dá o erro; a mesma escolha de antes não grava.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"a ponte\")."
+      }
+    },
+    {
+      "name": "editarPortaDaPonte",
+      "path": "definicoesDaAba.ts",
+      "line": 235,
+      "module": "fn.definicoes",
+      "summary": "o que a porta digitada vira no bloco (`ponte.porta`); o vazio tira a chave (volta à de partida).",
+      "card": {
+        "does": "o que a porta digitada vira no bloco (`ponte.porta`); o vazio tira a chave (volta à de partida).",
+        "why": "a porta de partida pode estar ocupada por outro programa; a pessoa escolhe outra, e o lado do agente a lê do descritor que a ponte grava no cofre.",
+        "io": "o salvamento, as camadas de partida e o texto digitado → a edição.",
+        "errors": "o que não é um inteiro de 1024 a 65535 dá o erro e nada grava; a mesma porta de antes não grava.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"a ponte\")."
+      }
+    },
+    {
+      "name": "opcoesDoPapel",
+      "path": "definicoesDaAba.ts",
+      "line": 255,
+      "module": "fn.definicoes",
+      "summary": "as opções do seletor de um papel: \"nenhum\", os protocolos carregados (um por id, pelo nome, em ordem) e, quando o papel aponta um id que não carregou, esse id marcado.",
+      "card": {
+        "does": "as opções do seletor de um papel: \"nenhum\", os protocolos carregados (um por id, pelo nome, em ordem) e, quando o papel aponta um id que não carregou, esse id marcado.",
+        "why": "a pessoa escolhe entre o que o cofre tem; o id atual que não carregou continua à vista, para ela ver por que o botão não aparece.",
+        "io": "os protocolos carregados (`{ id, name }`) e o id atual → as opções.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"os protocolos por papel\")."
+      }
+    },
+    {
+      "name": "editarTrilha",
+      "path": "definicoesDaAba.ts",
+      "line": 288,
+      "module": "fn.definicoes",
+      "summary": "o que a edição de um campo da trilha de uso vira no bloco: sim ou não, a hora `HH:MM`, o número inteiro ou o caminho do arquivo dos textos; o texto vazio tira a chave (volta ao de partida), menos no caminho, onde o vazio desliga a trilha.",
+      "card": {
+        "does": "o que a edição de um campo da trilha de uso vira no bloco: sim ou não, a hora `HH:MM`, o número inteiro ou o caminho do arquivo dos textos; o texto vazio tira a chave (volta ao de partida), menos no caminho, onde o vazio desliga a trilha.",
+        "why": "a trilha liga, desliga e se ajusta na aba, e o que vale é o que o leitor aceita.",
+        "io": "o salvamento, as camadas de partida, o campo e o valor (sim/não, ou o texto digitado) → a edição.",
+        "errors": "a hora fora de `HH:MM`, o número fora do intervalo (dias de 0 a 31, vezes de 1 a 30) e o caminho de fora do cofre dão o erro e nada grava; o mesmo valor de antes não grava.",
+        "proof": "tests/ui/definicoesDaAba.test.ts (\"a trilha de uso\")."
+      }
+    },
+    {
+      "name": "textoDaDica",
+      "path": "dica.ts",
+      "line": 33,
+      "module": "vista.base",
+      "summary": "o texto da dica, com a tecla quando há. Puro.",
+      "card": {
+        "does": "o texto da dica, com a tecla quando há. Puro."
+      }
+    },
+    {
+      "name": "marcarDica",
+      "path": "dica.ts",
+      "line": 43,
+      "module": "vista.base",
+      "summary": "dá ao elemento o nome e a dica do Obsidian (sem ouvintes próprios).",
+      "card": {
+        "does": "dá ao elemento o nome e a dica do Obsidian (sem ouvintes próprios).",
+        "io": "o elemento, o texto e a tecla → o elemento com `aria-label` e `data-dica`.",
+        "errors": "texto vazio não apaga um nome que já havia; o texto é texto, nunca HTML."
+      }
+    },
+    {
+      "name": "mostrarDica",
+      "path": "dica.ts",
+      "line": 54,
+      "module": "vista.base",
+      "summary": "mostra a dica de um elemento já marcado (pelo foco do teclado ou pelo toque longo).",
+      "card": {
+        "does": "mostra a dica de um elemento já marcado (pelo foco do teclado ou pelo toque longo)."
+      }
+    },
+    {
+      "name": "ligarDicas",
+      "path": "dica.ts",
+      "line": 73,
+      "module": "vista.base",
+      "summary": "liga, numa raiz, a dica pelo foco do teclado e pelo toque longo de todo descendente marcado (`[data-dica]`); devolve o desligar.",
+      "card": {
+        "does": "liga, numa raiz, a dica pelo foco do teclado e pelo toque longo de todo descendente marcado (`[data-dica]`); devolve o desligar.",
+        "why": "um ouvinte por raiz, e não um por botão, nos componentes com centenas de nós.",
+        "errors": "o toque que anda mais de 10 px é rolagem e não mostra nada; o clique que segue o toque longo é engolido (a dica não aciona o botão); o menu de contexto do toque longo não abre por cima da dica."
+      }
+    },
+    {
+      "name": "dica",
+      "path": "dica.ts",
+      "line": 127,
+      "module": "vista.base",
+      "summary": "o botão solto ganha o nome, a dica e os ouvintes do foco e do toque longo nele.",
+      "card": {
+        "does": "o botão solto ganha o nome, a dica e os ouvintes do foco e do toque longo nele.",
+        "io": "o elemento, o texto e a tecla → o elemento (ligar duas vezes não duplica)."
+      }
+    },
+    {
+      "name": "sanitizeCaptureTitle",
+      "path": "mission/captureCore.ts",
+      "line": 11,
+      "module": "liga.captura",
+      "summary": "Mesmo saneamento do Control Center antigo: o que o sistema de arquivos recusa.",
+      "card": {}
+    },
+    {
+      "name": "captureBody",
+      "path": "mission/captureCore.ts",
+      "line": 26,
+      "module": "liga.captura",
+      "summary": "Corpo canônico da captura: frontmatter mínimo, sem inventar metadado: o `status` e o dia em que ela nasceu (`created`, o nome das notas que não são tarefa; as datas da reputação, 05/11: a data da captura dependia do nome ou da data do arquivo, que a sincronização troca). Sem o dia, sem `created`.",
+      "card": {}
+    },
+    {
+      "name": "capturarNaCaixa",
+      "path": "mission/captureCore.ts",
+      "line": 53,
+      "module": "liga.captura",
+      "summary": "a captura, num lugar só: a nota crua na Caixa de entrada (`📥 <título>.md`, com `status: backlog`), criando a pasta que falta. A Captura rápida do Mission Control e a 💡 da Missão chamam esta mesma função; cada uma decide o que mostrar depois.",
+      "card": {
+        "does": "a captura, num lugar só: a nota crua na Caixa de entrada (`📥 <título>.md`, com `status: backlog`), criando a pasta que falta. A Captura rápida do Mission Control e a 💡 da Missão chamam esta mesma função; cada uma decide o que mostrar depois.",
+        "why": "\"A 💡 Captura no topo | a 💡 do dia\" (plano da Missão, §3): o mesmo caminho de escrita, e não um segundo.",
+        "io": "o cofre, a pasta, o texto digitado e o dia de hoje (`AAAA-MM-DD`, o `created`) → `ResultadoDaCaptura`.",
+        "errors": "sem título não cria; nome que já existe não sobrescreve; o que o sistema de arquivos recusa sai do nome (o título do corpo fica como foi escrito); a falha de escrita lança (quem chama mostra).",
+        "proof": "tests/missao/refinos.test.ts (\"a 💡 Captura\")."
+      }
+    },
+    {
+      "name": "vaultBasePath",
+      "path": "mission/context.ts",
+      "line": 45,
+      "module": "vista.painel-base",
+      "summary": "Base do vault no disco, para os painéis que executam script com `cwd` na raiz.",
+      "card": {}
+    },
+    {
+      "name": "openVaultPath",
+      "path": "mission/context.ts",
+      "line": 50,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "openVaultLink",
+      "path": "mission/context.ts",
+      "line": 60,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "formatAge",
+      "path": "mission/context.ts",
+      "line": 80,
+      "module": "vista.painel-base",
+      "summary": "\"há 12 min\" / \"há 3 h\" / \"há 2 d\" — usado no sinal de contexto do DSH.",
+      "card": {}
+    },
+    {
+      "name": "formatTimestamp",
+      "path": "mission/context.ts",
+      "line": 89,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "truncate",
+      "path": "mission/context.ts",
+      "line": 96,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MissionFocusModal.onOpen",
+      "path": "mission/modals.ts",
+      "line": 30,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MissionFocusModal.onClose",
+      "path": "mission/modals.ts",
+      "line": 63,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MissionPromptModal.onOpen",
+      "path": "mission/modals.ts",
+      "line": 78,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MissionPromptModal.onClose",
+      "path": "mission/modals.ts",
+      "line": 106,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "emptyBenchState",
+      "path": "mission/panelBench.ts",
+      "line": 38,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderBench",
+      "path": "mission/panelBench.ts",
+      "line": 145,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderFunnel",
+      "path": "mission/panelExecution.ts",
+      "line": 17,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderWaiting",
+      "path": "mission/panelExecution.ts",
+      "line": 144,
+      "module": "vista.paineis",
+      "summary": "Esperando terceiros — o que está parado por dependência, não por preguiça.",
+      "card": {}
+    },
+    {
+      "name": "renderHabits",
+      "path": "mission/panelHabits.ts",
+      "line": 144,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderKanban",
+      "path": "mission/panelKanban.ts",
+      "line": 54,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderMatrix",
+      "path": "mission/panelMatrix.ts",
+      "line": 28,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderOperatorCard",
+      "path": "mission/panelOperator.ts",
+      "line": 17,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderProtocols",
+      "path": "mission/panelOperator.ts",
+      "line": 155,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderIntegrity",
+      "path": "mission/panelOperator.ts",
+      "line": 219,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "safeProjectName",
+      "path": "mission/panelPortfolio.ts",
+      "line": 68,
+      "module": "vista.paineis",
+      "summary": "Aspas duplas em volta do nome, ou `null` quando não dá para escapar.",
+      "card": {}
+    },
+    {
+      "name": "moveCommand",
+      "path": "mission/panelPortfolio.ts",
+      "line": 79,
+      "module": "vista.paineis",
+      "summary": "Comando do movimento: **fixo + nome escapado + modo**, nunca entrada livre de shell. `null` quando o nome não é seguro — e aí nada é executado.",
+      "card": {}
+    },
+    {
+      "name": "emptyPortfolioState",
+      "path": "mission/panelPortfolio.ts",
+      "line": 121,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "canvasAgeLabel",
+      "path": "mission/panelPortfolio.ts",
+      "line": 301,
+      "module": "vista.paineis",
+      "summary": "Frescor do desenho em dias, como texto. `null` é ausência de dado — nunca \"hoje\", que afirmaria um carimbo que não foi lido.",
+      "card": {}
+    },
+    {
+      "name": "canvasSizeLabel",
+      "path": "mission/panelPortfolio.ts",
+      "line": 312,
+      "module": "vista.paineis",
+      "summary": "O tamanho do desenho em palavras, ou `null` quando o canvas é grande demais para ter sido lido — \"sem contagem\" é fato, e não `0 nós`.",
+      "card": {}
+    },
+    {
+      "name": "renderPortfolioBoard",
+      "path": "mission/panelPortfolio.ts",
+      "line": 323,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderPortfolioActions",
+      "path": "mission/panelPortfolio.ts",
+      "line": 441,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderPortfolioCompliance",
+      "path": "mission/panelPortfolio.ts",
+      "line": 567,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderProjects",
+      "path": "mission/panelStructure.ts",
+      "line": 21,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderAreas",
+      "path": "mission/panelStructure.ts",
+      "line": 83,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderTrees",
+      "path": "mission/panelStructure.ts",
+      "line": 162,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderCanvases",
+      "path": "mission/panelStructure.ts",
+      "line": 212,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderCanvasTools",
+      "path": "mission/panelTools.ts",
+      "line": 80,
+      "module": "vista.paineis",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "el",
+      "path": "mission/primitives.ts",
+      "line": 13,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "icon",
+      "path": "mission/primitives.ts",
+      "line": 25,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "applyTone",
+      "path": "mission/primitives.ts",
+      "line": 32,
+      "module": "vista.painel-base",
+      "summary": "Aplica o tom via custom property — o CSS decide onde ela pinta.",
+      "card": {}
+    },
+    {
+      "name": "pill",
+      "path": "mission/primitives.ts",
+      "line": 38,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "metric",
+      "path": "mission/primitives.ts",
+      "line": 45,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "kv",
+      "path": "mission/primitives.ts",
+      "line": 64,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "card",
+      "path": "mission/primitives.ts",
+      "line": 89,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "emptyState",
+      "path": "mission/primitives.ts",
+      "line": 107,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "stackedBar",
+      "path": "mission/primitives.ts",
+      "line": 115,
+      "module": "vista.painel-base",
+      "summary": "Barra proporcional. Segmentos de valor zero nunca aparecem — não há fatia fantasma.",
+      "card": {}
+    },
+    {
+      "name": "sparkline",
+      "path": "mission/primitives.ts",
+      "line": 140,
+      "module": "vista.painel-base",
+      "summary": "Sparkline em SVG puro. Série vazia desenha a linha de base, nunca um pico inventado.",
+      "card": {}
+    },
+    {
+      "name": "axisBar",
+      "path": "mission/primitives.ts",
+      "line": 190,
+      "module": "vista.painel-base",
+      "summary": "Barra por eixo (C.A.O.S./E.C.H.) com delta opcional.",
+      "card": {}
+    },
+    {
+      "name": "actionButton",
+      "path": "mission/primitives.ts",
+      "line": 210,
+      "module": "vista.painel-base",
+      "summary": "Botão de ação compacto, com ícone opcional.",
+      "card": {}
+    },
+    {
+      "name": "rowLink",
+      "path": "mission/primitives.ts",
+      "line": 227,
+      "module": "vista.painel-base",
+      "summary": "Linha clicável que abre uma nota ou dispara uma ação.",
+      "card": {}
+    },
+    {
+      "name": "toneColor",
+      "path": "mission/tokens.ts",
+      "line": 34,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "statusToken",
+      "path": "mission/tokens.ts",
+      "line": 52,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "healthToken",
+      "path": "mission/tokens.ts",
+      "line": 65,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "tierToken",
+      "path": "mission/tokens.ts",
+      "line": 75,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "severityToken",
+      "path": "mission/tokens.ts",
+      "line": 85,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "priorityToken",
+      "path": "mission/tokens.ts",
+      "line": 97,
+      "module": "vista.painel-base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "impactTone",
+      "path": "mission/tokens.ts",
+      "line": 103,
+      "module": "vista.painel-base",
+      "summary": "Impacto estratégico (1–10) vira tom: o alto-impacto domina a hierarquia visual.",
+      "card": {}
+    },
+    {
+      "name": "multiselectOptionId",
+      "path": "modals.ts",
+      "line": 7,
+      "module": "vista.modais",
+      "summary": "Id do checkbox de uma opção do multiselect. `/\\s/` — e não `/\\\\s/`, que casa barra invertida + \"s\" — troca os espaços, e o índice garante id único mesmo quando duas opções normalizam para o mesmo texto (sem isso, o `for=` do label mira o checkbox errado).",
+      "card": {}
+    },
+    {
+      "name": "InputModal.onOpen",
+      "path": "modals.ts",
+      "line": 31,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "InputModal.onClose",
+      "path": "modals.ts",
+      "line": 67,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TextAreaModal.onOpen",
+      "path": "modals.ts",
+      "line": 96,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TextAreaModal.onClose",
+      "path": "modals.ts",
+      "line": 149,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MultiSelectModal.onOpen",
+      "path": "modals.ts",
+      "line": 183,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MultiSelectModal.onClose",
+      "path": "modals.ts",
+      "line": 230,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "periodoDaPorta",
+      "path": "portasAposentadas.ts",
+      "line": 136,
+      "module": "fn.portas",
+      "summary": "o período em que a porta da semana ou do trimestre abre a Missão: o da nota aberta, quando é a Week ou a nota do trimestre (a Week aberta leva ao trimestre da quinta-feira dela, numa porta do trimestre); senão, a semana ou o trimestre de hoje.",
+      "card": {
+        "does": "o período em que a porta da semana ou do trimestre abre a Missão: o da nota aberta, quando é a Week ou a nota do trimestre (a Week aberta leva ao trimestre da quinta-feira dela, numa porta do trimestre); senão, a semana ou o trimestre de hoje.",
+        "why": "o botão de uma nota (o 🔄 da nota do trimestre) roda com a nota ativa e pedia aquele período; o atalho e o menu de outro lugar pedem o de agora.",
+        "io": "a escala, o nome da nota ativa (sem `.md`, ou nada) e o dia de hoje → a porta do período.",
+        "errors": "nota que não é de período, ou nenhuma, dá o período de hoje; a nota do trimestre numa porta da semana dá a semana de hoje (o trimestre não diz qual semana).",
+        "proof": "tests/ui/portasAposentadas.test.ts (\"o período da porta\")."
+      }
+    },
+    {
+      "name": "comandoDaPorta",
+      "path": "portasAposentadas.ts",
+      "line": 161,
+      "module": "fn.portas",
+      "summary": "o comando de uma porta aposentada: fora da paleta (o `checkCallback` responde `false` quando a paleta pergunta), e, chamado pelo id (um botão, um atalho), abre o destino.",
+      "card": {
+        "does": "o comando de uma porta aposentada: fora da paleta (o `checkCallback` responde `false` quando a paleta pergunta), e, chamado pelo id (um botão, um atalho), abre o destino.",
+        "why": "o id fica pelos botões e atalhos, e a paleta não mostra duas portas para o mesmo lugar.",
+        "io": "a porta, os que abrem cada destino e o aviso → o comando.",
+        "errors": "o destino que falha ao abrir vira aviso com o motivo, nunca exceção solta.",
+        "proof": "tests/ui/portasAposentadas.test.ts."
+      }
+    },
+    {
+      "name": "DFMSettingTab.display",
+      "path": "settingsTab.ts",
+      "line": 92,
+      "module": "liga.definicoes",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFMSettingTab.renderArvoreList",
+      "path": "settingsTab.ts",
+      "line": 274,
+      "module": "liga.definicoes",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "audiosDaLinha",
+      "path": "stepHeader.ts",
+      "line": 30,
+      "module": "vista.base",
+      "summary": "separa de uma linha do cabeçalho os links internos para um arquivo de áudio (`[[Áudios/x.mp3]]`, com ou sem rótulo, com ou sem `!`): o texto da linha sem eles e os caminhos dos links.",
+      "card": {
+        "does": "separa de uma linha do cabeçalho os links internos para um arquivo de áudio (`[[Áudios/x.mp3]]`, com ou sem rótulo, com ou sem `!`): o texto da linha sem eles e os caminhos dos links.",
+        "why": "06/11, o áudio dos cartões: o 🗣️ Inglês de hoje mostra \"🔊 Áudio da frase: [[Áudios/x.mp3]]\" (o campo de link `audio` da nota, pelo `contextFrom`), e o texto puro não toca. Só o link interno do Obsidian para um arquivo de áudio vira player: nenhum HTML do texto se abre.",
+        "io": "a linha → `{ texto, audios }` (sem link de áudio, a linha como veio e a lista vazia).",
+        "proof": "tests/ui/stepHeader.test.ts."
+      }
+    },
+    {
+      "name": "renderStepHeader",
+      "path": "stepHeader.ts",
+      "line": 60,
+      "module": "vista.base",
+      "summary": "Desenha o cabeçalho. Com o leitor do app (`leitor`: o `app` do modal), o link interno para um áudio do cofre vira um player (06/11, os áudios dos cartões); sem ele, todo texto fica como texto.",
+      "card": {}
+    },
+    {
+      "name": "mountSuggesterHeader",
+      "path": "suggesters.ts",
+      "line": 19,
+      "module": "vista.modais",
+      "summary": "Cabeçalho para os modais de sugestão.",
+      "card": {}
+    },
+    {
+      "name": "suggesterItems",
+      "path": "suggesters.ts",
+      "line": 41,
+      "module": "vista.modais",
+      "summary": "as linhas do seletor de opções para a busca: as que contêm o texto (sem caixa); sem busca, o ⬅️ Voltar (quando há) e, antes dele, a opção padrão (o valor do formulário).",
+      "card": {
+        "does": "as linhas do seletor de opções para a busca: as que contêm o texto (sem caixa); sem busca, o ⬅️ Voltar (quando há) e, antes dele, a opção padrão (o valor do formulário).",
+        "proof": "tests/engine/protocolForm.test.ts (\"_valoresIniciais\")."
+      }
+    },
+    {
+      "name": "DFM_Suggester.onOpen",
+      "path": "suggesters.ts",
+      "line": 81,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFM_Suggester.onClose",
+      "path": "suggesters.ts",
+      "line": 88,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFM_Suggester.selectSuggestion",
+      "path": "suggesters.ts",
+      "line": 105,
+      "module": "vista.modais",
+      "summary": "marca o passo como respondido antes de o Obsidian fechar o modal da escolha.",
+      "card": {
+        "does": "marca o passo como respondido antes de o Obsidian fechar o modal da escolha.",
+        "why": "o `selectSuggestion` do Obsidian (Enter ou clique numa opção) chama `close()` e só depois `onChooseSuggestion()`, e no desktop o `close()` chama o `onClose()` na hora. Sem a marca, o `onClose` tomava a escolha por desistência e respondia 'cancel' primeiro: a Promise do passo resolvia com ele e o protocolo parava ali, com RASCUNHO quando já havia resposta (🌙 em 19/10 e 21/10, 📅 em 25/10). No celular o fechamento é animado e o `onClose` vem depois, por isso lá a escolha chegava.",
+        "proof": "tests/ui/suggestChoiceLifecycle.test.ts."
+      }
+    },
+    {
+      "name": "DFM_Suggester.getSuggestions",
+      "path": "suggesters.ts",
+      "line": 110,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFM_Suggester.renderSuggestion",
+      "path": "suggesters.ts",
+      "line": 114,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFM_Suggester.onChooseSuggestion",
+      "path": "suggesters.ts",
+      "line": 124,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "defaultFileIndex",
+      "path": "suggesters.ts",
+      "line": 142,
+      "module": "vista.modais",
+      "summary": "a posição da resposta padrão do passo na lista do seletor (a nota com esse nome, sem diferença de maiúsculas e acentos), ou -1.",
+      "card": {
+        "does": "a posição da resposta padrão do passo na lista do seletor (a nota com esse nome, sem diferença de maiúsculas e acentos), ou -1.",
+        "proof": "tests/ui/noteSuggesterDefault.test.ts."
+      }
+    },
+    {
+      "name": "NoteSuggester.onOpen",
+      "path": "suggesters.ts",
+      "line": 247,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "NoteSuggester.onClose",
+      "path": "suggesters.ts",
+      "line": 254,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "NoteSuggester.selectSuggestion",
+      "path": "suggesters.ts",
+      "line": 262,
+      "module": "vista.modais",
+      "summary": "marca a escolha antes do `close()` do Obsidian (a razão está no `DFM_Suggester.selectSuggestion`).",
+      "card": {
+        "does": "marca a escolha antes do `close()` do Obsidian (a razão está no `DFM_Suggester.selectSuggestion`)."
+      }
+    },
+    {
+      "name": "NoteSuggester.setChoiceRanking",
+      "path": "suggesters.ts",
+      "line": 273,
+      "module": "vista.modais",
+      "summary": "liga a ordem da escolha de um domínio (`rankWith`): as notas na ordem dela, cada uma com a linha dos motivos; os eliminados por filtro vêm no fim, marcados. As candidatas continuam as mesmas: só a ordem, a nota pequena e o limite (que passa a caber a lista inteira) mudam.",
+      "card": {
+        "does": "liga a ordem da escolha de um domínio (`rankWith`): as notas na ordem dela, cada uma com a linha dos motivos; os eliminados por filtro vêm no fim, marcados. As candidatas continuam as mesmas: só a ordem, a nota pequena e o limite (que passa a caber a lista inteira) mudam."
+      }
+    },
+    {
+      "name": "NoteSuggester.isNowHabit",
+      "path": "suggesters.ts",
+      "line": 284,
+      "module": "vista.modais",
+      "summary": "O hábito da árvore do agora (o 🔁 em treino, 2.29): mora no tracker, fora da pasta e do filtro de propriedades do passo, e entra mesmo assim (a árvore já o filtrou).",
+      "card": {}
+    },
+    {
+      "name": "NoteSuggester.getCandidateFiles",
+      "path": "suggesters.ts",
+      "line": 293,
+      "module": "vista.modais",
+      "summary": "as candidatas do passo, pela filtragem única (`notasCandidatas`): a árvore do agora, o arquivo, a pasta e as propriedades, com os hábitos do agora no fim.",
+      "card": {
+        "does": "as candidatas do passo, pela filtragem única (`notasCandidatas`): a árvore do agora, o arquivo, a pasta e as propriedades, com os hábitos do agora no fim."
+      }
+    },
+    {
+      "name": "NoteSuggester.isPreferredFile",
+      "path": "suggesters.ts",
+      "line": 304,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "NoteSuggester.scoreFile",
+      "path": "suggesters.ts",
+      "line": 311,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "NoteSuggester.getSuggestions",
+      "path": "suggesters.ts",
+      "line": 346,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "NoteSuggester.renderSuggestion",
+      "path": "suggesters.ts",
+      "line": 412,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "NoteSuggester.onChooseSuggestion",
+      "path": "suggesters.ts",
+      "line": 466,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TaskSuggester.onClose",
+      "path": "suggesters.ts",
+      "line": 501,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TaskSuggester.selectSuggestion",
+      "path": "suggesters.ts",
+      "line": 509,
+      "module": "vista.modais",
+      "summary": "marca a escolha antes do `close()` do Obsidian (a razão está no `DFM_Suggester.selectSuggestion`).",
+      "card": {
+        "does": "marca a escolha antes do `close()` do Obsidian (a razão está no `DFM_Suggester.selectSuggestion`)."
+      }
+    },
+    {
+      "name": "TaskSuggester.getSuggestions",
+      "path": "suggesters.ts",
+      "line": 514,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TaskSuggester.renderSuggestion",
+      "path": "suggesters.ts",
+      "line": 532,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TaskSuggester.onChooseSuggestion",
+      "path": "suggesters.ts",
+      "line": 551,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "normalizeForSearch",
+      "path": "suggesters.ts",
+      "line": 574,
+      "module": "vista.modais",
+      "summary": "Texto comparável para busca: sem acento e sem caixa.",
+      "card": {}
+    },
+    {
+      "name": "protocolAliases",
+      "path": "suggesters.ts",
+      "line": 586,
+      "module": "vista.modais",
+      "summary": "Aliases declarados no JSON (`def.aliases`). A forma canônica é lista, mas um JSON antigo pode trazer string solta — normalizar aqui evita um alias virar 12 letras pesquisáveis uma a uma.",
+      "card": {}
+    },
+    {
+      "name": "protocolMatchesQuery",
+      "path": "suggesters.ts",
+      "line": 599,
+      "module": "vista.modais",
+      "summary": "A consulta casa contra nome, id, aliases e descrição — todos sem acento e sem caixa.",
+      "card": {}
+    },
+    {
+      "name": "sortProtocolsForMenu",
+      "path": "suggesters.ts",
+      "line": 629,
+      "module": "vista.modais",
+      "summary": "Ordem do menu: agrupado por fase e, dentro do grupo, por nome.",
+      "card": {}
+    },
+    {
+      "name": "truncateForSuggestion",
+      "path": "suggesters.ts",
+      "line": 651,
+      "module": "vista.modais",
+      "summary": "Corta a descrição em fronteira de palavra e marca o corte com reticências.",
+      "card": {}
+    },
+    {
+      "name": "protocolSuggestionText",
+      "path": "suggesters.ts",
+      "line": 672,
+      "module": "vista.modais",
+      "summary": "Texto da sugestão extraído como função pura: o harness de teste não tem DOM, então o que o menu mostra precisa ser verificável fora do `createEl`.",
+      "card": {}
+    },
+    {
+      "name": "ProtocolSelectorModal.onClose",
+      "path": "suggesters.ts",
+      "line": 693,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "ProtocolSelectorModal.getSuggestions",
+      "path": "suggesters.ts",
+      "line": 697,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "ProtocolSelectorModal.renderSuggestion",
+      "path": "suggesters.ts",
+      "line": 704,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "ProtocolSelectorModal.onChooseSuggestion",
+      "path": "suggesters.ts",
+      "line": 713,
+      "module": "vista.modais",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DshView.getViewType",
+      "path": "views/dshView.ts",
+      "line": 63,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DshView.getDisplayText",
+      "path": "views/dshView.ts",
+      "line": 67,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DshView.getIcon",
+      "path": "views/dshView.ts",
+      "line": 71,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DshView.onOpen",
+      "path": "views/dshView.ts",
+      "line": 75,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DshView.onClose",
+      "path": "views/dshView.ts",
+      "line": 111,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "supportsWebview",
+      "path": "views/dshWebview.ts",
+      "line": 38,
+      "module": "liga.dsh",
+      "summary": "Diz se este renderizador tem o `<webview>` do Electron.",
+      "card": {}
+    },
+    {
+      "name": "dshWebviewAttributes",
+      "path": "views/dshWebview.ts",
+      "line": 54,
+      "module": "liga.dsh",
+      "summary": "Os atributos do `<webview>` da vista.",
+      "card": {
+        "proof": "tests/ui/dshWebview.test.ts."
+      }
+    },
+    {
+      "name": "classifyDshNavigation",
+      "path": "views/dshWebview.ts",
+      "line": 79,
+      "module": "liga.dsh",
+      "summary": "Lê o código HTTP da página de topo carregada no webview (`did-navigate`).",
+      "card": {
+        "why": "o webview mostra a página de erro do servidor como se fosse a interface; a vista precisa dizer o que houve. Prova: tests/ui/dshWebview.test.ts."
+      }
+    },
+    {
+      "name": "classifyDshLoadFailure",
+      "path": "views/dshWebview.ts",
+      "line": 96,
+      "module": "liga.dsh",
+      "summary": "Lê a falha de carga do webview (`did-fail-load`).",
+      "card": {}
+    },
+    {
+      "name": "blockRemoteMarkdownImages",
+      "path": "views/mobileDshView.ts",
+      "line": 29,
+      "module": "liga.dsh",
+      "summary": "Evita que Markdown do provedor dispare downloads remotos invisíveis no WebView.",
+      "card": {}
+    },
+    {
+      "name": "MobileDshController.open",
+      "path": "views/mobileDshView.ts",
+      "line": 158,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MobileDshController.close",
+      "path": "views/mobileDshView.ts",
+      "line": 168,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MobileDshController.onFileOpen",
+      "path": "views/mobileDshView.ts",
+      "line": 175,
+      "module": "liga.dsh",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFMRecentFilesView.getViewType",
+      "path": "views/recentFilesView.ts",
+      "line": 14,
+      "module": "liga.recentes",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFMRecentFilesView.getDisplayText",
+      "path": "views/recentFilesView.ts",
+      "line": 18,
+      "module": "liga.recentes",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFMRecentFilesView.getIcon",
+      "path": "views/recentFilesView.ts",
+      "line": 22,
+      "module": "liga.recentes",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFMRecentFilesView.onOpen",
+      "path": "views/recentFilesView.ts",
+      "line": 26,
+      "module": "liga.recentes",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "DFMRecentFilesView.render",
+      "path": "views/recentFilesView.ts",
+      "line": 40,
+      "module": "liga.recentes",
+      "summary": "",
+      "card": {}
+    }
+  ]
+}

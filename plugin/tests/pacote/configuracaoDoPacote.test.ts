@@ -19,7 +19,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseDomainModel, domainModelProblems } from '../../src/engine/domainModel';
-import { lerRamoPrincipal, type RamoPrincipal } from '../../src/missao/ramoPrincipal';
+import { comAsColecoesDosOutros, lerRamoPrincipal, type RamoPrincipal } from '../../src/missao/ramoPrincipal';
 import { parseWeightTable } from '../../src/engine/decisionWeights';
 import { parsePanelWeights } from '../../src/engine/panelWeights';
 import { lerEch } from '../../src/engine/ech';
@@ -32,13 +32,18 @@ const ORIGEM = process.env.DK_COFRE ? join(process.env.DK_COFRE, '200 - FUNCTION
 const noPacote = existsSync(join(CONFIG, 'ramos', 'missao.json'));
 
 const json = (caminho: string) => JSON.parse(readFileSync(caminho, 'utf8'));
+// O ramo cru com as coleções que ele pega de outro ramo (`colecoes[].de`) já trocadas, como a Missão o lê.
+const ramoCru = (pasta: string, id: string) => comAsColecoesDosOutros(json(join(pasta, 'ramos', `${id}.json`)), outro => {
+    const caminho = join(pasta, 'ramos', `${outro}.json`);
+    return existsSync(caminho) ? json(caminho) : null;
+});
 const jsons = (pasta: string) => readdirSync(pasta).filter(n => n.endsWith('.json')).sort();
 
 describe.skipIf(!noPacote)('a configuração de partida do pacote', () => {
     const idsDosProtocolos = () => new Set(jsons(PROTOCOLOS).map(n => json(join(PROTOCOLOS, n)).id as string));
     const tiposComModelo = () => new Set(jsons(join(CONFIG, 'dominios')).map(n => n.replace(/\.json$/, '')));
     const ramo = (id: string): RamoPrincipal => {
-        const lido = lerRamoPrincipal(json(join(CONFIG, 'ramos', `${id}.json`)));
+        const lido = lerRamoPrincipal(ramoCru(CONFIG, id));
         expect(lido.problemas, id).toEqual([]);
         return lido.ramoPrincipal!;
     };
@@ -125,7 +130,7 @@ describe.skipIf(!noPacote)('a configuração de partida do pacote', () => {
     it.skipIf(!ORIGEM || !existsSync(join(ORIGEM, 'ramos', 'missao.json')))('as colunas, os painéis e os ciclos são os do cofre de origem; os estados também', () => {
         const ids = idsDosProtocolos();
         for (const id of ['missao', 'projetos']) {
-            const origem = lerRamoPrincipal(json(join(ORIGEM, 'ramos', `${id}.json`))).ramoPrincipal!;
+            const origem = lerRamoPrincipal(ramoCru(ORIGEM, id)).ramoPrincipal!;
             const pacote = ramo(id);
             const colunas = (r: RamoPrincipal) => [...r.trabalho, ...r.tempo].map(c => c.id);
             expect(colunas(pacote), id).toEqual(colunas(origem));

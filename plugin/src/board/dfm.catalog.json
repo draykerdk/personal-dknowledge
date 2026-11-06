@@ -1,0 +1,2394 @@
+{
+  "dfm": 1,
+  "system": "board",
+  "purpose": "O quadro e o painel do Mission Control do dfm-system (`src/board`): o bloco ```dfm-widget``` desenhado dentro do Markdown (num nó de canvas ou numa nota), o painel com as páginas de cartões que a Missão não faz, a página Protocolos, os menus e as barras do DFM no canvas, e a conclusão de uma tarefa. É a maior parte do que sobrou do sistema antigo depois da aposentadoria de 02–03/11/2026. Este mapa declara os módulos em três espécies (as funções, a vista, os que ligam) e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "modules": [
+    {
+      "id": "base",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. O chão: o contrato de autoria do quadro (o bloco ```dfm-widget```, os tipos de widget e o leitor do bloco; boardSpec) e os modelos prontos de consulta (queryPresets, dado puro).",
+      "why": "O bloco é o mesmo em nó de canvas e em nota; tudo no quadro parte deste contrato e ele de nada do quadro.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/board.test.ts tests/board/missaoAtalho.test.ts tests/board/panelLayout.test.ts tests/board/queryModel.test.ts tests/missao/ramoPrincipal.test.ts"
+      ],
+      "connects_to": [
+        "ext.missao"
+      ],
+      "used_by": [
+        "fn.painel",
+        "fn.quadro",
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin",
+        "vista.quadro"
+      ]
+    },
+    {
+      "id": "fn.quadro",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. Do snapshot do Mission Control ao que cada widget mostra (boardModel), a consulta das TaskNotes pelo que o canvas é (queryModel), as operações sobre o texto de widget e as posições de nó (boardEdit) e os botões do DFM na barra de seleção do canvas (canvasToolbarModel).",
+      "why": "Nada se recalcula que o snapshot já saiba; o que o widget mostra é testável sem o Obsidian e sem DOM.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/board.test.ts tests/board/boardEdit.test.ts tests/board/canvasToolbarModel.test.ts tests/board/missaoAtalho.test.ts tests/board/queryModel.test.ts tests/canvas/taskGraph.test.ts tests/project/projectCanvasModel.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.engine",
+        "ext.missao",
+        "ext.project",
+        "ext.tasks"
+      ],
+      "used_by": [
+        "fn.protocolos",
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin",
+        "vista.quadro"
+      ]
+    },
+    {
+      "id": "fn.painel",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. O layout do painel (as páginas de cartões numa grade de 12 colunas; panelLayout), a navegação pelas duas hierarquias do DFM, o tempo e as áreas (panelNav), e os dois ajudantes que recolhem o que a Missão já mostra e põem as páginas em cinco (panelRegroup).",
+      "why": "O painel guarda o layout no salvamento; mudar e conferir o layout não pode depender da vista.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/hostedPanels.test.ts tests/board/panelLayout.test.ts tests/board/panelNav.test.ts tests/board/panelRegroup.test.ts tests/contracts/gamificacaoArquivada.test.ts tests/engine/trimestrePadrao.test.ts tests/missao/linhagem.test.ts tests/missao/refinos.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.engine",
+        "ext.project",
+        "ext.tasks"
+      ],
+      "used_by": [
+        "liga.painel",
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "fn.conclusao",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções. Por onde passa o fim de uma tarefa (concluir ou cancelar): pelo TaskNotes quando ele está ligado, com o arquivamento dele, ou pelo campo; a hora do fim e o registro do bloco.",
+      "why": "Uma regra só da conclusão para o quadro, o canvas, a Missão, o vigia e o agora; só decide, quem executa é quem chama.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskCompletion.test.ts tests/engine/diaNosLeitores.test.ts tests/engine/metadataWatcher.test.ts tests/ui/completionModals.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine"
+      ],
+      "used_by": [
+        "liga.canvas",
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "fn.protocolos",
+      "role": "functions",
+      "state": "standard",
+      "does": "Funções da página Protocolos: do catálogo ao que cada módulo mostra (a saúde, o uso, as versões em paralelo, os avisos; protocolModel), a árvore dos routers como o 🧭 a percorre (routerTreeModel), a troca de uma chave de primeiro nível num JSON sem reformatar (jsonKeyEdit) e os dois scripts fixos da página e a leitura do que eles devolvem (protocolJobs).",
+      "why": "Tudo aqui conta ferramentas, nunca a pessoa; a conta é testável sem o Obsidian, e quem roda e grava é a liga.protocolos.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/jsonKeyEdit.test.ts tests/board/protocolJobs.test.ts tests/board/protocolModel.test.ts tests/board/routerTreeModel.test.ts tests/contracts/protocolosComFase.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine",
+        "fn.quadro",
+        "vista.quadro"
+      ],
+      "used_by": [
+        "liga.protocolos",
+        "vista.quadro"
+      ]
+    },
+    {
+      "id": "vista.quadro",
+      "role": "module",
+      "state": "standard",
+      "does": "Vista. Desenha os widgets do quadro (boardRender) e os módulos da página Protocolos (protocolRender) com o modelo pronto, só com DOM padrão e classes; a aparência mora em `styles.css`.",
+      "why": "O desenho recebe o modelo pronto das funções e não conta nada.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/missaoAtalho.test.ts tests/ui/missionNoPercent.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.engine",
+        "ext.missao",
+        "ext.tasks",
+        "fn.protocolos",
+        "fn.quadro"
+      ],
+      "used_by": [
+        "fn.protocolos",
+        "liga.painel",
+        "liga.plugin",
+        "liga.protocolos"
+      ]
+    },
+    {
+      "id": "liga.store",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. Uma leitura do vault para todos os widgets abertos: pede o snapshot ao MissionControl e avisa quem assinou quando há um novo.",
+      "why": "Dez widgets num canvas não leem o vault dez vezes.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/boardStore.test.ts"
+      ],
+      "connects_to": [
+        "ext.engine",
+        "ext.main",
+        "ext.obsidian"
+      ],
+      "used_by": [
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "liga.canvas",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. O DFM dentro da interface do próprio canvas: as opções nos menus nativos do nó e da seleção (boardCanvasMenus), o grupo DFM nas duas barras do canvas (canvasToolbar) e o submenu DFM do clique-direito de uma tarefa (taskMenus: agendar, pôr na semana, status, Comando do Dia, abrir o canvas).",
+      "why": "Os eventos e os menus do Obsidian ficam num lugar só, e cada opção chama a função ou o quadro que já faz.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskMenus.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.canvas",
+        "ext.engine",
+        "ext.main",
+        "ext.missao",
+        "ext.obsidian",
+        "ext.project",
+        "ext.tasks",
+        "ext.ui",
+        "fn.conclusao",
+        "fn.quadro",
+        "liga.plugin"
+      ],
+      "used_by": [
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "liga.protocolos",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. Os fios da página Protocolos: ▶️ roda o protocolo pelo caminho de sempre, a fase e o objetivo vão para o JSON do protocolo, e os dois scripts rodam no desktop.",
+      "why": "O efeito (rodar, gravar, executar) fica fora das funções e da vista.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/boardStylesGuard.test.ts"
+      ],
+      "connects_to": [
+        "ext.child_process",
+        "ext.main",
+        "ext.obsidian",
+        "fn.protocolos",
+        "liga.plugin",
+        "vista.quadro"
+      ],
+      "used_by": [
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "liga.painel",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. O painel do Mission Control: as páginas de cartões (boardPanel), as visões do console antigo que ficam, hospedadas nos cartões (hostedPanels), e a triagem das ações sem vínculo, uma por vez (triageModal).",
+      "why": "O painel guarda o que a Missão não faz; a vista do painel e os cartões hospedados ficam num lugar só até a Missão cobrir o uso.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/hostedPanels.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.engine",
+        "ext.main",
+        "ext.missao",
+        "ext.obsidian",
+        "ext.project",
+        "ext.ui",
+        "fn.painel",
+        "fn.quadro",
+        "liga.plugin",
+        "vista.quadro"
+      ],
+      "used_by": [
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "liga.plugin",
+      "role": "module",
+      "state": "standard",
+      "does": "Liga. O MissionBoard: liga o quadro ao Obsidian (o bloco ```dfm-widget```, os comandos, o ribbon), grava as tarefas pela conclusão de sempre e serve a Missão, o canvas e o painel.",
+      "why": "O desenho acontece dentro do Markdown que o Obsidian renderiza; o quadro é o ponto único por onde as gravações de tarefa passam.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [
+        "cd ../.. && npx vitest run tests/board/taskCompletion.test.ts tests/missao/portas.test.ts tests/ui/portasAposentadas.test.ts"
+      ],
+      "connects_to": [
+        "base",
+        "ext.canvas",
+        "ext.definicoes",
+        "ext.engine",
+        "ext.main",
+        "ext.missao",
+        "ext.obsidian",
+        "ext.project",
+        "ext.tasks",
+        "ext.temporal",
+        "ext.ui",
+        "fn.conclusao",
+        "fn.painel",
+        "fn.quadro",
+        "liga.canvas",
+        "liga.painel",
+        "liga.protocolos",
+        "liga.store",
+        "vista.quadro"
+      ],
+      "used_by": [
+        "liga.canvas",
+        "liga.painel",
+        "liga.protocolos"
+      ]
+    },
+    {
+      "id": "ext.canvas",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: a camada de canvas (`src/canvas`), com o mapa dela: os ids e a zona gerida, as setas que gravam campos, a cor e o cartão da tarefa.",
+      "why": "Quem desenha num canvas usa a mesma zona gerida e a mesma tabela das setas.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.canvas",
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "ext.child_process",
+      "role": "external",
+      "state": "standard",
+      "does": "O child_process do Node, só como tipo (o `require` roda na hora, no desktop).",
+      "why": "Os scripts da bancada e dos juízes rodam no desktop pelo `exec`; no celular, o caminho não existe.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.protocolos"
+      ]
+    },
+    {
+      "id": "ext.definicoes",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: as definições do sistema (`src/definicoes.ts`), o leitor puro do bloco `definicoes` do salvamento.",
+      "why": "As pastas, as áreas e os valores vêm das definições, não de um nome no código.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.conclusao",
+        "fn.painel",
+        "fn.protocolos",
+        "fn.quadro",
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin",
+        "liga.store",
+        "vista.quadro"
+      ]
+    },
+    {
+      "id": "ext.main",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o plugin (`src/main.ts`), lido só como tipo (DFMPlugin).",
+      "why": "Os serviços recebem o plugin pelo construtor; nada aqui importa o main em execução.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin",
+        "liga.protocolos",
+        "liga.store"
+      ]
+    },
+    {
+      "id": "ext.missao",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: a Missão (`src/missao`), com o mapa e o guarda dela: o estado da tela, as intenções, os gestos, as gravações e os hospedeiros.",
+      "why": "O sistema antigo abre e grava pela Missão o que ela já faz, em vez de manter a cópia.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "base",
+        "fn.quadro",
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin",
+        "vista.quadro"
+      ]
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "state": "standard",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin",
+        "liga.protocolos",
+        "liga.store"
+      ]
+    },
+    {
+      "id": "ext.project",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: os canvas de projeto (`src/project`), com o mapa deles: o caminho, o modelo e o gerente do canvas de um projeto.",
+      "why": "O projeto tem uma árvore só (SMART, ações, progresso), lida do mesmo modelo.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.painel",
+        "fn.quadro",
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "ext.tasks",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: o registro e o índice das TaskNotes (`src/tasks`).",
+      "why": "A tarefa tem um formato só no plugin.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "fn.painel",
+        "fn.quadro",
+        "liga.canvas",
+        "liga.plugin",
+        "vista.quadro"
+      ]
+    },
+    {
+      "id": "ext.temporal",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: as notas de período (`src/temporal`), com o mapa delas: o reparo da Week e do trimestre criados crus e a leitura das notas de período.",
+      "why": "A nota do trimestre e a da semana são lidas por um lugar só.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.plugin"
+      ]
+    },
+    {
+      "id": "ext.ui",
+      "role": "external",
+      "state": "standard",
+      "does": "Fora desta pasta: a interface antiga do plugin (`src/ui`), com o mapa dela: os modais, os seletores, a dica, as telas da conclusão e os painéis hospedados.",
+      "why": "O que esta pasta desenha usa os componentes que a interface já tem.",
+      "runs_on": "",
+      "core": false,
+      "replaces": "",
+      "proof": [],
+      "connects_to": [],
+      "used_by": [
+        "liga.canvas",
+        "liga.painel",
+        "liga.plugin"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "BoardCanvasMenus.register",
+      "path": "boardCanvasMenus.ts",
+      "line": 40,
+      "module": "liga.canvas",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardCanvasMenus.widgetItems",
+      "path": "boardCanvasMenus.ts",
+      "line": 62,
+      "module": "liga.canvas",
+      "summary": "Itens de edição de um nó de widget (menu do nó e botão da barra de seleção).",
+      "card": {}
+    },
+    {
+      "name": "BoardCanvasMenus.arrangeGrid",
+      "path": "boardCanvasMenus.ts",
+      "line": 172,
+      "module": "liga.canvas",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardCanvasMenus.fillCanvasMenu",
+      "path": "boardCanvasMenus.ts",
+      "line": 232,
+      "module": "liga.canvas",
+      "summary": "Os itens DFM de um canvas: widget, consultas, tarefa e o que os gerentes acrescentam.",
+      "card": {}
+    },
+    {
+      "name": "readWidgetText",
+      "path": "boardEdit.ts",
+      "line": 12,
+      "module": "fn.quadro",
+      "summary": "O nó é um widget do quadro? Devolve a especificação lida, ou null.",
+      "card": {}
+    },
+    {
+      "name": "patchWidgetText",
+      "path": "boardEdit.ts",
+      "line": 23,
+      "module": "fn.quadro",
+      "summary": "Reescreve só o bloco do widget, preservando o que o operador escreveu em volta (um título acima, uma nota abaixo). Campo `undefined` no patch apaga o campo.",
+      "card": {}
+    },
+    {
+      "name": "arrangeInGrid",
+      "path": "boardEdit.ts",
+      "line": 43,
+      "module": "fn.quadro",
+      "summary": "Organiza caixas numa grade, na ordem de leitura atual (linha, depois coluna), começando no canto superior esquerdo da seleção. O número de colunas é o da raiz quadrada — uma grade próxima de quadrada, que cabe na tela.",
+      "card": {}
+    },
+    {
+      "name": "shortDate",
+      "path": "boardModel.ts",
+      "line": 47,
+      "module": "fn.quadro",
+      "summary": "`2026-09-24` → `24/09`; hoje e amanhã em palavras.",
+      "card": {}
+    },
+    {
+      "name": "toTaskItem",
+      "path": "boardModel.ts",
+      "line": 68,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "numbersModel",
+      "path": "boardModel.ts",
+      "line": 121,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "matrixModel",
+      "path": "boardModel.ts",
+      "line": 163,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "healthLabel",
+      "path": "boardModel.ts",
+      "line": 223,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "missionProjectGrammar",
+      "path": "boardModel.ts",
+      "line": 239,
+      "module": "fn.quadro",
+      "summary": "a forma de mostrar de um projeto do snapshot (as tarefas dele, `units`), pela função única, no horizonte do projeto: o de trabalho com o período do trimestre (a aberta é do plano; a feita conta só no trimestre), o mesmo do canvas e do painel.",
+      "card": {
+        "does": "a forma de mostrar de um projeto do snapshot (as tarefas dele, `units`), pela função única, no horizonte do projeto: o de trabalho com o período do trimestre (a aberta é do plano; a feita conta só no trimestre), o mesmo do canvas e do painel.",
+        "why": "os cartões do painel e os widgets mostravam \"concluídas/total\" e porcentagem; desde 16/10 a regra é contagem, nunca porcentagem, e desde 22/10 toda linha de contagem passa por `engine/showGrammar.ts`.",
+        "io": "projeto (ou nada), trimestre `AAAA-Qn` e o texto de ausência → `ShownGrammar`.",
+        "errors": "sem `units` (construtor à mão) é ausência, não zero; trimestre ilegível conta sem janela de tempo, em vez de esconder as feitas.",
+        "proof": "tests/board/board.test.ts (\"forma de mostrar dos projetos\")."
+      }
+    },
+    {
+      "name": "projectModel",
+      "path": "boardModel.ts",
+      "line": 250,
+      "module": "fn.quadro",
+      "summary": "O widget `projeto`. Com `facts` (o gerente do canvas de projeto), os números são os de `projectProgress`: SMART e ações, a lista inteira, sem canceladas — os mesmos do trimestre e do topo da zona do projeto (Fase 5 do plano do canvas). Sem `facts`, fica a soma antiga do snapshot (`aggregateProjects`).",
+      "card": {}
+    },
+    {
+      "name": "projectNames",
+      "path": "boardModel.ts",
+      "line": 278,
+      "module": "fn.quadro",
+      "summary": "Nomes de projeto conhecidos, para o seletor.",
+      "card": {}
+    },
+    {
+      "name": "projectsModel",
+      "path": "boardModel.ts",
+      "line": 293,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "habitsModel",
+      "path": "boardModel.ts",
+      "line": 349,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "tasksModel",
+      "path": "boardModel.ts",
+      "line": 407,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "atalhoDaMissao",
+      "path": "boardModel.ts",
+      "line": 458,
+      "module": "fn.quadro",
+      "summary": "para onde o bloco `tipo: missao` de um canvas (ou de uma nota) leva: no canvas de projeto, a Missão com o zoom no projeto (o ramo dele, onde se planeja); no canvas ou na nota de um período (a Week, a nota do trimestre, os canvas arquivados de período), a Missão naquele período, pela mesma porta dos comandos (`portaDoPeriodo`); nos outros, a Missão no ramo pedido (`ramo_principal`), ou como estava.",
+      "card": {
+        "does": "para onde o bloco `tipo: missao` de um canvas (ou de uma nota) leva: no canvas de projeto, a Missão com o zoom no projeto (o ramo dele, onde se planeja); no canvas ou na nota de um período (a Week, a nota do trimestre, os canvas arquivados de período), a Missão naquele período, pela mesma porta dos comandos (`portaDoPeriodo`); nos outros, a Missão no ramo pedido (`ramo_principal`), ou como estava.",
+        "why": "a Missão no canvas é só um atalho para um ramo ou uma escala (Arquitetura e Roteiro, §4); o item 8 do roteiro. O widget só dizia de onde abrir a Missão (o inventário da aposentadoria, 3.6).",
+        "io": "o bloco lido e o contexto do lugar → o rótulo, a frase e o estado (o mesmo `openMissao` das portas).",
+        "errors": "o projeto vale antes do nome (o canvas de projeto não se chama pelo período); o nome que só contém um período (uma TaskNote com a semana no título) não é de período; o ramo de partida não vai no estado (a aba fica no dela).",
+        "proof": "tests/board/missaoAtalho.test.ts."
+      }
+    },
+    {
+      "name": "BoardPanelView.getViewType",
+      "path": "boardPanel.ts",
+      "line": 165,
+      "module": "liga.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardPanelView.getDisplayText",
+      "path": "boardPanel.ts",
+      "line": 166,
+      "module": "liga.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardPanelView.getIcon",
+      "path": "boardPanel.ts",
+      "line": 167,
+      "module": "liga.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardPanelView.onOpen",
+      "path": "boardPanel.ts",
+      "line": 169,
+      "module": "liga.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardPanelView.onClose",
+      "path": "boardPanel.ts",
+      "line": 218,
+      "module": "liga.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardPanelView.planoDoRecolher",
+      "path": "boardPanel.ts",
+      "line": 357,
+      "module": "liga.painel",
+      "summary": "a lista do Recolher no layout de agora (só lê): os cartões que a Missão já mostra (§7), onde estão e o que ela mostra no lugar.",
+      "card": {
+        "does": "a lista do Recolher no layout de agora (só lê): os cartões que a Missão já mostra (§7), onde estão e o que ela mostra no lugar."
+      }
+    },
+    {
+      "name": "BoardPanelView.planoDoAgrupamento",
+      "path": "boardPanel.ts",
+      "line": 362,
+      "module": "liga.painel",
+      "summary": "o agrupamento em 5 do layout de agora (só lê): as páginas, o catálogo, o que entra e sai.",
+      "card": {
+        "does": "o agrupamento em 5 do layout de agora (só lê): as páginas, o catálogo, o que entra e sai."
+      }
+    },
+    {
+      "name": "BoardPanelView.aplicarAgrupamento",
+      "path": "boardPanel.ts",
+      "line": 371,
+      "module": "liga.painel",
+      "summary": "aplica o agrupamento conferido, como o botão \"Agrupar\" da lista: grava o layout novo e registra o Desfazer exato na pilha única. Nada a mudar → `false`, sem gravar.",
+      "card": {
+        "does": "aplica o agrupamento conferido, como o botão \"Agrupar\" da lista: grava o layout novo e registra o Desfazer exato na pilha única. Nada a mudar → `false`, sem gravar.",
+        "io": "o agrupamento (o de `planoDoAgrupamento`) → se aplicou."
+      }
+    },
+    {
+      "name": "MissionBoard.queryScope",
+      "path": "boardPlugin.ts",
+      "line": 236,
+      "module": "liga.plugin",
+      "summary": "O que um widget de consulta enxerga, a partir do arquivo onde ele mora.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.navInput",
+      "path": "boardPlugin.ts",
+      "line": 267,
+      "module": "liga.plugin",
+      "summary": "Tudo o que a navegação do painel precisa, lido do vault agora.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.linkTask",
+      "path": "boardPlugin.ts",
+      "line": 363,
+      "module": "liga.plugin",
+      "summary": "Liga uma ação à SMART mãe (contrato do Kernel: `projects: [[SMART]]`, herda `week`/`impacto` se faltarem) ou direto a um projeto. Vínculos que não apontam para nada existente saem; os válidos ficam.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.runProtocol",
+      "path": "boardPlugin.ts",
+      "line": 385,
+      "module": "liga.plugin",
+      "summary": "Roda o protocolo; a promessa acaba quando a rodada acaba (a triagem espera o 🗂️).",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.motorDoProtocolo",
+      "path": "boardPlugin.ts",
+      "line": 393,
+      "module": "liga.plugin",
+      "summary": "O motor de um protocolo carregado (o `JSONProtocol` do gerente), para a gaveta do ciclo da Missão (P12b); `null` = não carregado.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.idDoPapel",
+      "path": "boardPlugin.ts",
+      "line": 402,
+      "module": "liga.plugin",
+      "summary": "o id do protocolo carregado que faz o papel (`ProtocolManager.idDoPapel`), ou `null`: o painel, os cartões e a Missão só desenham o botão de um papel com protocolo.",
+      "card": {
+        "does": "o id do protocolo carregado que faz o papel (`ProtocolManager.idDoPapel`), ou `null`: o painel, os cartões e a Missão só desenham o botão de um papel com protocolo."
+      }
+    },
+    {
+      "name": "MissionBoard.ehDoPapel",
+      "path": "boardPlugin.ts",
+      "line": 408,
+      "module": "liga.plugin",
+      "summary": "O id dado é o protocolo de um dos papéis (pela tabela vigente): os ouvintes do fim de um protocolo.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.runPapel",
+      "path": "boardPlugin.ts",
+      "line": 414,
+      "module": "liga.plugin",
+      "summary": "Roda o protocolo do papel (`runProtocol`); sem protocolo para o papel, nada acontece (o botão nem aparece).",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.nomeDoProtocolo",
+      "path": "boardPlugin.ts",
+      "line": 420,
+      "module": "liga.plugin",
+      "summary": "O nome de um protocolo como o JSON dele diz (o emoji e o nome, `name`); `null` = não carregado.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.openTask",
+      "path": "boardPlugin.ts",
+      "line": 429,
+      "module": "liga.plugin",
+      "summary": "Abre uma tarefa na janela de edição do TaskNotes (a interface dela).",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.openAny",
+      "path": "boardPlugin.ts",
+      "line": 447,
+      "module": "liga.plugin",
+      "summary": "Abre o que o widget/painel apontou: tarefa na janela do TaskNotes; o resto como nota.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.pick",
+      "path": "boardPlugin.ts",
+      "line": 457,
+      "module": "liga.plugin",
+      "summary": "Seletor com busca, devolvendo `null` se o operador fechar sem escolher.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.leitorDoAgente",
+      "path": "boardPlugin.ts",
+      "line": 465,
+      "module": "liga.plugin",
+      "summary": "O que o agente do sistema lê de um nó pela borda (02/11/2026, `dfm_node`): os campos e as ligações da nota pelo cache de metadados e o lido dos protocolos, as mesmas leituras do painel do nó. Só lê.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.passosDoProtocolo",
+      "path": "boardPlugin.ts",
+      "line": 581,
+      "module": "liga.plugin",
+      "summary": "Os passos de um protocolo como o JSON dele declara (o Novo pré-responde por eles); `null` = não carregado.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.avisoDeCargaNoDia",
+      "path": "boardPlugin.ts",
+      "line": 640,
+      "module": "liga.plugin",
+      "summary": "o complemento do aviso quando uma tarefa chega a um dia que passa do Bloco Sagrado da semana dele (\" · o dia passa de 2 h (2,5 h agendadas)\", `dayOverText`, a mesma conta da carga que a Missão pinta), com a tarefa já no dia (o índice pode não ter visto a gravação); dentro do bloco, ou sem bloco legível, `''`.",
+      "card": {
+        "does": "o complemento do aviso quando uma tarefa chega a um dia que passa do Bloco Sagrado da semana dele (\" · o dia passa de 2 h (2,5 h agendadas)\", `dayOverText`, a mesma conta da carga que a Missão pinta), com a tarefa já no dia (o índice pode não ter visto a gravação); dentro do bloco, ou sem bloco legível, `''`.",
+        "why": "o inventário da aposentadoria (fase 2, item 3, 02/11): a seta dia → ação do canvas avisava, e os gestos da Missão (o arrasto, o Ligar, o \"Mover para…\") não; os dois leem daqui, uma leitura só da Week e da conta."
+      }
+    },
+    {
+      "name": "MissionBoard.register",
+      "path": "boardPlugin.ts",
+      "line": 734,
+      "module": "liga.plugin",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.updateTask",
+      "path": "boardPlugin.ts",
+      "line": 854,
+      "module": "liga.plugin",
+      "summary": "Grava campos do TaskNotes na tarefa (`scheduled`, `week`, `status`…).",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.updateTaskWith",
+      "path": "boardPlugin.ts",
+      "line": 876,
+      "module": "liga.plugin",
+      "summary": "Grava na tarefa o patch que `fn` calcula sobre o frontmatter atual (`null` no patch apaga o campo) e marca `dateModified`. É o caminho das setas do canvas e do \"Ligar a uma SMART…\": a regra (`edgeLinks.patchFor`) decide sobre o frontmatter do momento da gravação, não sobre uma leitura velha.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.updateNoteWith",
+      "path": "boardPlugin.ts",
+      "line": 905,
+      "module": "liga.plugin",
+      "summary": "O irmão de `updateTaskWith` para a nota que não é TaskNote (arquitetura da página Missão, §4.4): o patch que `fn` calcula sobre o frontmatter do momento, sem `dateModified` (que é do TaskNotes). `null` no patch apaga o campo; `fn` devolvendo `null` não grava. `before` traz os valores anteriores, para desfazer.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.mandarParaALixeira",
+      "path": "boardPlugin.ts",
+      "line": 958,
+      "module": "liga.plugin",
+      "summary": "Manda a nota para a lixeira pela escolha do Obsidian (`fileManager.trashFile`: a do sistema ou a `.trash` do cofre). A escolha \"apagar de vez\" vira a `.trash` do cofre: daqui nada se apaga sem volta.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.trazerDaLixeira",
+      "path": "boardPlugin.ts",
+      "line": 979,
+      "module": "liga.plugin",
+      "summary": "Traz a nota da `.trash` do cofre de volta ao caminho de antes (o Desfazer do Excluir), sem sobrescrever nada.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.tarefaArquivada",
+      "path": "boardPlugin.ts",
+      "line": 991,
+      "module": "liga.plugin",
+      "summary": "A TaskNote está no arquivo do TaskNotes (a tag ou a pasta, `isArchivedTask`)?",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.setStatus",
+      "path": "boardPlugin.ts",
+      "line": 1028,
+      "module": "liga.plugin",
+      "summary": "Troca o status da tarefa. `done` vai para `completeTask`; `cancelled` passa pela API do TaskNotes (arquiva e emite o evento), conforme `completionRoute`; os demais gravam o campo que o TaskNotes usa.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.completeTask",
+      "path": "boardPlugin.ts",
+      "line": 1059,
+      "module": "liga.plugin",
+      "summary": "Conclui pela API do TaskNotes (`api.tasks.complete`): ele grava `status` e a data, arquiva (`done` tem `autoArchive`) e emite `task.completed`.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.completedNotice",
+      "path": "boardPlugin.ts",
+      "line": 1098,
+      "module": "liga.plugin",
+      "summary": "\"Concluída: X\". Na peça 📤 (`peca: soltar`), o aviso traz o atalho \"📤 Registrar onde saiu\", que abre o Bloco de Criação com a etapa 📤 Publicar já respondida (`releaseOffer`). Só oferece; ignorar não muda nada.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.reopenTask",
+      "path": "boardPlugin.ts",
+      "line": 1121,
+      "module": "liga.plugin",
+      "summary": "Reabre uma tarefa concluída pela API do TaskNotes (`reopenRoute`): o status volta (`api.tasks.uncomplete`) e, se ela estava arquivada, sai de `TaskNotes/Archive/` (`api.tasks.archive(path, false)`). Sem a API, grava o status e avisa se ela continua no arquivo.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.openPanel",
+      "path": "boardPlugin.ts",
+      "line": 1141,
+      "module": "liga.plugin",
+      "summary": "O painel: o mesmo quadro, lido como colunas. Reaproveita a aba se já aberta.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.openMissao",
+      "path": "boardPlugin.ts",
+      "line": 1155,
+      "module": "liga.plugin",
+      "summary": "Abre a Missão na aba própria (reaproveita a aba se já aberta). Com um estado (o \"⤢ Abrir em outra aba\" da página), a aba abre no mesmo período e no mesmo nó.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.atalhoDoLugar",
+      "path": "boardPlugin.ts",
+      "line": 1171,
+      "module": "liga.plugin",
+      "summary": "o atalho da Missão do bloco `tipo: missao` pelo lugar dele: o projeto do canvas de projeto e o nome do arquivo (o canvas ou a nota de um período), lidos aqui; a decisão é do `atalhoDaMissao`.",
+      "card": {
+        "does": "o atalho da Missão do bloco `tipo: missao` pelo lugar dele: o projeto do canvas de projeto e o nome do arquivo (o canvas ou a nota de um período), lidos aqui; a decisão é do `atalhoDaMissao`."
+      }
+    },
+    {
+      "name": "MissionBoard.abrirMissao",
+      "path": "boardPlugin.ts",
+      "line": 1178,
+      "module": "liga.plugin",
+      "summary": "abre o atalho da Missão: o estado dele pela `openMissao` das portas; sem estado, a Missão como estava.",
+      "card": {
+        "does": "abre o atalho da Missão: o estado dele pela `openMissao` das portas; sem estado, a Missão como estava."
+      }
+    },
+    {
+      "name": "MissionBoard.abrirMissaoNoPeriodo",
+      "path": "boardPlugin.ts",
+      "line": 1186,
+      "module": "liga.plugin",
+      "summary": "abre a Missão no período de uma porta (02/11): a escala dele, a linha dele em foco e o nó dele escolhido; a pinça no nó entra no ramo, onde se planeja.",
+      "card": {
+        "does": "abre a Missão no período de uma porta (02/11): a escala dele, a linha dele em foco e o nó dele escolhido; a pinça no nó entra no ramo, onde se planeja."
+      }
+    },
+    {
+      "name": "MissionBoard.montarMissaoEm",
+      "path": "boardPlugin.ts",
+      "line": 1196,
+      "module": "liga.plugin",
+      "summary": "monta a Missão num contêiner qualquer (o mesmo adaptador da página e da aba).",
+      "card": {
+        "does": "monta a Missão num contêiner qualquer (o mesmo adaptador da página e da aba).",
+        "why": "a medida fora da tela (larguras de 375, 820 e 1440 px, sem abrir janela nem aba) e, no P14, o módulo do canvas. Quem monta desmonta (`destruir`). Inspeção: `app.plugins.plugins['dfm-system'].board.montarMissaoEm(div, { lugar: 'aba' })`."
+      }
+    },
+    {
+      "name": "MissionBoard.addWidget",
+      "path": "boardPlugin.ts",
+      "line": 1204,
+      "module": "liga.plugin",
+      "summary": "Pergunta o widget e cria o nó. Sem `pos`, no centro da tela; com `pos` (clique-direito na área vazia), com o canto superior esquerdo ali.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.addWidgetKind",
+      "path": "boardPlugin.ts",
+      "line": 1211,
+      "module": "liga.plugin",
+      "summary": "Um widget de tipo já escolhido; pergunta só o que o tipo exige (recorte, projeto).",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.mountHabitsBlock",
+      "path": "boardPlugin.ts",
+      "line": 1236,
+      "module": "liga.plugin",
+      "summary": "O bloco ```dfm-habits``` das notas (diária, semana) desenhado pelo mesmo widget de hábitos do Mission Control: uma implementação só, viva, que marca.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.toggleHabit",
+      "path": "boardPlugin.ts",
+      "line": 1248,
+      "module": "liga.plugin",
+      "summary": "Um dia de hábito, pelo caminho canônico do tracker (`engine/habits.ts`):",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.marcarHabito",
+      "path": "boardPlugin.ts",
+      "line": 1288,
+      "module": "liga.plugin",
+      "summary": "o +1 de um hábito na Missão: marca o dia pelo caminho de sempre (`toggleHabit`: o dia futuro e o automático recusam; o do protocolo abre o protocolo) e registra o Desfazer na pilha única, que só tira a marca se ela ainda está lá. O dia já marcado não se desmarca por aqui (o botão é +1, não alternância).",
+      "card": {
+        "does": "o +1 de um hábito na Missão: marca o dia pelo caminho de sempre (`toggleHabit`: o dia futuro e o automático recusam; o do protocolo abre o protocolo) e registra o Desfazer na pilha única, que só tira a marca se ela ainda está lá. O dia já marcado não se desmarca por aqui (o botão é +1, não alternância).",
+        "io": "a nota do hábito, o dia e o aviso → o resultado (ok só quando a marca entrou)."
+      }
+    },
+    {
+      "name": "MissionBoard.trilhaParaOLeitor",
+      "path": "boardPlugin.ts",
+      "line": 1331,
+      "module": "liga.plugin",
+      "summary": "o que o leitor da Missão lê da trilha: o arquivo dos textos e as chaves, das definições, e as marcas do salvamento; sem o arquivo nas definições, nada (a trilha não aparece).",
+      "card": {
+        "does": "o que o leitor da Missão lê da trilha: o arquivo dos textos e as chaves, das definições, e as marcas do salvamento; sem o arquivo nas definições, nada (a trilha não aparece)."
+      }
+    },
+    {
+      "name": "MissionBoard.marcarUso",
+      "path": "boardPlugin.ts",
+      "line": 1341,
+      "module": "liga.plugin",
+      "summary": "marca um gesto da trilha num dia (o que não deixa outro rastro: mover a que ficou de antes, pôr numa SMART, capturar, decidir na triagem); o mesmo dia de novo não grava.",
+      "card": {
+        "does": "marca um gesto da trilha num dia (o que não deixa outro rastro: mover a que ficou de antes, pôr numa SMART, capturar, decidir na triagem); o mesmo dia de novo não grava.",
+        "errors": "a falha ao gravar só vai ao console (a gravação do gesto já aconteceu)."
+      }
+    },
+    {
+      "name": "MissionBoard.tarefaDeAntes",
+      "path": "boardPlugin.ts",
+      "line": 1348,
+      "module": "liga.plugin",
+      "summary": "a TaskNote ficou de antes, na última Missão desenhada (a marca do \"mover a que ficou para trás\").",
+      "card": {
+        "does": "a TaskNote ficou de antes, na última Missão desenhada (a marca do \"mover a que ficou para trás\")."
+      }
+    },
+    {
+      "name": "MissionBoard.usoDoGesto",
+      "path": "boardPlugin.ts",
+      "line": 1353,
+      "module": "liga.plugin",
+      "summary": "os dias de uso de um gesto na última Missão desenhada; `null` antes dela (o critério `uso` espera).",
+      "card": {
+        "does": "os dias de uso de um gesto na última Missão desenhada; `null` antes dela (o critério `uso` espera)."
+      }
+    },
+    {
+      "name": "MissionBoard.dicasVistas",
+      "path": "boardPlugin.ts",
+      "line": 1359,
+      "module": "liga.plugin",
+      "summary": "as dicas da primeira vez já vistas (o salvamento).",
+      "card": {
+        "does": "as dicas da primeira vez já vistas (o salvamento)."
+      }
+    },
+    {
+      "name": "MissionBoard.verDica",
+      "path": "boardPlugin.ts",
+      "line": 1364,
+      "module": "liga.plugin",
+      "summary": "guarda a dica como vista (ela não volta na próxima abertura); a já vista não grava.",
+      "card": {
+        "does": "guarda a dica como vista (ela não volta na próxima abertura); a já vista não grava."
+      }
+    },
+    {
+      "name": "MissionBoard.conferirTrilha",
+      "path": "boardPlugin.ts",
+      "line": 1375,
+      "module": "liga.plugin",
+      "summary": "depois de cada modelo da Missão: guarda os usos (o critério `uso` da árvore os lê) e, quando o gesto da vez muda, guarda o novo e reavalia as árvores: a árvore \"Hábito de uso do sistema\" desbloqueia o nível seguinte e propõe a tarefa dele na triagem (nada se cria sem o Y dele).",
+      "card": {
+        "does": "depois de cada modelo da Missão: guarda os usos (o critério `uso` da árvore os lê) e, quando o gesto da vez muda, guarda o novo e reavalia as árvores: a árvore \"Hábito de uso do sistema\" desbloqueia o nível seguinte e propõe a tarefa dele na triagem (nada se cria sem o Y dele)."
+      }
+    },
+    {
+      "name": "MissionBoard.registrarFeito",
+      "path": "boardPlugin.ts",
+      "line": 1396,
+      "module": "liga.plugin",
+      "summary": "\"Registrar o que fiz\" (página Missão, §8.7): a TaskNote nasce pela API do TaskNotes (com `type: task` e `origem: registrar_feito`, sem `scheduled` e sem `week`, mesmo ligada a uma SMART) e conclui pela conclusão única (`completeTask` com `{ when }`): a linha no dia dito, ou na Week sem criar a Day, e a hora real na reputação contextual. Os minutos vão com o onde para o registro dos blocos, nunca para a estimativa.",
+      "card": {
+        "does": "\"Registrar o que fiz\" (página Missão, §8.7): a TaskNote nasce pela API do TaskNotes (com `type: task` e `origem: registrar_feito`, sem `scheduled` e sem `week`, mesmo ligada a uma SMART) e conclui pela conclusão única (`completeTask` com `{ when }`): a linha no dia dito, ou na Week sem criar a Day, e a hora real na reputação contextual. Os minutos vão com o onde para o registro dos blocos, nunca para a estimativa.",
+        "why": "a função única do registro do dia (o \"＋ O que fiz\" da Missão e a pergunta do 🌙). Sem Desfazer: a conclusão pontua, escreve na Day ou na Week e entra no registro dos blocos."
+      }
+    },
+    {
+      "name": "MissionBoard.notaNova",
+      "path": "boardPlugin.ts",
+      "line": 1417,
+      "module": "liga.plugin",
+      "summary": "a nota nova pelo protocolo dono (o \"Criar nova\" do \"＋ Adicionar\" de um campo da Missão, página Missão §8.9): roda o protocolo com as variáveis dadas (o nome já respondido, as datas da rodada) e, quando ele termina (`dfm:protocol-complete` do mesmo protocolo e, com o passo, o mesmo nome respondido), entrega a nota criada a quem pediu, que a liga ao campo pela gravação de sempre, com o Desfazer (a nota nova é do protocolo e fica).",
+      "card": {
+        "does": "a nota nova pelo protocolo dono (o \"Criar nova\" do \"＋ Adicionar\" de um campo da Missão, página Missão §8.9): roda o protocolo com as variáveis dadas (o nome já respondido, as datas da rodada) e, quando ele termina (`dfm:protocol-complete` do mesmo protocolo e, com o passo, o mesmo nome respondido), entrega a nota criada a quem pediu, que a liga ao campo pela gravação de sempre, com o Desfazer (a nota nova é do protocolo e fica).",
+        "errors": "a rodada cancelada não entrega nada, e o pedido seguinte troca o que esperava; o fim de outra rodada do mesmo protocolo, com outro nome, não conta."
+      }
+    },
+    {
+      "name": "MissionBoard.capturar",
+      "path": "boardPlugin.ts",
+      "line": 1433,
+      "module": "liga.plugin",
+      "summary": "a 💡 Captura da Missão: a mesma função da Captura rápida do Mission Control (`capturarNaCaixa`).",
+      "card": {
+        "does": "a 💡 Captura da Missão: a mesma função da Captura rápida do Mission Control (`capturarNaCaixa`)."
+      }
+    },
+    {
+      "name": "MissionBoard.criarDoNo",
+      "path": "boardPlugin.ts",
+      "line": 1444,
+      "module": "liga.plugin",
+      "summary": "cria a nota ou o canvas que um nó da Missão ainda não tem, pelos comandos de sempre: o canvas do projeto pelo `projectCanvasManager.openOrCreate` e a Day pelo `createDailyNote` do plugin (o Periodic Notes). O canvas da semana e o do trimestre não nascem mais (aposentados em 02/11/2026): a Missão é a tela deles.",
+      "card": {
+        "does": "cria a nota ou o canvas que um nó da Missão ainda não tem, pelos comandos de sempre: o canvas do projeto pelo `projectCanvasManager.openOrCreate` e a Day pelo `createDailyNote` do plugin (o Periodic Notes). O canvas da semana e o do trimestre não nascem mais (aposentados em 02/11/2026): a Missão é a tela deles.",
+        "io": "o id do nó e o que criar → o resultado, com o aviso em palavras."
+      }
+    },
+    {
+      "name": "MissionBoard.reviewHabit",
+      "path": "boardPlugin.ts",
+      "line": 1465,
+      "module": "liga.plugin",
+      "summary": "A revisão que o próprio hábito marcou em `revisar_em`. Nada muda sem o clique: continuar em treino (nova data), integrado ou pausado.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.insertTask",
+      "path": "boardPlugin.ts",
+      "line": 1501,
+      "module": "liga.plugin",
+      "summary": "Traz uma TaskNote que já existe para o canvas, como nó de arquivo (o cartão de tarefa se monta nele). Se ela já está no canvas, a vista vai até ela.",
+      "card": {}
+    },
+    {
+      "name": "MissionBoard.createWidgetNode",
+      "path": "boardPlugin.ts",
+      "line": 1530,
+      "module": "liga.plugin",
+      "summary": "Cria o nó de texto com o bloco do widget, no tamanho do catálogo.",
+      "card": {}
+    },
+    {
+      "name": "habitWeekText",
+      "path": "boardRender.ts",
+      "line": 330,
+      "module": "vista.quadro",
+      "summary": "a semana de um hábito em contagem: \"3 vezes na semana · meta 5\".",
+      "card": {
+        "does": "a semana de um hábito em contagem: \"3 vezes na semana · meta 5\".",
+        "why": "o hábito conta na semana, sem sequência (núcleo, 4.4); a barra de preenchimento media a pessoa contra a meta (25/10/2026)."
+      }
+    },
+    {
+      "name": "recordToItem",
+      "path": "boardRender.ts",
+      "line": 375,
+      "module": "vista.quadro",
+      "summary": "Tarefa do índice → linha do quadro, com o mesmo tom e selo das outras listas.",
+      "card": {}
+    },
+    {
+      "name": "renderConsulta",
+      "path": "boardRender.ts",
+      "line": 395,
+      "module": "vista.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderBoardWidget",
+      "path": "boardRender.ts",
+      "line": 557,
+      "module": "vista.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renderMissaoAtalho",
+      "path": "boardRender.ts",
+      "line": 596,
+      "module": "vista.quadro",
+      "summary": "o bloco `tipo: missao` num canvas ou numa nota: o atalho da Missão (item 8 do roteiro), um botão que a abre no lugar que o atalho diz (o zoom no projeto, o período, o ramo pedido) e a frase.",
+      "card": {
+        "does": "o bloco `tipo: missao` num canvas ou numa nota: o atalho da Missão (item 8 do roteiro), um botão que a abre no lugar que o atalho diz (o zoom no projeto, o período, o ramo pedido) e a frase.",
+        "why": "a Missão nunca é desenhada por `renderBoardWidget` (§3.4): ela monta uma vez e se atualiza por dentro, na aba dela; no canvas ela é só um atalho para um ramo ou uma escala (Arquitetura e Roteiro, §4). Quem decide para onde é o `atalhoDaMissao` (puro).",
+        "errors": "sem a ação de abrir (o lugar que não abre a Missão), só a frase, sem botão.",
+        "proof": "tests/board/missaoAtalho.test.ts."
+      }
+    },
+    {
+      "name": "renderBoardError",
+      "path": "boardRender.ts",
+      "line": 611,
+      "module": "vista.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "isProtocolWidgetKind",
+      "path": "boardSpec.ts",
+      "line": 45,
+      "module": "base",
+      "summary": "o tipo é um dos módulos de protocolos.",
+      "card": {
+        "does": "o tipo é um dos módulos de protocolos."
+      }
+    },
+    {
+      "name": "fold",
+      "path": "boardSpec.ts",
+      "line": 128,
+      "module": "base",
+      "summary": "Minúsculas e sem acento: `Hábitos` e `habitos` são o mesmo tipo.",
+      "card": {}
+    },
+    {
+      "name": "parseWidgetSpec",
+      "path": "boardSpec.ts",
+      "line": 178,
+      "module": "base",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "widgetBlock",
+      "path": "boardSpec.ts",
+      "line": 261,
+      "module": "base",
+      "summary": "O texto do nó que declara o widget — o inverso de `parseWidgetSpec`.",
+      "card": {}
+    },
+    {
+      "name": "notaDoQuadro",
+      "path": "boardStore.ts",
+      "line": 31,
+      "module": "liga.store",
+      "summary": "diz se um aviso do cofre pede releitura do quadro: só nota `.md`, e só no que importa (as casas da Missão: tarefas, Daymiss, Caixa de entrada, hábitos, cidades, pessoas, visão, ideias e as notas-índice dos projetos).",
+      "card": {
+        "does": "diz se um aviso do cofre pede releitura do quadro: só nota `.md`, e só no que importa (as casas da Missão: tarefas, Daymiss, Caixa de entrada, hábitos, cidades, pessoas, visão, ideias e as notas-índice dos projetos).",
+        "io": "o arquivo do aviso, o evento, o juiz e o caminho antigo (no renomear) → sim/não.",
+        "errors": "sem juiz, vale o de antes (toda nota `.md`), para nada deixar de reler.",
+        "proof": "tests/board/boardStore.test.ts."
+      }
+    },
+    {
+      "name": "BoardStore.current",
+      "path": "boardStore.ts",
+      "line": 48,
+      "module": "liga.store",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardStore.subscribe",
+      "path": "boardStore.ts",
+      "line": 52,
+      "module": "liga.store",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardStore.warm",
+      "path": "boardStore.ts",
+      "line": 63,
+      "module": "liga.store",
+      "summary": "Garante uma leitura em andamento, sem esperar (para menus síncronos).",
+      "card": {}
+    },
+    {
+      "name": "BoardStore.refreshNow",
+      "path": "boardStore.ts",
+      "line": 68,
+      "module": "liga.store",
+      "summary": "Relê já (depois de uma ação do próprio quadro, como concluir tarefa).",
+      "card": {}
+    },
+    {
+      "name": "BoardStore.scheduleRefresh",
+      "path": "boardStore.ts",
+      "line": 73,
+      "module": "liga.store",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "BoardStore.destroy",
+      "path": "boardStore.ts",
+      "line": 120,
+      "module": "liga.store",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "CanvasToolbar.register",
+      "path": "canvasToolbar.ts",
+      "line": 47,
+      "module": "liga.canvas",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "selectionActions",
+      "path": "canvasToolbarModel.ts",
+      "line": 37,
+      "module": "fn.quadro",
+      "summary": "os botões do DFM para a seleção do canvas, na ordem da barra.",
+      "card": {
+        "does": "os botões do DFM para a seleção do canvas, na ordem da barra.",
+        "why": "cada botão só entra quando faz sentido para o que está selecionado; o \"Nova ação desta SMART\" só quando o cofre tem o protocolo da tarefa da SMART (D1 do mapa da v0: sem protocolo, o botão some, sem aviso).",
+        "io": "os itens selecionados e se a nova ação tem protocolo (sem dizer, tem) → os botões.",
+        "proof": "tests/board/canvasToolbarModel.test.ts."
+      }
+    },
+    {
+      "name": "HostedMissionPanels.refresh",
+      "path": "hostedPanels.ts",
+      "line": 51,
+      "module": "liga.painel",
+      "summary": "O \"refresh\" pedido por uma visão redesenha o painel novo.",
+      "card": {}
+    },
+    {
+      "name": "HostedMissionPanels.has",
+      "path": "hostedPanels.ts",
+      "line": 56,
+      "module": "liga.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "HostedMissionPanels.renderPanel",
+      "path": "hostedPanels.ts",
+      "line": 61,
+      "module": "liga.painel",
+      "summary": "Desenha a visão `id` no `host`. `false` se a visão não existe.",
+      "card": {}
+    },
+    {
+      "name": "topLevelMembers",
+      "path": "jsonKeyEdit.ts",
+      "line": 40,
+      "module": "fn.protocolos",
+      "summary": "os membros de primeiro nível do objeto JSON do texto, com as posições da chave e do valor. `null` se o texto não é um objeto.",
+      "card": {
+        "does": "os membros de primeiro nível do objeto JSON do texto, com as posições da chave e do valor. `null` se o texto não é um objeto.",
+        "why": "editar no lugar exige saber onde cada valor começa e termina sem reescrever.",
+        "errors": "aspas e chaves dentro de strings, escapes (`\\\"`), objetos aninhados."
+      }
+    },
+    {
+      "name": "sameJson",
+      "path": "jsonKeyEdit.ts",
+      "line": 91,
+      "module": "fn.protocolos",
+      "summary": "igualdade estrutural de dois valores JSON (a ordem das chaves não conta).",
+      "card": {
+        "does": "igualdade estrutural de dois valores JSON (a ordem das chaves não conta)."
+      }
+    },
+    {
+      "name": "setTopLevelKey",
+      "path": "jsonKeyEdit.ts",
+      "line": 119,
+      "module": "fn.protocolos",
+      "summary": "o texto com a chave de primeiro nível `key` valendo `value`: troca só o trecho do valor quando a chave existe; senão, acrescenta a chave logo depois da primeira âncora que existe (na indentação dela), ou no começo do objeto.",
+      "card": {
+        "does": "o texto com a chave de primeiro nível `key` valendo `value`: troca só o trecho do valor quando a chave existe; senão, acrescenta a chave logo depois da primeira âncora que existe (na indentação dela), ou no começo do objeto.",
+        "why": "a fase e o objetivo são gravados a pedido do operador sem mexer no resto do arquivo (indentação, ordem das chaves, quebras).",
+        "io": "texto do JSON, chave, valor (JSON) e âncoras → `JsonEdit`, com o valor de antes e de depois e a linha de antes e de depois (para mostrar o que muda).",
+        "errors": "texto que não é objeto JSON, valor que não serializa, resultado que não relê igual ao esperado (tudo devolve `ok: false`, e nada é gravado).",
+        "proof": "tests/board/jsonKeyEdit.test.ts."
+      }
+    },
+    {
+      "name": "cardId",
+      "path": "panelLayout.ts",
+      "line": 89,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "defaultPanelLayout",
+      "path": "panelLayout.ts",
+      "line": 110,
+      "module": "fn.painel",
+      "summary": "o layout de partida, o mesmo que \"Restaurar layout padrão\" põe de volta: as cinco páginas aprovadas em 29/10 (commit `0827bbee`), Missão · Projetos · Análise · Protocolos · Sistema, com os cartões, a ordem e as larguras do layout do dono depois do agrupamento.",
+      "card": {
+        "does": "o layout de partida, o mesmo que \"Restaurar layout padrão\" põe de volta: as cinco páginas aprovadas em 29/10 (commit `0827bbee`), Missão · Projetos · Análise · Protocolos · Sistema, com os cartões, a ordem e as larguras do layout do dono depois do agrupamento.",
+        "why": "o de partida ainda era o das 11 páginas do console antigo; restaurar trazia de volta as páginas aposentadas (Início, Hoje, Plano, Rotinas, Executar, Mapa, Ferramentas) e os cartões que a Missão já mostra. O que saiu do layout continua no catálogo de cartões.",
+        "io": "nada → um layout novo a cada chamada (quem recebe pode mudar à vontade).",
+        "errors": "o cartão \"vitals\" do layout gravado não entra (não há visão com esse nome, e a conferência do salvo já o tira); a Missão é a primeira e a de abrir.",
+        "proof": "tests/board/panelLayout.test.ts (\"layout do painel: partida\")."
+      }
+    },
+    {
+      "name": "protocolsPage",
+      "path": "panelLayout.ts",
+      "line": 156,
+      "module": "fn.painel",
+      "summary": "a página \"Protocolos\" (26/10/2026): a saúde do catálogo, o catálogo, o mapa dos routers, o uso recente, as versões em paralelo, os avisos e as ferramentas.",
+      "card": {
+        "does": "a página \"Protocolos\" (26/10/2026): a saúde do catálogo, o catálogo, o mapa dos routers, o uso recente, as versões em paralelo, os avisos e as ferramentas.",
+        "why": "o catálogo simples da página Executar (\"Protocolos DFM\") não dizia fase, uso, caminho no 🧭 nem o que está quebrado; a página é a porta para o que existe."
+      }
+    },
+    {
+      "name": "missaoPage",
+      "path": "panelLayout.ts",
+      "line": 176,
+      "module": "fn.painel",
+      "summary": "a página \"Missão\": a tela principal do Mission Control (arquitetura de 27/10/2026, §3.4): a vista inteira da Missão, sem navegação nem cartões.",
+      "card": {
+        "does": "a página \"Missão\": a tela principal do Mission Control (arquitetura de 27/10/2026, §3.4): a vista inteira da Missão, sem navegação nem cartões."
+      }
+    },
+    {
+      "name": "seedPanelPages",
+      "path": "panelLayout.ts",
+      "line": 222,
+      "module": "fn.painel",
+      "summary": "a migração de uma vez de um layout salvo: cada página semeada que ainda não foi semeada entra no fim (ou em primeiro, quando a semente pede) se não existe, ou é convertida se a semente converte; os cartões que ela substitui saem da página de origem; a semente fica registrada.",
+      "card": {
+        "does": "a migração de uma vez de um layout salvo: cada página semeada que ainda não foi semeada entra no fim (ou em primeiro, quando a semente pede) se não existe, ou é convertida se a semente converte; os cartões que ela substitui saem da página de origem; a semente fica registrada.",
+        "why": "`reconcilePanelLayout` não acrescenta páginas novas ao layout do operador, e uma página apagada por ele não pode voltar sozinha.",
+        "io": "layout conferido e ids já semeados → { layout, seeded, changed }.",
+        "errors": "lista de semeadas ilegível vale vazia; rodar de novo não muda nada (idempotente); cartão que o operador levou para outra página fica onde está.",
+        "proof": "tests/board/panelLayout.test.ts (\"migração da página Protocolos\", \"a Missão principal\")."
+      }
+    },
+    {
+      "name": "panelLayoutOnOpen",
+      "path": "panelLayout.ts",
+      "line": 256,
+      "module": "fn.painel",
+      "summary": "o layout com que o painel abre: o salvo conferido, com as páginas novas semeadas uma vez; e o que precisa ser gravado nas configurações. Quando a primeira página é uma tela (a Missão), a vista abre nela (§3.4); trocar de aba vale até fechar.",
+      "card": {
+        "does": "o layout com que o painel abre: o salvo conferido, com as páginas novas semeadas uma vez; e o que precisa ser gravado nas configurações. Quando a primeira página é uma tela (a Missão), a vista abre nela (§3.4); trocar de aba vale até fechar.",
+        "why": "sem layout salvo, o de partida já traz as páginas (ficam registradas como semeadas, para não voltarem se o operador as apagar depois); com layout salvo, a migração de uma vez (`seedPanelPages`) acrescenta o que falta.",
+        "io": "`boardPanelLayout` e `boardPanelSeeded` das configurações → { layout, seeded, save (gravar a lista), saveLayout (gravar também o layout) }.",
+        "proof": "tests/board/panelLayout.test.ts (\"migração da página Protocolos\", \"a Missão principal\")."
+      }
+    },
+    {
+      "name": "reconcilePanelLayout",
+      "path": "panelLayout.ts",
+      "line": 274,
+      "module": "fn.painel",
+      "summary": "O que veio salvo, conferido: cartão de visão que não existe mais sai; largura e altura voltam para a faixa; página vazia de nome continua (é do operador).",
+      "card": {}
+    },
+    {
+      "name": "layoutParaGravar",
+      "path": "panelLayout.ts",
+      "line": 311,
+      "module": "fn.painel",
+      "summary": "o layout na forma em que se grava: as chaves sempre na mesma ordem (a do arquivo: `version`, `navCollapsed`, `activePage`, `pages`; na página `id`, `label`, `icon`, `cards`, `tela`; no cartão `id`, `source`, `w`, `h`) e sem o valor padrão (o `collapsed: false`).",
+      "card": {
+        "does": "o layout na forma em que se grava: as chaves sempre na mesma ordem (a do arquivo: `version`, `navCollapsed`, `activePage`, `pages`; na página `id`, `label`, `icon`, `cards`, `tela`; no cartão `id`, `source`, `w`, `h`) e sem o valor padrão (o `collapsed: false`).",
+        "why": "a reconciliação gravava `\"collapsed\": false` em todo cartão e trocava a ordem das chaves: ~500 linhas a mais no `data.json`, que está no git, sem mudança nenhuma de verdade (revisão de 29/10). Um layout que não mudou se grava igual, byte a byte.",
+        "io": "o layout → um objeto novo, só com os dados (a entrada não é mutada).",
+        "proof": "tests/board/panelLayout.test.ts (\"a forma gravada\")."
+      }
+    },
+    {
+      "name": "moveCard",
+      "path": "panelLayout.ts",
+      "line": 337,
+      "module": "fn.painel",
+      "summary": "Move o cartão para a posição `toIndex` da página `toPage` (a mesma ou outra).",
+      "card": {}
+    },
+    {
+      "name": "reorderPage",
+      "path": "panelLayout.ts",
+      "line": 349,
+      "module": "fn.painel",
+      "summary": "Reordena a página inteira pela sequência de ids vista na tela depois do arrasto.",
+      "card": {}
+    },
+    {
+      "name": "resizeCard",
+      "path": "panelLayout.ts",
+      "line": 360,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "updateCard",
+      "path": "panelLayout.ts",
+      "line": 370,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "addCard",
+      "path": "panelLayout.ts",
+      "line": 381,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "removeCard",
+      "path": "panelLayout.ts",
+      "line": 389,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "addPage",
+      "path": "panelLayout.ts",
+      "line": 397,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "renamePage",
+      "path": "panelLayout.ts",
+      "line": 405,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "removePage",
+      "path": "panelLayout.ts",
+      "line": 413,
+      "module": "fn.painel",
+      "summary": "Remove a página; a última nunca sai.",
+      "card": {}
+    },
+    {
+      "name": "movePage",
+      "path": "panelLayout.ts",
+      "line": 421,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "precisaGravar",
+      "path": "panelLayout.ts",
+      "line": 439,
+      "module": "fn.painel",
+      "summary": "diz se a mudança de layout é de verdade e precisa ir para as configurações.",
+      "card": {
+        "does": "diz se a mudança de layout é de verdade e precisa ir para as configurações.",
+        "why": "trocar de aba gravava o `data.json` (que está no git) a cada clique; a aba ativa vale até fechar a vista (proposta do Mission Control, 27/10/2026, item 4).",
+        "io": "o layout de antes e o de depois → grava ou não (só a aba ativa mudou: não).",
+        "proof": "tests/board/panelLayout.test.ts (\"a moldura\")."
+      }
+    },
+    {
+      "name": "navRecolhida",
+      "path": "panelLayout.ts",
+      "line": 452,
+      "module": "fn.painel",
+      "summary": "a navegação lateral à vista numa largura: abaixo de 760 px começa recolhida; acima, vale o que o operador gravou. O gesto dele na sessão vence a largura.",
+      "card": {
+        "does": "a navegação lateral à vista numa largura: abaixo de 760 px começa recolhida; acima, vale o que o operador gravou. O gesto dele na sessão vence a largura.",
+        "proof": "tests/board/panelLayout.test.ts (\"a moldura\")."
+      }
+    },
+    {
+      "name": "abaPelaTecla",
+      "path": "panelLayout.ts",
+      "line": 463,
+      "module": "fn.painel",
+      "summary": "a aba vizinha pela tecla (← → Home End), na lista de abas; outra tecla, `null`.",
+      "card": {
+        "does": "a aba vizinha pela tecla (← → Home End), na lista de abas; outra tecla, `null`.",
+        "why": "as abas são uma lista de abas (role=tablist) e andam pelo teclado.",
+        "proof": "tests/board/panelLayout.test.ts (\"a moldura\")."
+      }
+    },
+    {
+      "name": "podeRedesenharCartao",
+      "path": "panelLayout.ts",
+      "line": 478,
+      "module": "fn.painel",
+      "summary": "diz se um cartão pode ser redesenhado agora: nunca com o foco num campo dentro dele (o texto digitado na Captura sobrevive), e só quando o desenho mudou.",
+      "card": {
+        "does": "diz se um cartão pode ser redesenhado agora: nunca com o foco num campo dentro dele (o texto digitado na Captura sobrevive), e só quando o desenho mudou.",
+        "proof": "tests/board/panelLayout.test.ts (\"a moldura\")."
+      }
+    },
+    {
+      "name": "spanAt6",
+      "path": "panelLayout.ts",
+      "line": 483,
+      "module": "fn.painel",
+      "summary": "Largura na grade de 6 (telas médias): metade, arredondada, nunca menos que 3.",
+      "card": {}
+    },
+    {
+      "name": "cardLabel",
+      "path": "panelLayout.ts",
+      "line": 488,
+      "module": "fn.painel",
+      "summary": "Rótulo do cartão (catálogo, leitores de tela, cabeçalho).",
+      "card": {}
+    },
+    {
+      "name": "packMasonry",
+      "path": "panelLayout.ts",
+      "line": 505,
+      "module": "fn.painel",
+      "summary": "Encaixe em mural na ordem dada: cada item vai para as colunas onde minimiza vãos verticais e altura da grade, respeitando a ordem e alinhamento de colunas.",
+      "card": {}
+    },
+    {
+      "name": "departmentsInFocus",
+      "path": "panelNav.ts",
+      "line": 103,
+      "module": "fn.painel",
+      "summary": "Os departamentos que o trimestre põe na mesa, na ordem da nota: os de `departamentos_foco` e os da Temporada (um departamento pode ser uma das centrais do trimestre). O painel só listava as colunas do portfólio (projetos): o departamento ficava sem linha, sem contagem e sem os botões de canvas.",
+      "card": {}
+    },
+    {
+      "name": "indexCandidates",
+      "path": "panelNav.ts",
+      "line": 128,
+      "module": "fn.painel",
+      "summary": "onde procurar a nota-índice de um projeto ou departamento, em ordem: o índice conhecido, `<Nome>.md` e, por último, `README.md`.",
+      "card": {
+        "does": "onde procurar a nota-índice de um projeto ou departamento, em ordem: o índice conhecido, `<Nome>.md` e, por último, `README.md`.",
+        "why": "a mesma ordem do canvas (`projectCanvasManager.departmentIndex`). Um departamento pode ter os dois, e o README.md pode ser o de um repositório, sem frontmatter: lido antes, um departamento com nota própria que aponta uma central sumiria debaixo dela no painel."
+      }
+    },
+    {
+      "name": "buildNav",
+      "path": "panelNav.ts",
+      "line": 144,
+      "module": "fn.painel",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "chaveDoCartao",
+      "path": "panelRegroup.ts",
+      "line": 28,
+      "module": "fn.painel",
+      "summary": "A chave de um cartão pela fonte: `p:<visão>` ou `w:<tipo>` (a lista de vencidas é `w:tarefas:vencidas`).",
+      "card": {}
+    },
+    {
+      "name": "cartoesParaRecolher",
+      "path": "panelRegroup.ts",
+      "line": 62,
+      "module": "fn.painel",
+      "summary": "os cartões do layout que estão entre os 15 do §7, onde quer que estejam (pela fonte, não pelo id: o cartão posto de novo pelo catálogo também conta), na ordem das páginas.",
+      "card": {
+        "does": "os cartões do layout que estão entre os 15 do §7, onde quer que estejam (pela fonte, não pelo id: o cartão posto de novo pelo catálogo também conta), na ordem das páginas."
+      }
+    },
+    {
+      "name": "recolher",
+      "path": "panelRegroup.ts",
+      "line": 77,
+      "module": "fn.painel",
+      "summary": "o layout sem os cartões escolhidos (os da lista que o operador deixou marcados); as páginas ficam, mesmo vazias (apagar página é gesto dele).",
+      "card": {
+        "does": "o layout sem os cartões escolhidos (os da lista que o operador deixou marcados); as páginas ficam, mesmo vazias (apagar página é gesto dele).",
+        "errors": "id que não é da lista do §7 não sai (a função não recolhe cartão de outro tipo); sem nada escolhido, o mesmo layout."
+      }
+    },
+    {
+      "name": "faseDoCartao",
+      "path": "panelRegroup.ts",
+      "line": 143,
+      "module": "fn.painel",
+      "summary": "a fase de um cartão (a tabela, ou a regra de quando falta).",
+      "card": {
+        "does": "a fase de um cartão (a tabela, ou a regra de quando falta)."
+      }
+    },
+    {
+      "name": "rotuloDoCartao",
+      "path": "panelRegroup.ts",
+      "line": 150,
+      "module": "fn.painel",
+      "summary": "o nome do cartão como o catálogo o diz (o título dele, se tem; a lista de tarefas com o filtro).",
+      "card": {
+        "does": "o nome do cartão como o catálogo o diz (o título dele, se tem; a lista de tarefas com o filtro)."
+      }
+    },
+    {
+      "name": "agruparEmCinco",
+      "path": "panelRegroup.ts",
+      "line": 186,
+      "module": "fn.painel",
+      "summary": "o agrupamento das páginas em cinco (29/10), sem gravar: cada cartão vai para a página dele (a tabela `PAGINA`); o menu de Hoje, o Mapa e a Captura do Início vão para o catálogo, e os 15 que a Missão já mostra (§7), se ainda estão no layout, também, com o que ela mostra no lugar; o que a tabela não conhece fica na página dele, se é uma das cinco, ou vai para a Análise (o \"gerenciamento a mais\"); dentro de cada página, Olhada → Plano → Durante → Fechar, e na mesma fase a ordem de antes. As páginas que o operador criou ficam, depois das cinco.",
+      "card": {
+        "does": "o agrupamento das páginas em cinco (29/10), sem gravar: cada cartão vai para a página dele (a tabela `PAGINA`); o menu de Hoje, o Mapa e a Captura do Início vão para o catálogo, e os 15 que a Missão já mostra (§7), se ainda estão no layout, também, com o que ela mostra no lugar; o que a tabela não conhece fica na página dele, se é uma das cinco, ou vai para a Análise (o \"gerenciamento a mais\"); dentro de cada página, Olhada → Plano → Durante → Fechar, e na mesma fase a ordem de antes. As páginas que o operador criou ficam, depois das cinco.",
+        "io": "o layout → `Agrupamento` (o layout novo e a lista para conferir).",
+        "errors": "rodar de novo sobre o resultado não muda nada (`igual`); a Missão continua a primeira e a tela; a largura e a altura de cada cartão ficam; nenhum cartão novo nasce."
+      }
+    },
+    {
+      "name": "ProtocolTools.actions",
+      "path": "protocolActions.ts",
+      "line": 102,
+      "module": "liga.protocolos",
+      "summary": "Os gestos que os módulos usam (um objeto novo por desenho; o estado fica aqui).",
+      "card": {}
+    },
+    {
+      "name": "scriptCommand",
+      "path": "protocolJobs.ts",
+      "line": 24,
+      "module": "fn.protocolos",
+      "summary": "o comando fixo que roda um script do vault com o Python do usuário.",
+      "card": {
+        "does": "o comando fixo que roda um script do vault com o Python do usuário."
+      }
+    },
+    {
+      "name": "idleJob",
+      "path": "protocolJobs.ts",
+      "line": 28,
+      "module": "fn.protocolos",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "benchJob",
+      "path": "protocolJobs.ts",
+      "line": 39,
+      "module": "fn.protocolos",
+      "summary": "o estado da bancada a partir da saída do runner.",
+      "card": {
+        "does": "o estado da bancada a partir da saída do runner.",
+        "why": "exit 1 com juízes lidos é resultado (o que falhou), não erro de execução; só saída sem checagem nenhuma é \"não pôde ser lida\" (a regra do painel da Bancada).",
+        "io": "stdout, stderr e a mensagem do erro do processo → `ProtocolJobState`.",
+        "errors": "saída vazia ou irreconhecível nunca vira \"limpa\"."
+      }
+    },
+    {
+      "name": "mapJob",
+      "path": "protocolJobs.ts",
+      "line": 60,
+      "module": "fn.protocolos",
+      "summary": "o estado do gerador do mapa a partir da saída dele: a linha \"✅ …\" do script; sem ela (ou com erro), o que ele escreveu.",
+      "card": {
+        "does": "o estado do gerador do mapa a partir da saída dele: a linha \"✅ …\" do script; sem ela (ou com erro), o que ele escreveu."
+      }
+    },
+    {
+      "name": "faseKey",
+      "path": "protocolModel.ts",
+      "line": 37,
+      "module": "fn.protocolos",
+      "summary": "a fase de uso de uma definição; valor fora dos quatro vira `desconhecida`.",
+      "card": {
+        "does": "a fase de uso de uma definição; valor fora dos quatro vira `desconhecida`."
+      }
+    },
+    {
+      "name": "objetivoProblem",
+      "path": "protocolModel.ts",
+      "line": 47,
+      "module": "fn.protocolos",
+      "summary": "o problema do `objetivo`, ou `null` quando é uma linha de texto (a regra do juiz, `objetivo_problema`).",
+      "card": {
+        "does": "o problema do `objetivo`, ou `null` quando é uma linha de texto (a regra do juiz, `objetivo_problema`)."
+      }
+    },
+    {
+      "name": "protocolWarnings",
+      "path": "protocolModel.ts",
+      "line": 142,
+      "module": "fn.protocolos",
+      "summary": "os avisos baratos de um protocolo: becos nos menus dele, sem caminho no 🧭, fase desconhecida, objetivo inválido ou ausente, e `redirect`, `nextProtocol` e `versaoParalelaDe` para id que não existe.",
+      "card": {
+        "does": "os avisos baratos de um protocolo: becos nos menus dele, sem caminho no 🧭, fase desconhecida, objetivo inválido ou ausente, e `redirect`, `nextProtocol` e `versaoParalelaDe` para id que não existe.",
+        "why": "o painel aponta o que está quebrado antes da bancada completa.",
+        "io": "id, definição, todas as definições, os becos e se é órfão → avisos.",
+        "errors": "alias sem `objetivo` conta como coberto quando o destino tem (a regra do juiz); objetivo `null` ou número é inválido, não ausente."
+      }
+    },
+    {
+      "name": "buildProtocolPanel",
+      "path": "protocolModel.ts",
+      "line": 175,
+      "module": "fn.protocolos",
+      "summary": "o modelo inteiro da página a partir do catálogo do snapshot.",
+      "card": {
+        "does": "o modelo inteiro da página a partir do catálogo do snapshot.",
+        "why": "os sete módulos leem a mesma conta; um modelo único evita que a saúde e o catálogo discordem.",
+        "io": "`ProtocolCatalogInput` → `ProtocolPanelModel` (linhas por grupo e nome).",
+        "errors": "definição sem id fica de fora; sem modelo de pesos, as paradas ficam na ordem do JSON; uso `null` vira \"sem leitura\" em todas as linhas.",
+        "proof": "tests/board/protocolModel.test.ts."
+      }
+    },
+    {
+      "name": "hasWarning",
+      "path": "protocolModel.ts",
+      "line": 248,
+      "module": "fn.protocolos",
+      "summary": "a linha tem algum aviso que não é só informação.",
+      "card": {
+        "does": "a linha tem algum aviso que não é só informação."
+      }
+    },
+    {
+      "name": "filterRows",
+      "path": "protocolModel.ts",
+      "line": 257,
+      "module": "fn.protocolos",
+      "summary": "as linhas que passam no filtro (busca, fase, grupo e marca). Busca: nome, id, grupo e objetivo, sem acento e sem caixa. \"Sem uso\" deixa de fora os alias (rodam o destino, que conta o uso) e, sem leitura das Days, não devolve nada.",
+      "card": {
+        "does": "as linhas que passam no filtro (busca, fase, grupo e marca). Busca: nome, id, grupo e objetivo, sem acento e sem caixa. \"Sem uso\" deixa de fora os alias (rodam o destino, que conta o uso) e, sem leitura das Days, não devolve nada."
+      }
+    },
+    {
+      "name": "healthTiles",
+      "path": "protocolModel.ts",
+      "line": 293,
+      "module": "fn.protocolos",
+      "summary": "os números da saúde do catálogo, cada um com o filtro do catálogo que ele abre.",
+      "card": {
+        "does": "os números da saúde do catálogo, cada um com o filtro do catálogo que ele abre.",
+        "why": "a saúde é a porta do catálogo: o número leva às linhas que ele conta.",
+        "errors": "sem Day lida, \"sem uso em 14 dias\" diz \"sem leitura\", não 0."
+      }
+    },
+    {
+      "name": "usageModel",
+      "path": "protocolModel.ts",
+      "line": 343,
+      "module": "fn.protocolos",
+      "summary": "o uso das ferramentas nas duas janelas: as mais usadas (com uso) e as sem uso em 14 dias. Alias ficam de fora (o uso é do destino).",
+      "card": {
+        "does": "o uso das ferramentas nas duas janelas: as mais usadas (com uso) e as sem uso em 14 dias. Alias ficam de fora (o uso é do destino).",
+        "why": "contagem das ferramentas, não da pessoa: sem porcentagem, sem sequência."
+      }
+    },
+    {
+      "name": "parallelPairs",
+      "path": "protocolModel.ts",
+      "line": 373,
+      "module": "fn.protocolos",
+      "summary": "os pares de versões em paralelo (`versaoParalelaDe`), lado a lado.",
+      "card": {
+        "does": "os pares de versões em paralelo (`versaoParalelaDe`), lado a lado."
+      }
+    },
+    {
+      "name": "warningGroups",
+      "path": "protocolModel.ts",
+      "line": 384,
+      "module": "fn.protocolos",
+      "summary": "os avisos agrupados por tipo: os que pedem conserto primeiro, os informativos no fim.",
+      "card": {
+        "does": "os avisos agrupados por tipo: os que pedem conserto primeiro, os informativos no fim."
+      }
+    },
+    {
+      "name": "faseChoices",
+      "path": "protocolModel.ts",
+      "line": 397,
+      "module": "fn.protocolos",
+      "summary": "as fases que o menu oferece para um protocolo (as quatro conhecidas, menos a atual). A ordem é a do ciclo da ferramenta: nova → em uso → dominada → aposentada.",
+      "card": {
+        "does": "as fases que o menu oferece para um protocolo (as quatro conhecidas, menos a atual). A ordem é a do ciclo da ferramenta: nova → em uso → dominada → aposentada."
+      }
+    },
+    {
+      "name": "renderProtocolWidget",
+      "path": "protocolRender.ts",
+      "line": 541,
+      "module": "vista.quadro",
+      "summary": "desenha um módulo `protocolos-*` no `root` (já limpo e com `data-kind`). Sem o catálogo no snapshot (registro ainda não carregado), diz isso em palavras.",
+      "card": {
+        "does": "desenha um módulo `protocolos-*` no `root` (já limpo e com `data-kind`). Sem o catálogo no snapshot (registro ainda não carregado), diz isso em palavras."
+      }
+    },
+    {
+      "name": "redrawProtocolWidgets",
+      "path": "protocolRender.ts",
+      "line": 565,
+      "module": "vista.quadro",
+      "summary": "redesenha os módulos de protocolos já na tela (depois da bancada ou do mapa).",
+      "card": {
+        "does": "redesenha os módulos de protocolos já na tela (depois da bancada ou do mapa)."
+      }
+    },
+    {
+      "name": "buildGantt",
+      "path": "queryModel.ts",
+      "line": 70,
+      "module": "fn.quadro",
+      "summary": "Linha do tempo: cada tarefa com data vira barra do início (agendada, ou criada) ao prazo. A janela vai de 60 dias atrás a 90 à frente de hoje, no máximo — um projeto antigo não esmaga as barras de agora. Sem data nenhuma, a tarefa é contada como \"sem data\", não inventada.",
+      "card": {}
+    },
+    {
+      "name": "buildMatrix",
+      "path": "queryModel.ts",
+      "line": 101,
+      "module": "fn.quadro",
+      "summary": "A mesma regra da matriz canônica: só o que está na mesa; urgência = prioridade alta.",
+      "card": {}
+    },
+    {
+      "name": "projectsOf",
+      "path": "queryModel.ts",
+      "line": 132,
+      "module": "fn.quadro",
+      "summary": "Projetos reais de uma tarefa: os diretos e os da SMART mãe.",
+      "card": {}
+    },
+    {
+      "name": "evaluateQuery",
+      "path": "queryModel.ts",
+      "line": 189,
+      "module": "fn.quadro",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "routerEntries",
+      "path": "routerTreeModel.ts",
+      "line": 65,
+      "module": "fn.protocolos",
+      "summary": "os `dynamicNextProtocol` de uma definição como lista (objeto solto vira lista de um).",
+      "card": {
+        "does": "os `dynamicNextProtocol` de uma definição como lista (objeto solto vira lista de um)."
+      }
+    },
+    {
+      "name": "isRouterDef",
+      "path": "routerTreeModel.ts",
+      "line": 72,
+      "module": "fn.protocolos",
+      "summary": "o id é de um router de verdade (`router_*` sem `redirect`).",
+      "card": {
+        "does": "o id é de um router de verdade (`router_*` sem `redirect`)."
+      }
+    },
+    {
+      "name": "questionKey",
+      "path": "routerTreeModel.ts",
+      "line": 77,
+      "module": "fn.protocolos",
+      "summary": "a chave de uma pergunta.",
+      "card": {
+        "does": "a chave de uma pergunta."
+      }
+    },
+    {
+      "name": "resolveAlias",
+      "path": "routerTreeModel.ts",
+      "line": 95,
+      "module": "fn.protocolos",
+      "summary": "o destino real de um id: o alias que leva a router (ou a outro alias) vira o router, com as `redirectVariables` somadas (as do alias de fora vencem).",
+      "card": {
+        "does": "o destino real de um id: o alias que leva a router (ou a outro alias) vira o router, com as `redirectVariables` somadas (as do alias de fora vencem).",
+        "why": "é assim que o gerador do mapa resolve (`_resolve`), até 4 saltos."
+      }
+    },
+    {
+      "name": "entryStep",
+      "path": "routerTreeModel.ts",
+      "line": 111,
+      "module": "fn.protocolos",
+      "summary": "o passo em que o router abre: o primeiro `suggest` sem condição; com a resposta desse passo já dada (carry ou alias), o passo condicionado a essa resposta.",
+      "card": {
+        "does": "o passo em que o router abre: o primeiro `suggest` sem condição; com a resposta desse passo já dada (carry ou alias), o passo condicionado a essa resposta."
+      }
+    },
+    {
+      "name": "buildRouterGraph",
+      "path": "routerTreeModel.ts",
+      "line": 176,
+      "module": "fn.protocolos",
+      "summary": "as perguntas de todos os routers alcançadas a partir das raízes (o primeiro menu e cada router), com as opções na ordem do 🧭.",
+      "card": {
+        "does": "as perguntas de todos os routers alcançadas a partir das raízes (o primeiro menu e cada router), com as opções na ordem do 🧭.",
+        "why": "o mapa do painel mostra a mesma árvore do mapa gerado do 🧭, navegável.",
+        "io": "definições por id, (opcional) os pesos e o id do primeiro menu (o papel `perguntar_a_situacao` da tabela vigente; `null` = nenhum, todos em ordem de id) → `RouterGraph`.",
+        "errors": "ciclos (router que volta a outro) não repetem pergunta; router sem passo `suggest` não vira raiz.",
+        "proof": "tests/board/routerTreeModel.test.ts."
+      }
+    },
+    {
+      "name": "protocolEdges",
+      "path": "routerTreeModel.ts",
+      "line": 207,
+      "module": "fn.protocolos",
+      "summary": "os protocolos que este abre: os destinos do `dynamicNextProtocol`, o `nextProtocol` e o `redirect` (a mesma lista do juiz, `protocol_edges`).",
+      "card": {
+        "does": "os protocolos que este abre: os destinos do `dynamicNextProtocol`, o `nextProtocol` e o `redirect` (a mesma lista do juiz, `protocol_edges`)."
+      }
+    },
+    {
+      "name": "reachableFromCentral",
+      "path": "routerTreeModel.ts",
+      "line": 220,
+      "module": "fn.protocolos",
+      "summary": "os ids alcançáveis a partir do primeiro menu por qualquer caminho (o do juiz).",
+      "card": {
+        "does": "os ids alcançáveis a partir do primeiro menu por qualquer caminho (o do juiz).",
+        "io": "as definições e o id do primeiro menu (`null` = nenhum) → os ids alcançados."
+      }
+    },
+    {
+      "name": "openersOf",
+      "path": "routerTreeModel.ts",
+      "line": 233,
+      "module": "fn.protocolos",
+      "summary": "quem abre cada protocolo (o inverso de `protocolEdges`), em ordem de id.",
+      "card": {
+        "does": "quem abre cada protocolo (o inverso de `protocolEdges`), em ordem de id."
+      }
+    },
+    {
+      "name": "deadEnds",
+      "path": "routerTreeModel.ts",
+      "line": 251,
+      "module": "fn.protocolos",
+      "summary": "toda opção de `dynamicNextProtocol` (de qualquer protocolo) que aponta para id inexistente.",
+      "card": {
+        "does": "toda opção de `dynamicNextProtocol` (de qualquer protocolo) que aponta para id inexistente."
+      }
+    },
+    {
+      "name": "pathToProtocol",
+      "path": "routerTreeModel.ts",
+      "line": 269,
+      "module": "fn.protocolos",
+      "summary": "o caminho de perguntas, a partir de uma raiz, até a primeira pergunta com uma opção que abre o protocolo `id` (direto ou por um alias dele). `null` se nenhuma.",
+      "card": {
+        "does": "o caminho de perguntas, a partir de uma raiz, até a primeira pergunta com uma opção que abre o protocolo `id` (direto ou por um alias dele). `null` se nenhuma.",
+        "why": "\"mostrar no mapa\" abre a árvore até onde o protocolo aparece.",
+        "io": "o grafo, as definições e o id → chaves da raiz até a pergunta (inclusive)."
+      }
+    },
+    {
+      "name": "completionKind",
+      "path": "taskCompletion.ts",
+      "line": 38,
+      "module": "fn.conclusao",
+      "summary": "O `task.completed` do TaskNotes chega também quando a tarefa é cancelada (`cancelled` tem `isCompleted: true` no TaskNotes deste vault). Cancelar não é concluir: não pontua na gamificação, não marca o hábito do Comando, não fecha iniciativa e, no DFM Timeline da Day, vira só o registro neutro",
+      "card": {}
+    },
+    {
+      "name": "neutralRecordTarget",
+      "path": "taskCompletion.ts",
+      "line": 61,
+      "module": "fn.conclusao",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "neutralWeekLine",
+      "path": "taskCompletion.ts",
+      "line": 73,
+      "module": "fn.conclusao",
+      "summary": "A linha neutra na Week: data e hora (a Week cobre 7 dias), \"Tarefa cancelada\" e o link da tarefa como o DFM Timeline da Day o escreve.",
+      "card": {}
+    },
+    {
+      "name": "withWeekLogLine",
+      "path": "taskCompletion.ts",
+      "line": 93,
+      "module": "fn.conclusao",
+      "summary": "O texto da Week com a linha logo abaixo de `### 📅 Log` (o mais novo em cima, como nos links do motor); sem a seção, ela nasce no fim. A mesma linha duas vezes não entra (o evento pode chegar repetido).",
+      "card": {}
+    },
+    {
+      "name": "asksCompletionPlace",
+      "path": "taskCompletion.ts",
+      "line": 150,
+      "module": "fn.conclusao",
+      "summary": "a escolha pede a segunda linha (onde e quanto)? Só a dita depois.",
+      "card": {
+        "does": "a escolha pede a segunda linha (onde e quanto)? Só a dita depois."
+      }
+    },
+    {
+      "name": "withCompletionPlace",
+      "path": "taskCompletion.ts",
+      "line": 159,
+      "module": "fn.conclusao",
+      "summary": "junta à resposta o lugar e o tamanho confirmados. Só o vocabulário vale (um dos 6 contextos e um dos tamanhos da árvore do agora); fora dele, a resposta volta como estava (sem lugar), como no \"Pular\".",
+      "card": {
+        "does": "junta à resposta o lugar e o tamanho confirmados. Só o vocabulário vale (um dos 6 contextos e um dos tamanhos da árvore do agora); fora dele, a resposta volta como estava (sem lugar), como no \"Pular\"."
+      }
+    },
+    {
+      "name": "shiftDay",
+      "path": "taskCompletion.ts",
+      "line": 167,
+      "module": "fn.conclusao",
+      "summary": "o dia `n` dias depois (ou antes) de `AAAA-MM-DD`; texto inválido → vazio.",
+      "card": {
+        "does": "o dia `n` dias depois (ou antes) de `AAAA-MM-DD`; texto inválido → vazio."
+      }
+    },
+    {
+      "name": "isCalendarDay",
+      "path": "taskCompletion.ts",
+      "line": 176,
+      "module": "fn.conclusao",
+      "summary": "`AAAA-MM-DD` que existe no calendário (31/02 não).",
+      "card": {
+        "does": "`AAAA-MM-DD` que existe no calendário (31/02 não)."
+      }
+    },
+    {
+      "name": "parseClockTime",
+      "path": "taskCompletion.ts",
+      "line": 185,
+      "module": "fn.conclusao",
+      "summary": "a hora digitada → `HH:mm`. Aceita \"14\", \"14h\", \"14h30\", \"14:30\", \"9:05\".",
+      "card": {
+        "does": "a hora digitada → `HH:mm`. Aceita \"14\", \"14h\", \"14h30\", \"14:30\", \"9:05\".",
+        "errors": "fora de 00:00–23:59 ou outro formato → `null` (a pergunta não fecha)."
+      }
+    },
+    {
+      "name": "completionWhen",
+      "path": "taskCompletion.ts",
+      "line": 203,
+      "module": "fn.conclusao",
+      "summary": "a resposta da linha → o dia e a hora da conclusão. Entra: a escolha, agora (`AAAA-MM-DDTHH:mm`, hora local) e o que foi digitado (a hora no \"Mais cedo hoje\", o dia no \"Outro dia\"). Sai: `CompletionWhen`, ou `null` quando o digitado não serve (hora depois de agora, dia no futuro, texto que não é hora/dia). \"Ontem\" e \"Outro dia\" não pedem a hora: ela fica `null` (o \"Outro dia\" que cai em hoje vale como agora).",
+      "card": {
+        "does": "a resposta da linha → o dia e a hora da conclusão. Entra: a escolha, agora (`AAAA-MM-DDTHH:mm`, hora local) e o que foi digitado (a hora no \"Mais cedo hoje\", o dia no \"Outro dia\"). Sai: `CompletionWhen`, ou `null` quando o digitado não serve (hora depois de agora, dia no futuro, texto que não é hora/dia). \"Ontem\" e \"Outro dia\" não pedem a hora: ela fica `null` (o \"Outro dia\" que cai em hoje vale como agora).",
+        "proof": "tests/board/taskCompletion.test.ts (\"Quando terminou?\")."
+      }
+    },
+    {
+      "name": "whenFromCompletedDate",
+      "path": "taskCompletion.ts",
+      "line": 226,
+      "module": "fn.conclusao",
+      "summary": "a conclusão que já chegou com a data dita pelo TaskNotes (\"Complete on\" numa data escolhida, \"Completed on schedule/on due\"). Dia antes de hoje → a resposta (sem hora; não pergunta de novo); hoje, futuro ou vazio → `null` (pergunta).",
+      "card": {
+        "does": "a conclusão que já chegou com a data dita pelo TaskNotes (\"Complete on\" numa data escolhida, \"Completed on schedule/on due\"). Dia antes de hoje → a resposta (sem hora; não pergunta de novo); hoje, futuro ou vazio → `null` (pergunta)."
+      }
+    },
+    {
+      "name": "recurringInstanceDate",
+      "path": "taskCompletion.ts",
+      "line": 240,
+      "module": "fn.conclusao",
+      "summary": "o dia da instância concluída de uma tarefa recorrente, lido do evento `recurring.instance.completed` do TaskNotes 4.13. O evento não traz o dia: ele é a entrada nova de `complete_instances` (o `after` menos o `before`; a mais recente, se vierem várias). Aceita também `date`/`targetDate`/`data.date`, se o TaskNotes os mandar. Sem dia válido → `null` (nada a registrar).",
+      "card": {
+        "does": "o dia da instância concluída de uma tarefa recorrente, lido do evento `recurring.instance.completed` do TaskNotes 4.13. O evento não traz o dia: ele é a entrada nova de `complete_instances` (o `after` menos o `before`; a mais recente, se vierem várias). Aceita também `date`/`targetDate`/`data.date`, se o TaskNotes os mandar. Sem dia válido → `null` (nada a registrar)."
+      }
+    },
+    {
+      "name": "completionStamp",
+      "path": "taskCompletion.ts",
+      "line": 254,
+      "module": "fn.conclusao",
+      "summary": "o horário da conclusão (`AAAA-MM-DDTHH:mm`), ou `null` sem hora dita.",
+      "card": {
+        "does": "o horário da conclusão (`AAAA-MM-DDTHH:mm`), ou `null` sem hora dita."
+      }
+    },
+    {
+      "name": "completionLogTarget",
+      "path": "taskCompletion.ts",
+      "line": 264,
+      "module": "fn.conclusao",
+      "summary": "onde fica a linha da conclusão.",
+      "card": {
+        "does": "onde fica a linha da conclusão.",
+        "why": "concluir hoje continua criando a Day (decisões 12 e 27 de 16 e 18/10); a conclusão de outro dia vai para a Day daquele dia se ela existe, senão para a Week daquele dia, sem criar a Day (4.6); sem as duas, só o log interno."
+      }
+    },
+    {
+      "name": "completionWeekLine",
+      "path": "taskCompletion.ts",
+      "line": 270,
+      "module": "fn.conclusao",
+      "summary": "A linha da conclusão na Week (o dia, a hora se foi dita, e o link).",
+      "card": {}
+    },
+    {
+      "name": "markCompletionAnswer",
+      "path": "taskCompletion.ts",
+      "line": 281,
+      "module": "fn.conclusao",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "takeCompletionAnswer",
+      "path": "taskCompletion.ts",
+      "line": 286,
+      "module": "fn.conclusao",
+      "summary": "A resposta dada no quadro para esta conclusão (e consome a marca), ou `null`.",
+      "card": {}
+    },
+    {
+      "name": "completionRoute",
+      "path": "taskCompletion.ts",
+      "line": 330,
+      "module": "fn.conclusao",
+      "summary": "Decide o caminho de uma troca de status.",
+      "card": {}
+    },
+    {
+      "name": "withoutArchiveNotice",
+      "path": "taskCompletion.ts",
+      "line": 344,
+      "module": "fn.conclusao",
+      "summary": "O aviso de quando a tarefa encerra sem o TaskNotes (API ausente ou que recusou o pedido): ela fica com o status, mas não vai para o arquivo.",
+      "card": {}
+    },
+    {
+      "name": "isArchivedTask",
+      "path": "taskCompletion.ts",
+      "line": 356,
+      "module": "fn.conclusao",
+      "summary": "A tarefa está arquivada pelo TaskNotes? Tag `archived` (o `archiveTag` deste vault) ou a pasta `TaskNotes/Archive/` (`archiveFolder`).",
+      "card": {}
+    },
+    {
+      "name": "reopenRoute",
+      "path": "taskCompletion.ts",
+      "line": 372,
+      "module": "fn.conclusao",
+      "summary": "Reabrir uma tarefa concluída. Pela API v1 do TaskNotes, o status volta e a tarefa sai do arquivo (concluir arquiva, pelo `autoArchive` de `done`); trocar só o status deixaria a tarefa aberta dentro de `TaskNotes/Archive/`.",
+      "card": {}
+    },
+    {
+      "name": "statusWriter",
+      "path": "taskCompletion.ts",
+      "line": 385,
+      "module": "fn.conclusao",
+      "summary": "Qual método do `MissionBoard` recebe um status escolhido num menu (submenu DFM, menu de status do cartão): concluir e cancelar não passam por `updateTask`, que só grava o campo. Tirar uma tarefa feita ou cancelada (`current`) para um status aberto é reabrir (`reopenTask`: o TaskNotes desfaz a",
+      "card": {}
+    },
+    {
+      "name": "releaseOffer",
+      "path": "taskCompletion.ts",
+      "line": 406,
+      "module": "fn.conclusao",
+      "summary": "Concluir uma peça 📤 (`peca: soltar`) oferece registrar onde ela saiu — o link fica no registro do Bloco de Criação, que alimenta o \"no ar\" da semana.",
+      "card": {}
+    },
+    {
+      "name": "markCompletionNoticed",
+      "path": "taskCompletion.ts",
+      "line": 420,
+      "module": "fn.conclusao",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "takeCompletionNoticed",
+      "path": "taskCompletion.ts",
+      "line": 425,
+      "module": "fn.conclusao",
+      "summary": "`true` se o quadro já avisou desta conclusão (e consome a marca).",
+      "card": {}
+    },
+    {
+      "name": "isCompletionOnlyRecord",
+      "path": "taskCompletion.ts",
+      "line": 464,
+      "module": "fn.conclusao",
+      "summary": "o registro só de conclusão (deixado pelo \"Quando terminou?\", sem lugar nem tempo). Ele nasce com o início igual ao fim (`withCompletion`); um bloco de verdade sem lugar (o aberto pelo 🤝 do canvas antes de perguntar o lugar) tem início antes do fim e não é só conclusão.",
+      "card": {
+        "does": "o registro só de conclusão (deixado pelo \"Quando terminou?\", sem lugar nem tempo). Ele nasce com o início igual ao fim (`withCompletion`); um bloco de verdade sem lugar (o aberto pelo 🤝 do canvas antes de perguntar o lugar) tem início antes do fim e não é só conclusão."
+      }
+    },
+    {
+      "name": "needsNightPlace",
+      "path": "taskCompletion.ts",
+      "line": 472,
+      "module": "fn.conclusao",
+      "summary": "o registro de uma concluída que ainda não diz onde foi: o só de conclusão e o bloco real fechado sem lugar. A tela do 🌙 completa os dois.",
+      "card": {
+        "does": "o registro de uma concluída que ainda não diz onde foi: o só de conclusão e o bloco real fechado sem lugar. A tela do 🌙 completa os dois."
+      }
+    },
+    {
+      "name": "nightCandidates",
+      "path": "taskCompletion.ts",
+      "line": 486,
+      "module": "fn.conclusao",
+      "summary": "as concluídas de `day` sem lugar e tempo no registro. Entra: as tarefas (inclusive o arquivo), os registros do mês e a hora da última mudança de cada tarefa naquele dia (o provável da hora, quando o registro não a tem). Sai: os registros só de conclusão do dia (com a hora real) e as tarefas concluídas no dia que não têm registro nenhum dele, na ordem da hora.",
+      "card": {
+        "does": "as concluídas de `day` sem lugar e tempo no registro. Entra: as tarefas (inclusive o arquivo), os registros do mês e a hora da última mudança de cada tarefa naquele dia (o provável da hora, quando o registro não a tem). Sai: os registros só de conclusão do dia (com a hora real) e as tarefas concluídas no dia que não têm registro nenhum dele, na ordem da hora."
+      }
+    },
+    {
+      "name": "probableNightChoice",
+      "path": "taskCompletion.ts",
+      "line": 520,
+      "module": "fn.conclusao",
+      "summary": "o provável de cada concluída, já marcado. Lugar: o contexto da tarefa, se ela tem um só; entre vários, o último usado se está entre eles, senão o primeiro; sem contexto, o último usado (ou o primeiro da lista). Tempo: o menor bloco que cabe a estimativa (15 min, 30 min, 1 h, 2 h ou mais); sem estimativa, o último tamanho usado (ou 30 min).",
+      "card": {
+        "does": "o provável de cada concluída, já marcado. Lugar: o contexto da tarefa, se ela tem um só; entre vários, o último usado se está entre eles, senão o primeiro; sem contexto, o último usado (ou o primeiro da lista). Tempo: o menor bloco que cabe a estimativa (15 min, 30 min, 1 h, 2 h ou mais); sem estimativa, o último tamanho usado (ou 30 min)."
+      }
+    },
+    {
+      "name": "nightFallbackEnd",
+      "path": "taskCompletion.ts",
+      "line": 537,
+      "module": "fn.conclusao",
+      "summary": "o fim provável de uma concluída sem hora, no dia que o 🌙 está fechando. No mesmo dia, a hora da confirmação; depois da meia-noite (o 🌙 da Day de ontem), o fim daquele dia (23:59): a tarefa saiu antes de o dia virar. Sem dia válido, agora.",
+      "card": {
+        "does": "o fim provável de uma concluída sem hora, no dia que o 🌙 está fechando. No mesmo dia, a hora da confirmação; depois da meia-noite (o 🌙 da Day de ontem), o fim daquele dia (23:59): a tarefa saiu antes de o dia virar. Sem dia válido, agora."
+      }
+    },
+    {
+      "name": "confirmNightRecords",
+      "path": "taskCompletion.ts",
+      "line": 553,
+      "module": "fn.conclusao",
+      "summary": "grava as escolhas confirmadas no registro do mês. - O registro só de conclusão ganha o lugar, o tamanho e o início (o fim menos o tamanho), marcado \"estimado\". - O bloco real fechado sem lugar (início antes do fim) ganha só o lugar e o tamanho: o início e a medida dele são reais e ficam. - A concluída sem registro ganha um bloco novo, \"estimado\", com o fim na hora real (ou, sem ela, `nightFallbackEnd`). `day` é o dia que o 🌙 está fechando: a linha nova é desse dia, também depois da meia-noite. Entra → sai: registros e confirmações → registros (cópia).",
+      "card": {
+        "does": "grava as escolhas confirmadas no registro do mês. - O registro só de conclusão ganha o lugar, o tamanho e o início (o fim menos o tamanho), marcado \"estimado\". - O bloco real fechado sem lugar (início antes do fim) ganha só o lugar e o tamanho: o início e a medida dele são reais e ficam. - A concluída sem registro ganha um bloco novo, \"estimado\", com o fim na hora real (ou, sem ela, `nightFallbackEnd`). `day` é o dia que o 🌙 está fechando: a linha nova é desse dia, também depois da meia-noite. Entra → sai: registros e confirmações → registros (cópia)."
+      }
+    },
+    {
+      "name": "DateModal.onOpen",
+      "path": "taskMenus.ts",
+      "line": 49,
+      "module": "liga.canvas",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TaskMenus.register",
+      "path": "taskMenus.ts",
+      "line": 69,
+      "module": "liga.canvas",
+      "summary": "",
+      "card": {}
+    },
+    {
+      "name": "TaskMenus.openAt",
+      "path": "taskMenus.ts",
+      "line": 102,
+      "module": "liga.canvas",
+      "summary": "O menu DFM de tarefa num ponto da tela (cartão de tarefa). `only` abre direto um grupo.",
+      "card": {}
+    },
+    {
+      "name": "TriageModal.onOpen",
+      "path": "triageModal.ts",
+      "line": 28,
+      "module": "liga.painel",
+      "summary": "",
+      "card": {}
+    }
+  ]
+}

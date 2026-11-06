@@ -33,7 +33,7 @@ const tasks = dv.pages('"TaskNotes/Tasks"')
   .sort(t => t.scheduled ?? t.due ?? '9999', 'asc');
 
 if (!tasks.length) {
-  dv.paragraph('> [!info] Nenhuma task agendada, vencendo ou em andamento hoje.');
+  dv.el('div', '> [!info] Nenhuma task agendada, vencendo ou em andamento hoje.');
 } else {
   dv.table(
     ['Hora', 'TaskNotes', 'Status', 'Estimativa', 'Projeto'],

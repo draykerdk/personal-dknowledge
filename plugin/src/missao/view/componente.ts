@@ -66,6 +66,8 @@ import { el, botao, janela, lupa } from './dom';
 import { amostraEl, CORES_DE_RAMO } from './nos';
 import { DICAS_SO_DO_NOME, type Contexto, type DicasDaMissao } from './contrato';
 import { linhaAbertaEl, linhaFechadaEl } from './linhas';
+import { porDica } from './trilha';
+import { assinaturaDaTrilha } from '../trilha';
 import { acenderLinhagem, ligarCurvas, type SuperficieDasLigacoes } from './ligacoes';
 import { ligarArrasto } from './arrasto';
 import { ligarFerramentas, ligarInteracao, ligarRealce, previaDoLigar } from './interacao';
@@ -133,6 +135,11 @@ export interface EstadoDaMissao {
      * reaberta volta como estava.
      */
     expansao?: Record<string, Record<string, boolean>>;
+    /**
+     * O nó em que a Missão abre com o zoom (a pinça já dada, uma vez): o atalho do canvas de projeto (item 8 do
+     * roteiro, `atalhoDaMissao`). Não se guarda: a aba reaberta volta ao período, sem o zoom.
+     */
+    zoom?: string | null;
 }
 
 /** Um ramo que se escolhe (o id do arquivo, o título e, no seletor, o que ele é). */
@@ -158,7 +165,7 @@ interface EstadoDaGaveta {
     digitadas: Record<string, unknown>;
     criar: CriacoesPedidas;
     restoAberto: boolean;
-    /** O resto do 📨 já foi aberto uma vez (o Gravar não pede mais para conferir). */
+    /** O resto do 📅 já foi aberto uma vez (o Gravar não pede mais para conferir). */
     restoVisto: boolean;
     problemas: Record<string, string>;
     opcoes: Map<string, OpcoesDoPasso>;
@@ -243,6 +250,11 @@ export interface AdaptadorDaMissao {
     /** Avisa o lugar quando o estado muda (a aba guarda no workspace). */
     aoMudar?: (estado: EstadoDaMissao) => void;
     /**
+     * As dicas da primeira vez da trilha de uso (05/11/2026): as já vistas e o guardar de uma; sem elas, nenhuma
+     * dica aparece (o lugar que não guarda não repetiria a mesma dica a cada abertura).
+     */
+    dicasDaTrilha?: { vistas(): string[]; ver(id: string): void };
+    /**
      * As gravações (P6). Sem elas, a Missão é só leitura (o canvas até o P14, o celular até
      * o P15): nada de arrasto, alça, ligação que se escolhe nem campo que se edita.
      */
@@ -312,6 +324,8 @@ export interface PedidoDaNotaNova { protocolo: string; variaveis: Record<string,
 /** O que o lugar dá à gaveta do ciclo: o protocolo de um botão, com o apelido resolvido e as datas explícitas. */
 export interface GravarDoCiclo {
     abrir(protocolo: string, datas: DatasDaRodada, doBotao: Record<string, unknown>): Promise<ProtocoloDaGaveta | null>;
+    /** O protocolo que não cabe na gaveta e roda passo a passo (`soPassoAPasso`, 06/11: o passo `fila` do 🗣️). */
+    passoAPasso?(protocolo: string): boolean;
 }
 
 /** O que o lugar grava pelo Novo (`board.novo`, na mesma pilha do Desfazer). */
@@ -680,7 +694,7 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         nomeDoProtocolo: id => { try { return adaptador.nomeDoProtocolo?.(id) ?? null; } catch (e) { return null; } },
         protocoloDoPapel: idDoPapel,
         // O que se cria a partir de um nó, num lugar só (29/10): o do ramo e os filhos do tipo pelos modelos.
-        novos: podeCriar() ? (id: string) => (ramoPrincipal && modelo ? novosDoNo(ramoPrincipal, tiposAgora(), id, { dominio: modelo.dominioDoNo(id, { camposDaNota }), nome: nomeParaOLink(modelo, id), modelos: modelo.indice.tabelas.tipos ?? [] }) : []) : undefined,
+        novos: podeCriar() ? (id: string) => (ramoPrincipal && modelo ? novosDoNo(ramoPrincipal, tiposAgora(), id, { dominio: modelo.dominioDoNo(id, { camposDaNota }), nome: nomeParaOLink(modelo, id), modelos: modelo.indice.tabelas.tipos ?? [], aprendizado: !!modelo.aprendizadoDoProjeto?.(id) }) : []) : undefined,
         candidatos: campo => candidatosDoNovo(campo),
         ligacoesDaNota: caminho => { try { return adaptador.ligacoesDaNota?.(caminho) ?? null; } catch (e) { return null; } },
         novoDoType: podeCriar() ? (type: string) => { const t = tiposAgora().find(x => x.type === type); return t ? { dominio: t.dominio, titulo: t.titulo } : null; } : undefined,
@@ -797,6 +811,21 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
     }
 
     /** O que faz: desenha o que o estado de tela pede, trocando só o que mudou. */
+    /** As dicas da trilha desta abertura (05/11): as que já apareceram (seguem até o "Entendi") e as fechadas. */
+    const dicasDaAbertura = { mostradas: new Set<string>(), fechadas: new Set<string>() };
+    /**
+     * O que faz: a dica da primeira vez (a trilha de uso, 05/11): uma linha depois do primeiro botão da tela que
+     * ainda não teve a dica; ela vira vista no salvamento do lugar e não volta na próxima abertura.
+     */
+    function pintarDica(): void {
+        const dicas = modelo?.trilha?.dicas ?? [];
+        const lugar = adaptador.dicasDaTrilha;
+        if (!lugar || !dicas.length) return;
+        let vistas: string[] = [];
+        try { vistas = lugar.vistas(); } catch (e) { return; }
+        const posta = porDica(root, doc, dicas, vistas, dicasDaAbertura, modelo?.trilha?.dicaFechar ?? '');
+        if (posta && !vistas.includes(posta)) { try { lugar.ver(posta); } catch (e) { /* a dica fica só nesta abertura */ } }
+    }
     function pintar(): void {
         if (!modelo || !ramoPrincipal || destruido) return;
         // A escala mudou por outro caminho (a busca, ir até um nó): a navegação começa nela.
@@ -836,6 +865,7 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         if (gaveta) pintarGaveta(false, true);
         pintarTriagem();
         pintarProfundidade();
+        pintarDica();
         // Centrar aqui, logo depois do DOM: a medida sai do quadro de animação, e o passo só anima o `transform`.
         if (vp.clientHeight > 0) { centralizar(); centradoNaPintura = true; } else centradoNaPintura = false;
         pulsarSeVisivel();
@@ -894,7 +924,13 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
             const aberta = linhaAberta(tela, k);
             const foco = k === tela.foco;
             const dado = aberta ? modelo.linha(escala, k) : modelo.linhaFechada(escala, k);
-            const sig = `${aberta ? 'A' : 'F'}|${foco}|${plano.largo}|${ctx.gravar ? 'G' : 'L'}${ctx.arrastar ? 'D' : ''}${ctx.novos ? 'N' : ''}|${aberta ? JSON.stringify(expansao[EXPANSAO_DO_MAPA] ?? {}) : ''}|${JSON.stringify(dado)}`;
+            // A trilha (a acolhida e o gesto da semana) vem à parte no modelo: entra na assinatura da linha em foco,
+            // para desligar a acolhida nas Definições, ou passar da hora da tarde, mudar a linha aberta (06/11).
+            const daTrilha = aberta && foco ? assinaturaDaTrilha(modelo.trilha, k, ctx.relogio?.().hora) : '';
+            // Os botões do ciclo (▶️ e 🌙) dependem dos protocolos carregados, que chegam depois da primeira pintura
+            // ao abrir o Obsidian: sem eles na assinatura, a linha de hoje ficava sem o 🌙 até reabrir a Missão (06/11).
+            const doCiclo = aberta && foco ? (ctx.ciclos?.(escala, k) ?? []).map(c => c.protocolo).join(',') : '';
+            const sig = `${aberta ? 'A' : 'F'}|${foco}|${plano.largo}|${ctx.gravar ? 'G' : 'L'}${ctx.arrastar ? 'D' : ''}${ctx.novos ? 'N' : ''}|${aberta ? JSON.stringify(expansao[EXPANSAO_DO_MAPA] ?? {}) : ''}|${daTrilha}|${doCiclo}|${JSON.stringify(dado)}`;
             let item = linhaEls.get(chave);
             if (!item || item.sig !== sig) {
                 const novo = aberta ? linhaAbertaEl(ctx, dado as LinhaAberta, plano, foco) : linhaFechadaEl(ctx, dado as any, plano);
@@ -1202,11 +1238,34 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         if (!novo) dbody.scrollTop = top;
         if (ativoGoto) (dbody.querySelector(`[data-goto="${cssEsc(ativoGoto)}"], [data-open="${cssEsc(ativoGoto)}"], [data-act="${cssEsc(ativoGoto)}"]`) as HTMLElement | null)?.focus();
         abrirItemPedido();
+        abrirFeitoPedido();
     }
     /** O nó que abriu o painel: o foco volta para ele quando o painel fecha. */
     let voltarAoNo: string | null = null;
     /** O "+ Item" de um cartão: o nó cujo painel abre com a caixa do item novo (quando a checklist chegar). */
     let itemDepois: string | null = null;
+    /** O "＋ O que fiz" da acolhida (05/11): o dia cujo painel abre com o formulário aberto. */
+    let feitoDepois: string | null = null;
+    /**
+     * O painel do dia com o formulário do "＋ O que fiz" aberto: ele segue aberto quando o painel se redesenha (a
+     * percorrida de 06/11: na primeira abertura do dia, a reputação lida depois redesenhava o painel e o formulário
+     * que a acolhida abriu fechava sozinho).
+     */
+    let feitoAbertoEm: string | null = null;
+    /** O que faz: abre o formulário do "＋ O que fiz" no painel do dia que a acolhida pediu, quando ele já está lá. */
+    function abrirFeitoPedido(): void {
+        if (feitoAbertoEm && feitoAbertoEm === aberto && !feitoDepois) {
+            const f = dbody.querySelector('[data-form="feito"]') as HTMLElement | null;
+            if (f?.hidden) { f.hidden = false; dbody.querySelector('[data-act="feito-abrir"]')?.setAttribute('aria-expanded', 'true'); }
+            return;
+        }
+        if (!feitoDepois || feitoDepois !== aberto) return;
+        const b = dbody.querySelector('[data-act="feito-abrir"]') as HTMLElement | null;
+        const f = dbody.querySelector('[data-form="feito"]') as HTMLElement | null;
+        if (!b || !f) return;
+        feitoDepois = null;
+        if (f.hidden) acaoDoPainel('feito-abrir', b);
+    }
     /** O que faz: abre a caixa do item novo no painel do nó que o "+ Item" do cartão pediu, quando ela já está lá. */
     function abrirItemPedido(): void {
         if (!itemDepois || itemDepois !== aberto) return;
@@ -1934,6 +1993,8 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
             nome: gv.p?.nome ?? null, descricao: gv.p?.descricao ?? '', vista, passos: gv.p?.def?.steps ?? [], problemas: gv.problemas,
             comDestaque: gv.pedido.lideres.length > 0, restoAberto: gv.restoAberto, criar: gv.criar,
             contextos: (vocabularios()?.contextos ?? []).map(o => o.valor), falhou: gv.falhou,
+            // O protocolo de um nó (`abrirProtocoloDoNo`, o ciclo com `i: -1`) não é o do período: sem o plano dele.
+            doNo: gv.ciclo.i < 0,
         };
         const voltarCampo = ativo && dbody.contains(ativo) ? (ativo.getAttribute('data-gv') ?? null) : null;
         const voltarAct = ativo && dbody.contains(ativo) && !voltarCampo ? ativo.getAttribute('data-act') : null;
@@ -1955,7 +2016,8 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         const g = adaptador.gravar;
         if (!g || !modelo || !podeGravar()) return;
         const pedido = pedidoDoCiclo(c, modelo.hoje, idDoPapel);
-        if (!g.ciclo || !pedido) { g.protocolo?.(c.protocolo, c.valores); return; }
+        // O protocolo que se decide na hora (o passo `fila` do 🗣️, 06/11) roda passo a passo, como pelo hábito.
+        if (!g.ciclo || !pedido || g.ciclo.passoAPasso?.(c.protocolo)) { g.protocolo?.(c.protocolo, c.valores); return; }
         fecharPops();
         if (novo) { rascunhoDoNovo = rascunhoDe(novo); novo = null; novoPendente = false; }
         if (gaveta) guardarGaveta();
@@ -2905,6 +2967,8 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         if (!g || !modelo || !podeGravar()) return;
         const nome = alvo.getAttribute('data-campo-edit') ?? '';
         const nota = alvo.getAttribute('data-path') ?? '';
+        // O valor sugerido grava uma vez: pela mudança ou ao sair do campo, o que vier primeiro.
+        alvo.removeAttribute('data-sugerido');
         const fm = camposDaNota(nota) ?? {};
         const campo = modeloDaNota(nota, fm, modelo.indice.tabelas.tipos ?? [])?.campos.find(c => c.nome === nome);
         if (!campo) return;
@@ -3053,10 +3117,19 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
             }
             case 'desligar-escolhida': if (ligacaoEscolhida) desligarLigacao(ligacaoEscolhida); return true;
             case 'feito-abrir': {
+                // Da acolhida da trilha (05/11), fora do painel: abre o painel do dia, e o formulário quando ele chegar.
+                const doDia = act.getAttribute('data-dia');
+                if (!dbody.contains(act) && doDia) {
+                    feitoDepois = `d:${doDia}`;
+                    irPara(feitoDepois);
+                    abrirFeitoPedido();
+                    return true;
+                }
                 // "＋ O que fiz" (P9): abre o formulário curto no painel do dia.
                 const f = dbody.querySelector('[data-form="feito"]') as HTMLElement | null;
                 if (!f) return true;
                 f.hidden = !f.hidden;
+                feitoAbertoEm = f.hidden ? null : aberto;
                 act.setAttribute('aria-expanded', String(!f.hidden));
                 if (!f.hidden) (f.querySelector('[data-input="feito-titulo"]') as HTMLInputElement | null)?.focus();
                 return true;
@@ -3077,6 +3150,7 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
                     toast(r.texto);
                     for (const i of Array.from(form.querySelectorAll('input, select')) as HTMLInputElement[]) i.value = '';
                     form.hidden = true;
+                    feitoAbertoEm = null;
                 }).catch(e => { act.removeAttribute('disabled'); console.error('DFM Missão: o registro não gravou', e); toast(`Não registrou: ${(e as Error)?.message ?? e}`); });
                 return true;
             }
@@ -3116,6 +3190,13 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
                 f.hidden = !f.hidden;
                 act.setAttribute('aria-expanded', String(!f.hidden));
                 if (!f.hidden) (f.querySelector('[data-input="item-texto"]') as HTMLInputElement | null)?.focus();
+                return true;
+            }
+            case 'campo-gravar': {
+                // O "✓ Gravar estes" das caixas marcadas pela regra (os destinos, 06/11): grava a lista como está.
+                const nota = act.getAttribute('data-path') ?? '', nome = act.getAttribute('data-campo') ?? '';
+                const caixa = Array.from(dbody.querySelectorAll(`input[data-campo-edit="${cssEsc(nome)}"][data-lista]`)).find(i => i.getAttribute('data-path') === nota) as HTMLElement | undefined;
+                if (caixa) gravarCampo(caixa);
                 return true;
             }
             case 'adicionar': {
@@ -3167,8 +3248,12 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
             case 'protocolo-do-no': {
                 // A seção Protocolos (a peça 2b): o protocolo com o contexto do nó já respondido, pela gaveta (ou passo a passo).
                 const nid = act.getAttribute('data-id') ?? '';
-                const p = (protocolosDoNoAgora(nid) ?? [])[Number(act.getAttribute('data-i'))];
-                if (!p || p.id !== act.getAttribute('data-protocolo')) return true;
+                // Pelo índice e, se a lista mudou desde o desenho do botão (o painel que espera um campo), pelo id.
+                const lista = protocolosDoNoAgora(nid) ?? [];
+                const pid = act.getAttribute('data-protocolo');
+                const pelaPosicao = lista[Number(act.getAttribute('data-i'))];
+                const p = pelaPosicao?.id === pid ? pelaPosicao : lista.find(x => x.id === pid);
+                if (!p) return true;
                 abrirProtocoloDoNo(nid, p);
                 return true;
             }
@@ -3424,6 +3509,7 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         doc, root, app, track, tri, map, vp, linkLine, linkPath, dropTip, superficies,
         ligar: (de, para) => interacao.ligar(de, para),
         previaDoLigar: (de, para) => previaDoLigar(ligacoesEntre(de, para), tituloDoNo(de), tituloDoNo(para)),
+        soltarLiga: (de, para) => { const r = ligacoesEntre(de, para); return r && 'opcoes' in r && r.opcoes.length ? previaDoLigar(r, tituloDoNo(de), tituloDoNo(para)) : null; },
         modelo: () => modelo, escala: () => tela.escala, destruido: () => destruido, podeArrastar, agora, raf, andar, on, itemDaTriagem,
         soltarIdeia: (item, smart) => {
             const t = adaptador.gravar?.triagem;
@@ -3457,16 +3543,38 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         else if (gaveta && t?.hasAttribute?.('data-gv') && !t.hasAttribute('data-gv-lista')) anotarGaveta(t);
         else if (novo && t?.hasAttribute?.('data-gv') && !t.hasAttribute('data-gv-lista')) anotarDoDono(t);
     });
-    on(dbody, 'focusout', () => {
+    on(dbody, 'focusout', (ev: Event) => {
+        // O campo que abriu com o valor sugerido pela regra (os destinos, 05/11) grava ao sair, mesmo sem mudança.
+        const saiu = ev.target as HTMLElement | null;
+        if (saiu?.hasAttribute?.('data-sugerido') && saiu.getAttribute('data-campo-edit') && dbody.contains(saiu)) gravarCampo(saiu);
         if (!painelPendente && !novoPendente && !gavetaPendente) return;
         win.setTimeout(() => {
-            const ativo = doc.activeElement as HTMLElement | null;
-            const digitando = ativo && dbody.contains(ativo) && /^(input|select|textarea)$/i.test(ativo.tagName);
-            if (painelPendente && !digitando) pintarPainel(false);
-            if (novoPendente && !digitando) pintarNovo(false, true);
-            if (gavetaPendente && !digitando) pintarGaveta(false, true);
+            const repintar = () => {
+                const ativo = doc.activeElement as HTMLElement | null;
+                const digitando = ativo && dbody.contains(ativo) && /^(input|select|textarea)$/i.test(ativo.tagName);
+                if (painelPendente && !digitando) pintarPainel(false);
+                if (novoPendente && !digitando) pintarNovo(false, true);
+                if (gavetaPendente && !digitando) pintarGaveta(false, true);
+            };
+            // O foco saiu do campo por um clique num botão do painel: o painel espera o clique acabar. Redesenhado
+            // entre o apertar e o soltar, o botão apertado saía da tela e o clique se perdia (a percorrida de 06/11:
+            // o 📹 da peça, logo depois de um campo, não abria na primeira vez).
+            if (apertandoNoPainel) depoisDoClique = repintar; else repintar();
         }, 0);
     });
+    /** O botão apertado no painel, até soltar; e o redesenho que espera o clique acabar. */
+    let apertandoNoPainel = false;
+    let depoisDoClique: (() => void) | null = null;
+    on(dbody, 'pointerdown', () => { apertandoNoPainel = true; });
+    const soltou = () => {
+        apertandoNoPainel = false;
+        const f = depoisDoClique;
+        depoisDoClique = null;
+        // Depois do clique (que vem no mesmo passo do soltar): o botão faz o que faz, e o painel se redesenha.
+        if (f) win.setTimeout(f, 0);
+    };
+    on(root, 'pointerup', soltou);
+    on(root, 'pointercancel', soltou);
 
     on(tri, 'focusout', () => {
         if (!triPendente) return;
@@ -3558,6 +3666,9 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
         }
         const act = t.closest('[data-act]');
         const a = act?.getAttribute('data-act');
+        // A trilha de uso (05/11): o link do guia do gesto da semana e o "Entendi" da dica da primeira vez.
+        if (a === 'trl-guia') { const g = act!.getAttribute('data-guia'); if (g) adaptador.abrirNota(g); return; }
+        if (a === 'trl-dica-ok') { dicasDaAbertura.fechadas.add(act!.getAttribute('data-dica') ?? ''); act!.closest('.trl-dica')?.remove(); pintarDica(); return; }
         if (a === 'close') { fecharPainel(); return; }
         if (a === 'voltar') { voltar(); return; }
         if (a === 'trilha') { voltar(Number(act!.getAttribute('data-i'))); return; }
@@ -3998,6 +4109,11 @@ export function montarMissao(adaptador: AdaptadorDaMissao, deps: DependenciasDaM
     }
     // G7: os ramos se leem ao montar (o seletor fica sempre à vista, sem abrir o ⋯).
     if (adaptador.ramosPrincipais) void adaptador.ramosPrincipais().then(ls => { if (destruido) return; ramosParaEscolher = ls; pintarSeletor(); if (!menu.hidden) pintarMenu(); }).catch(e => console.warn('DFM Missão: os ramos não se listaram', e));
-    void carregar().then(() => { if (aberto && modelo) abrirPainel(aberto, false); });
+    void carregar().then(() => {
+        if (aberto && modelo) abrirPainel(aberto, false);
+        // O atalho do canvas de projeto (item 8): o zoom no nó, pelo mesmo passo da pinça e do `+`; o nó que a
+        // Missão não conhece fica só escolhido (o passo sem alvo abriria outra escala).
+        if (typeof ini.zoom === 'string' && ini.zoom && modelo && ramoDe(ini.zoom)) passoDeNivel(APROXIMA, ini.zoom, null);
+    });
     return montada;
 }

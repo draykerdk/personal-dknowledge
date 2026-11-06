@@ -21,6 +21,18 @@
 
 export const MANAGED_PREFIXES = ['dfm-pc-', 'dfm-q'] as const;
 
+/**
+ * O que faz: diz se um id é da zona gerida (`dfm-pc-` do canvas de projeto, `dfm-q` do trimestre).
+ * Por quê: o formatador, a zona, o plano do canvas de projeto e as setas decidem o dono do nó por esta
+ * regra só (a cópia `isManaged` do `projectCanvasModel`, só com o `dfm-pc-`, saiu em 05/11). Nada grava
+ * o `dfm-q` desde que o canvas do trimestre se aposentou (03/11), e as setas não leem mais a célula da
+ * semana nem o bloco do dia (06/11). Ele ainda guarda os três canvas do Arquivo (`2026-Q4`, `2026-W42`,
+ * `2026-W44`): sem ele, abrir um deles faria o formatador recolorir e redimensionar os nós de tarefa,
+ * regravar o canvas e gravar `relacoes: [[2026-Q4]]` nas tarefas (`canvasFormatter.formatNode`,
+ * `canvasRelationsAllowed`), e a sincronização reversa voltaria a rodar neles (`canvasEngine`).
+ * Erro e ataque: o que não é texto não é gerido.
+ * Prova: tests/canvas/managedIds.test.ts.
+ */
 export function isManagedId(id: unknown): boolean {
     return typeof id === 'string' && MANAGED_PREFIXES.some(prefix => id.startsWith(prefix));
 }

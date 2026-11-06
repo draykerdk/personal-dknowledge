@@ -1,6 +1,6 @@
 # The Personal Dknowledge
 
-> **Versão 2.8.0, experimental e ainda muito inicial.** É um primeiro retrato do que o sistema vai ser: funciona, mas muda bastante de uma versão para outra, e nada aqui é estável ainda. O código nasceu num cofre pessoal e é separado dele peça por peça; só entra aqui o que passa pela guarda de vazamento.
+> **Versão 2.9.0, experimental e ainda muito inicial.** É um primeiro retrato do que o sistema vai ser: funciona, mas muda bastante de uma versão para outra, e nada aqui é estável ainda. O código nasceu num cofre pessoal e é separado dele peça por peça; só entra aqui o que passa pela guarda de vazamento.
 
 ## O que é
 
@@ -15,6 +15,14 @@ Esta versão traz:
 - **as definições do sistema na aba de configurações do plugin**: os seus valores, as suas áreas, o foco do trimestre, os pesos, o vocabulário e os nomes. O código lê de lá, e nada disso vem escrito no código;
 - **um protocolo de inicialização**, que pergunta essas definições na primeira vez e monta o cofre vazio;
 - **três protocolos curtos e genéricos do ciclo**: 🌳 planejar a semana, 📅 revisar a semana e 🧭 planejar o trimestre. Um botão do ciclo só aparece quando o protocolo dele existe no cofre.
+- **a trilha de uso**: a Missão recebe quem chega à tarde com "o que você fez hoje?", mostra o gesto da semana e a dica da primeira vez de cada botão; os textos ficam em `Config/trilha.json` e o que liga, nas definições;
+- **o fluxo SMART no motor**: a ação criada numa SMART herda a semana e o impacto dela, a tarefa escolhida de outro dia passa para hoje com a hora, e a tarefa concluída pode abrir o próximo passo na SMART (os botões do dia que usam isso chegam com os protocolos do dia, que o pacote ainda não traz);
+- **a Criação com campanha**: cada canal e cada frente contam as peças da semana; a peça ganha os destinos (os perfis do canal, pela regra de cada formato), o link da campanha e o estado `aprovado`; o 📅 confere o publicado da semana; e o 🎥 Para gravar hoje põe na Day a peça pronta e a fala do teleprompter;
+- **os ramos com direção**: cada coluna vazia diz o próximo passo, e o projeto leva ao ramo Criação e volta;
+- **o criador único de tarefa**: toda tarefa nasce pela mesma forma, venha do Novo, de um protocolo ou do formulário do TaskNotes aberto pelo Novo;
+- **a conferência da pesquisa**: a tarefa com a tag `pesquisa` recebe a lista de verificação (🔎 Conferir uma pesquisa), item por item, como nós do ramo dela;
+- **o módulo de aprendizado**: os tipos `cartao` (uma frase por nota, em quatro camadas) e `peca_logica` (o "como funciona" da língua), com os moldes, os níveis e a trilha; o 🗣️ Inglês de hoje traz a fila do dia pela repetição espaçada, o 🗣️ Frase nova e o 🧩 Construir uma ideia criam cartões. A língua, a pasta do módulo e os números da escada são seus;
+- **os mapas com guarda** das sete pastas do plugin (`dfm.json` em cada uma), conferidos contra os imports reais.
 
 O que fica de fora por enquanto: o agente do celular e os pacotes de protocolo (ver [CONTRIBUTING.md](CONTRIBUTING.md)).
 

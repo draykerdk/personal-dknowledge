@@ -882,6 +882,20 @@
     margin-bottom: 12px;
 }
 
+/* O áudio do cofre no cabeçalho do passo (06/11, os áudios dos cartões): o texto e o player na mesma linha. */
+.dfm-step-audio {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    white-space: normal;
+}
+
+.dfm-step-audio audio {
+    height: 32px;
+    max-width: 100%;
+}
+
 .dfm-suggester-header {
     padding: 12px 16px 4px;
     border-bottom: 1px solid var(--background-modifier-border);
@@ -3855,6 +3869,8 @@ button.dfm-bw-cell:focus-visible { outline: 2px solid var(--bw-accent); outline-
 .dfm-bw-pr-btn:hover { background: var(--interactive-hover); }
 .dfm-bw-pr-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .dfm-bw-pr-btn.is-active { background: var(--interactive-accent); color: var(--text-on-accent); }
+/* O atalho da Missão no canvas (o bloco `tipo: missao`, item 8 do roteiro). */
+.dfm-bw-missao-abrir { margin: 8px 0 2px; }
 .dfm-bw-pr-tiles { margin-bottom: 6px; }
 .dfm-bw-pr-tile {
     all: unset;
@@ -4528,6 +4544,8 @@ button.dfm-tc-chip:hover { background: color-mix(in srgb, var(--tone, var(--text
 .dfm-missao .tri .kind { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); display: flex; gap: 6px; align-items: center; }
 .dfm-missao .tri .kind .ic svg { width: 11px; height: 11px; }
 .dfm-missao .tri-titulo { text-align: left; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); border-radius: var(--radius-s); padding: 8px 10px; font: 600 15px/1.3 var(--font-interface); color: var(--text-normal); overflow-wrap: anywhere; }
+/* O título longo quebra a linha (06/11: a regra geral do .tt é uma linha só, e o título saía cortado dos dois lados). */
+.dfm-missao .tri-titulo .tt { white-space: normal; }
 .dfm-missao .tri-titulo[data-drag] { cursor: grab; touch-action: none; }
 .dfm-missao .tri-titulo.ghosted { opacity: .4; }
 .dfm-missao .tri-fato { margin: 0; font-size: 12px; color: var(--text-muted); }
@@ -4907,6 +4925,8 @@ button.dfm-tc-chip:hover { background: color-mix(in srgb, var(--tone, var(--text
 .dfm-missao .fval > .btn,
 .dfm-missao .fval > .cyc { align-self: flex-start; }
 .dfm-missao .fval .forigem { font-size: 11px; line-height: 1.3; color: var(--text-faint); overflow-wrap: break-word; }
+/* 06/11: as caixas dos destinos marcadas pela regra do canal: o porquê e o ✓ Gravar estes na mesma linha. */
+.dfm-missao .fval .marcas-regra { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .dfm-missao .fval .btn-s { padding: 2px 8px; font-size: 11.5px; }
 .dfm-missao .ro.links { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .dfm-missao .ro.links .sep { color: var(--text-faint); }
@@ -5040,6 +5060,25 @@ button.dfm-tc-chip:hover { background: color-mix(in srgb, var(--tone, var(--text
 .dfm-missao .hab.on { opacity: 1; border-color: var(--background-modifier-border-hover); }
 .dfm-missao .hab .num { font-size: 10.5px; color: var(--text-muted); }
 .dfm-missao .hab:hover { opacity: 1; }
+/* A trilha de uso (05/11/2026): a acolhida de quem chega à tarde ou à noite, o gesto da semana e a dica da primeira vez. */
+.dfm-missao .trl-acolhida,
+.dfm-missao .trl-gesto { margin-top: 6px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); border-radius: var(--radius-m); padding: 6px 8px; text-align: left; max-width: 100%; box-sizing: border-box; }
+.dfm-missao .trl-acolhida { border-color: var(--interactive-accent); }
+.dfm-missao .trl-titulo { margin: 0 0 2px; font-weight: 600; font-size: 12.5px; color: var(--text-normal); }
+.dfm-missao .trl-texto { margin: 2px 0; font-size: 11.5px; color: var(--text-normal); }
+.dfm-missao .trl-nota { margin: 2px 0; font-size: 11px; color: var(--text-muted); }
+.dfm-missao .trl-conta { margin: 0 0 2px; font-size: 11px; color: var(--text-muted); }
+.dfm-missao .trl-rotulo { display: block; font-size: 10.5px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.dfm-missao .trl-acts { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin: 4px 0; }
+.dfm-missao .trl-acts .cycle { justify-content: flex-start; }
+.dfm-missao .trl-feito { color: var(--text-normal); }
+.dfm-missao .trl-passados { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; margin-top: 4px; }
+.dfm-missao .trl-passados .trl-rotulo { width: 100%; margin-bottom: 0; }
+.dfm-missao .trl-dia { border: 1px dashed var(--background-modifier-border-hover); background: var(--background-primary); border-radius: var(--radius-s); padding: 1px 6px; font-size: 11px; color: var(--text-muted); }
+.dfm-missao .trl-dia:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
+.dfm-missao .trl-guia { margin-top: 3px; border: none; background: none; padding: 0; font-size: 11px; color: var(--text-accent); cursor: pointer; text-decoration: underline; }
+.dfm-missao .trl-dica { flex-basis: 100%; margin: 3px 0; padding: 3px 6px; border-left: 2px solid var(--interactive-accent); background: var(--background-secondary); font-size: 11px; color: var(--text-muted); text-align: left; white-space: normal; }
+.dfm-missao .trl-dica-ok { margin-left: 6px; border: 1px solid var(--background-modifier-border); background: var(--background-primary); border-radius: var(--radius-s); padding: 0 6px; font-size: 10.5px; color: var(--text-muted); }
 .dfm-missao .period .cap { font-size: 11px; color: var(--text-muted); }
 .dfm-missao .period .cap.over { color: var(--text-normal); }
 .dfm-missao .period .cap.over::before { content: "● "; color: var(--color-orange); font-size: 8px; vertical-align: 1px; }
@@ -5447,6 +5486,10 @@ button.dfm-tc-chip:hover { background: color-mix(in srgb, var(--tone, var(--text
 }
 .dfm-missao .gv-par { display: flex; flex-direction: column; gap: 14px; }
 .dfm-missao .gv-info { margin: 0; font-size: 11.5px; color: var(--text-muted); white-space: pre-line; }
+/* 06/11: a descrição do protocolo recolhida depois da primeira frase, e o que o nó já respondeu. */
+.dfm-missao .gv-mais > summary { cursor: pointer; font-size: 11.5px; color: var(--text-faint); padding: 2px 0; }
+.dfm-missao .gv-mais[open] > summary { color: var(--text-muted); }
+.dfm-missao .gv-do-no { margin: 0; font-size: 12px; color: var(--text-muted); }
 .dfm-missao .nv-dono { border-top: 1px solid var(--background-modifier-border); padding-top: 10px; }
 
 /* P10c: o frontmatter da nota sem modelo, recolhido e só para ler. */

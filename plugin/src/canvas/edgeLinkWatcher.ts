@@ -130,13 +130,11 @@ export class EdgeLinkWatcher {
 
     /** Junta o que cada gerente sabe do canvas deste caminho. */
     async scope(path: string): Promise<ManagedScope> {
-        const out: Required<ManagedScope> = { blockWeeks: {}, projectsByHash: {}, projectsByFile: {}, projectNodes: {} };
+        const out: Required<ManagedScope> = { projectsByFile: {}, projectNodes: {} };
         for (const resolve of this.resolvers) {
             try {
                 const s = await resolve(path);
                 if (!s) continue;
-                Object.assign(out.blockWeeks, s.blockWeeks ?? {});
-                Object.assign(out.projectsByHash, s.projectsByHash ?? {});
                 Object.assign(out.projectsByFile, s.projectsByFile ?? {});
                 Object.assign(out.projectNodes, s.projectNodes ?? {});
             } catch (error) {
@@ -197,6 +195,11 @@ export class EdgeLinkWatcher {
         this.base.set(path, clone(data));
     }
 
+    /**
+     * O que faz: diz se o canvas já tem o estado aceito (a base) contra o qual o gesto se compara.
+     * Por quê: sem base não há com que comparar; o primeiro estado visto vira a base, não um gesto.
+     * Prova: tests/canvas/edgeLinkWatcher.test.ts.
+     */
     hasBaseline(path: string): boolean {
         return this.base.has(path);
     }
@@ -210,6 +213,11 @@ export class EdgeLinkWatcher {
         this.arm(path, view, history);
     }
 
+    /**
+     * O que faz: diz se há uma comparação marcada ou rodando para o canvas.
+     * Por quê: quem sincroniza a zona espera o gesto em curso, para não gravar por cima dele.
+     * Prova: tests/canvas/edgeLinkWatcher.test.ts.
+     */
     hasPending(path: string): boolean {
         return this.pending.has(path) || this.running.has(path);
     }

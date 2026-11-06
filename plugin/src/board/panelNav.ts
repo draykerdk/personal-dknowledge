@@ -121,8 +121,8 @@ export function departmentsInFocus<D extends { name: string }>(departments: read
 /**
  * O que faz: onde procurar a nota-índice de um projeto ou departamento, em ordem: o
  * índice conhecido, `<Nome>.md` e, por último, `README.md`.
- * Por quê: a mesma ordem do canvas (`projectCanvasManager.departmentIndex`). A DLT
- * Academy tem os dois, e o README.md é o do repositório, sem frontmatter: lido antes,
+ * Por quê: a mesma ordem do canvas (`projectCanvasManager.departmentIndex`). Um departamento
+ * pode ter os dois, e o README.md pode ser o de um repositório, sem frontmatter: lido antes,
  * um departamento com nota própria que aponta uma central sumiria debaixo dela no painel.
  */
 export function indexCandidates(folder: string, name: string, index?: string | null): string[] {

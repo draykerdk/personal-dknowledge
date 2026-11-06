@@ -111,8 +111,10 @@ function logLines(text: string): string[] {
  *   "interrompido (rascunho)" não conta;
  * - a linha com a marca do id (`<!-- dfm-protocolo:<id> -->`, desde 02/11) conta pelo id, e não pelo
  *   rótulo: trocar o nome não apaga o uso, e o rótulo igual de outro protocolo não conta aqui;
- * - alias: o uso do destino (`resolveDef`).
- * Erro e ataque: definição ausente, Day sem texto, rótulo com caracteres de regex.
+ * - alias: o uso do destino (`resolveDef`);
+ * - `rotulosAntigos`: os nomes que o protocolo já teve contam como o de hoje, nas linhas sem a marca do id
+ *   (o 🌳 Planejamento Semanal se chamava 📅 até 05/11; D6 do diagnóstico do fluxo SMART).
+ * Erro e ataque: definição ausente, Day sem texto, rótulo com caracteres de regex; rótulo antigo que não é texto sai.
  */
 export function usoDatas(def: any, days: DayRead[], resolveDef: (id: string) => any = () => null, depth = 0): string[] {
     if (!def || typeof def !== 'object') return [];
@@ -128,8 +130,10 @@ export function usoDatas(def: any, days: DayRead[], resolveDef: (id: string) => 
     const id = String(def.id || '');
     // A marca do id: deste protocolo, ou de um alias que aponta para ele.
     const ehDeste = (marca: string) => marca === id || resolveDef(marca)?.redirect === id;
-    const executed = label ? new RegExp(`Protocolo ${escapeRegex(label)} executado`) : null;
-    const section = label && def.logMode === 'append' ? new RegExp(`^\\s*(-\\s*)?\\*\\*\\[\\d{1,2}:\\d{2}\\] ${escapeRegex(label)}\\*\\*\\s*$`) : null;
+    const rotulos = [label, ...(Array.isArray(def.rotulosAntigos) ? def.rotulosAntigos : [])]
+        .filter((r: unknown): r is string => typeof r === 'string' && r.trim() !== '').map(r => escapeRegex(r.trim()));
+    const executed = rotulos.length ? new RegExp(`Protocolo (?:${rotulos.join('|')}) executado`) : null;
+    const section = rotulos.length && def.logMode === 'append' ? new RegExp(`^\\s*(-\\s*)?\\*\\*\\[\\d{1,2}:\\d{2}\\] (?:${rotulos.join('|')})\\*\\*\\s*$`) : null;
     const execucao = /Protocolo .+ executado|^\s*(-\s*)?\*\*\[\d{1,2}:\d{2}\] .+\*\*/;
     const dates: string[] = [];
     for (const day of days || []) {

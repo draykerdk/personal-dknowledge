@@ -18,9 +18,10 @@ import { fieldNumber } from '../engine/choose';
 import { fold, linkTarget } from '../project/projectCanvasModel';
 import type { DetalheDoNo, Passagem, Ligacao, MissaoNo, Trecho } from './tipos';
 import type { NotaComCampos } from './entrada';
-import { dataDoCampo, reais, semEmojiInicial, textoDoCampo } from './formatos';
-import { diaComAno, diaDaSemana, diaMes } from './tempo';
+import { dataDoCampo, ehDia, reais, semEmojiInicial, textoDoCampo } from './formatos';
+import { addDays, diaComAno, diaDaSemana, diaMes } from './tempo';
 import { FRASES } from './frases';
+import { showGrammar, timeHorizon } from '../engine/showGrammar';
 import type { ColecaoDoRamo, FonteDaColecao, OrdemDaColecao } from './ramoPrincipal';
 
 /** A chave de uma fonte (o protocolo, o modelo ou a casa dita direto, e o tipo), a mesma do leitor. */
@@ -54,6 +55,8 @@ export interface IndiceDasColecoes {
     notas: NotaDaColecao[];
     /** As notas de cada coleção de vínculo, pelo nome (dobrado), para achar o alvo do link. */
     alvos: Map<string, Map<string, NotaDaColecao>>;
+    /** A nota que o modelo do tipo dela dá por feita (a peça publicada, 05/11), para a contagem das coleções com `conta`. */
+    feita: (nota: NotaComCampos) => boolean;
 }
 
 /** O que faz: o título de uma nota pela fonte (o campo, ou o nome do arquivo). */
@@ -113,7 +116,7 @@ const preenchido = (v: string) => v.replace(/[\[\]"'\s]/g, '') !== '';
  * vale só o primeiro dia.
  * Prova: tests/missao/colecoes.test.ts ("no tempo").
  */
-export function indiceDasColecoes(colecoes: readonly ColecaoDoRamo[], notasPorFonte: Readonly<Record<string, readonly NotaComCampos[]>>, passagens: readonly Passagem[], hoje: string, conhecidos: ReadonlyMap<string, MissaoNo> = new Map()): IndiceDasColecoes {
+export function indiceDasColecoes(colecoes: readonly ColecaoDoRamo[], notasPorFonte: Readonly<Record<string, readonly NotaComCampos[]>>, passagens: readonly Passagem[], hoje: string, conhecidos: ReadonlyMap<string, MissaoNo> = new Map(), feita: (nota: NotaComCampos) => boolean = () => false): IndiceDasColecoes {
     const notas: NotaDaColecao[] = [];
     const alvos = new Map<string, Map<string, NotaDaColecao>>();
     for (const c of colecoes) {
@@ -156,7 +159,7 @@ export function indiceDasColecoes(colecoes: readonly ColecaoDoRamo[], notasPorFo
             if (alvo) n.spans.push(...alvo.spans);
         }
     }
-    return { colecoes: [...colecoes], notas: semAsUsadas(notas), alvos };
+    return { colecoes: [...colecoes], notas: semAsUsadas(notas), alvos, feita };
 }
 
 /**
@@ -244,9 +247,68 @@ export function colecoesDaLinha(ix: IndiceDasColecoes, de: string, ate: string, 
                 ligacoes.push({ de: no.id, para: origem.no.id, tipo: 'estrutura' });
             }
         }
-        nos[c.id] = out;
+        const contadas = c.conta ? c.conta.colecoes.flatMap(k => naLinha.get(k) ?? []) : [];
+        nos[c.id] = c.conta ? out.map(no => comAContagem(ix, c, no, contadas, de, ate)) : out;
     }
     return { nos, ligacoes };
+}
+
+/**
+ * O que faz: a contagem que as coleções com `conta` deram aos nós de uma linha, pelo id do nó: o rótulo da primeira
+ * coleção contada (as Peças), a linha e a conta crua de `comAContagem`.
+ * Por quê: 05/11, a frente de renda no Projetos: o cartão do projeto (o `p:<nome>`, o mesmo nó que a coluna Frentes da
+ * Criação mostra) leva a contagem das peças da linha, pela mesma conta, e nenhuma outra.
+ * Entra → sai: o índice e os nós das coleções na linha (`colecoesDaLinha(...).nos`) → id → a contagem.
+ * Erro e ataque: o nó sem contagem (a coleção sem `conta`) não entra; dois alvos com o mesmo id ficam com o primeiro.
+ * Prova: tests/engine/refinosDosRamos.test.ts ("a frente de renda").
+ */
+export function contasDaLinha(ix: Pick<IndiceDasColecoes, 'colecoes'>, nos: Readonly<Record<string, readonly MissaoNo[]>>): Map<string, NonNullable<MissaoNo['conta']>> {
+    const out = new Map<string, NonNullable<MissaoNo['conta']>>();
+    for (const c of ix.colecoes) {
+        if (!c.conta || !c.vinculo) continue;
+        const rotulo = ix.colecoes.find(x => x.id === c.conta!.colecoes[0])?.rotulo ?? c.rotulo;
+        for (const no of nos[c.id] ?? []) if (no.contagens && !out.has(no.id)) out.set(no.id, { rotulo, linha: no.linha, contagens: no.contagens });
+    }
+    return out;
+}
+
+/** O que faz: os dias de `de` a `ate` (inclusivo); a data malformada, ou o fim antes do começo, dá só o começo. */
+function diasDe(de: string, ate: string): string[] {
+    if (!ehDia(de) || !ehDia(ate)) return [];
+    const out: string[] = [de];
+    for (let d = addDays(de, 1); d <= ate && out.length < 400; d = addDays(d, 1)) out.push(d);
+    return out;
+}
+
+/**
+ * O que faz: o alvo de um vínculo com a contagem das notas da linha que o apontam, pela forma de mostrar: do plano é a
+ * nota ligada com a data do campo da contagem no período da linha; feita é a que o modelo do tipo dela dá por feita (a
+ * peça publicada). A linha do nó passa a ser a contagem, seguida dos campos da linha da fonte do alvo (os perfis do
+ * canal, 05/11); os traços, a mesma conta.
+ * Por quê: 05/11, a campanha da semana: a frente e o canal mostram "do plano · publicadas · faltam" das peças da
+ * semana pela função única (`showGrammar`), e nenhuma outra conta.
+ * Entra → sai: o índice, a coleção (com `conta`), o nó do alvo, as notas das coleções contadas na linha e os dias da
+ * linha → uma cópia do nó (o nó do índice, que outras linhas usam, não muda).
+ * Erro e ataque: a nota sem a data, ou com a data fora do período, não entra no plano; a feita sem a data não conta
+ * (não se sabe quando foi ao ar); sem nada no plano, o texto de ausência da coleção; a linha do ramo da central
+ * (`doRamo`) sai da cópia, para o cartão mostrar a contagem.
+ * Prova: tests/missao/contaDaColecao.test.ts.
+ */
+function comAContagem(ix: IndiceDasColecoes, c: ColecaoDoRamo, no: MissaoNo, origens: readonly NotaDaColecao[], de: string, ate: string): MissaoNo {
+    const conta = c.conta!;
+    const ligadas = origens.filter(n => nomesDoCampo(n.nota.campos?.[c.vinculo!.campo]).some(x => alvoDoVinculo(ix, c, x).id === no.id));
+    const unidades = ligadas.map(n => {
+        const dia = dataDoCampo(n.nota.campos?.[conta.data]) ?? undefined;
+        return { status: ix.feita(n.nota) ? 'done' : 'open', scheduled: dia, completedDate: dia };
+    });
+    const g = showGrammar(unidades, timeHorizon({ weeks: [], dates: diasDe(de, ate) }), conta.vazio);
+    // Os campos da linha da fonte do alvo (05/11: os perfis do canal) vêm depois da contagem; sem eles, só a contagem.
+    const alvo = [...(ix.alvos.get(c.id)?.values() ?? [])].find(n => n.no.id === no.id);
+    const daFonte = alvo ? alvo.fonte.linha.map(k => valorNaLinha(alvo.nota.campos?.[k])).filter(Boolean) : [];
+    // A linha do ramo da central (`doRamo`, as tarefas dela e dos auxiliares) sai: o cartão a mostraria no lugar da
+    // contagem das peças (uma frente na coluna Frentes aparecia com as tarefas, e não com as peças).
+    const { doRamo: _doRamo, ...semRamo } = no;
+    return { ...semRamo, linha: [g.text, ...daFonte].join(' · '), contagens: g.counts };
 }
 
 /**

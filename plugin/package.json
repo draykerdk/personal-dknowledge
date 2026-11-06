@@ -1,6 +1,6 @@
 {
   "name": "dfm-system",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "The Personal Dknowledge (experimental): the plugin of a DFM-organized Obsidian vault, with the Mission view, guided protocols and the system definitions",
   "main": "main.js",
   "scripts": {

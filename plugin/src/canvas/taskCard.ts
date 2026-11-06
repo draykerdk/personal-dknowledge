@@ -73,6 +73,11 @@ function chip(doc: Document, cls: string, text: string, title?: string, tone?: s
     return s;
 }
 
+/**
+ * O que faz: desenha o cartão de tarefa no nó de uma TaskNote com o modelo pronto e liga os botões às ações.
+ * Por quê: o desenho fica separado da conta (`taskCardModel`) e dos fios do plugin (`taskCards`).
+ * Prova: tests/canvas/taskCardNovaAcao.test.ts.
+ */
 export function mountTaskCard(nodeEl: HTMLElement, task: TaskRecord, model: TaskCardModel, actions: TaskCardActions): void {
     const doc = nodeEl.ownerDocument;
     nodeEl.classList.add('dfm-task-node');

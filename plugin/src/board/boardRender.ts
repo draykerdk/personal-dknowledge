@@ -13,8 +13,8 @@ import {
     FILTER_EMPTY, FILTER_TITLES, habitsModel, healthLabel, matrixModel, numbersModel,
     projectModel, projectsModel, tasksModel,
 } from './boardModel';
-import type { HabitRow, ProjectFactsInput, TaskItem, Tone } from './boardModel';
-import { shortDate } from './boardModel';
+import type { AtalhoDaMissao, HabitRow, ProjectFactsInput, TaskItem, Tone } from './boardModel';
+import { atalhoDaMissao, shortDate } from './boardModel';
 import type { QueryResult } from './queryModel';
 import type { TaskRecord } from '../tasks/taskRecord';
 import { renderProtocolWidget } from './protocolRender';
@@ -47,6 +47,8 @@ export interface BoardActions {
      * guardam o filtro e os ramos abertos por escopo, e um filtra o outro no mesmo lugar.
      */
     scope?: string;
+    /** O atalho da Missão (o bloco `tipo: missao`): abre a Missão no estado dele. Ausente = só a frase. */
+    abrirMissao?(atalho: AtalhoDaMissao): void;
 }
 
 type Doc = Document;
@@ -578,22 +580,32 @@ export function renderBoardWidget(root: HTMLElement, spec: BoardWidgetSpec, snap
         case 'protocolos-ferramentas':
             return renderProtocolWidget(root, { ...spec, kind: spec.kind }, snapshot, actions);
         case 'missao':
-            return renderMissaoStub(root, spec);
+            return renderMissaoAtalho(root, spec, atalhoDaMissao(spec), actions);
     }
 }
 
 /**
- * O que faz: o bloco `tipo: missao` num canvas, até o módulo da Missão chegar ao canvas
- * (P14 da arquitetura de 27/10/2026): só a frase de onde abrir a Missão.
- * Por quê: a Missão nunca é desenhada por `renderBoardWidget` (§3.4): ela monta uma vez
- * e se atualiza por dentro; redesenhar a cada aviso mataria o gesto.
+ * O que faz: o bloco `tipo: missao` num canvas ou numa nota: o atalho da Missão (item 8 do roteiro), um
+ * botão que a abre no lugar que o atalho diz (o zoom no projeto, o período, o ramo pedido) e a frase.
+ * Por quê: a Missão nunca é desenhada por `renderBoardWidget` (§3.4): ela monta uma vez e se atualiza por
+ * dentro, na aba dela; no canvas ela é só um atalho para um ramo ou uma escala (Arquitetura e
+ * Roteiro, §4). Quem decide para onde é o `atalhoDaMissao` (puro).
+ * Erro e ataque: sem a ação de abrir (o lugar que não abre a Missão), só a frase, sem botão.
+ * Prova: tests/board/missaoAtalho.test.ts.
  */
-export function renderMissaoStub(root: HTMLElement, spec: BoardWidgetSpec): void {
+export function renderMissaoAtalho(root: HTMLElement, spec: BoardWidgetSpec, atalho: AtalhoDaMissao, actions: Pick<BoardActions, 'abrirMissao'>): void {
     root.textContent = '';
     root.className = 'dfm-bw dfm-bw-missao';
     root.setAttribute('data-kind', 'missao');
+    const doc = root.ownerDocument;
     head(root, spec.titulo ?? 'Missão');
-    empty(root, `A Missão abre na primeira página do Mission Control e pelo comando "DFM: Abrir a Missão". Aqui no canvas ela ainda não monta${spec.ramoPrincipal && spec.ramoPrincipal !== RAMO_DE_PARTIDA ? ` (ramo pedido: ${spec.ramoPrincipal})` : ''}.`);
+    if (actions.abrirMissao) {
+        const b = el(doc, 'button', 'dfm-bw-pr-btn mod-cta dfm-bw-missao-abrir', atalho.rotulo);
+        b.type = 'button';
+        b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); actions.abrirMissao!(atalho); });
+        root.appendChild(b);
+    }
+    empty(root, atalho.texto);
 }
 
 export function renderBoardError(root: HTMLElement, message: string): void {

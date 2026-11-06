@@ -13,17 +13,17 @@
  * componente trata e grava. Nenhum nome de tipo nem de campo mora aqui (§3.8): o que se
  * edita e como vem do modelo do tipo (`comoEdita`) e do catálogo.
  */
-import { camposNoFormato, type DomainField } from '../../engine/domainModel';
+import { camposComApelidos, camposNoFormato, type DomainField } from '../../engine/domainModel';
 import { comoEdita } from '../../engine/fieldModel';
 import { CAMPO_DA_ORIGEM, campoDoEstado, camposDoNo, linksDoCampo, modeloDaNota, mostraCampos, valorEmTexto, type RotulosDosVocabularios } from '../camposDoNo';
 import { acoesParaLigar, ligacoesDoNo, opcoesDeMover, ORDEM_DOS_GRUPOS } from '../intencoes';
 import type { MissaoTarefa } from '../tipos';
 import { periodoDoId } from '../tempo';
-import { ADICIONAR, STATUS } from '../frases';
+import { ADICIONAR, PAINEL, STATUS } from '../frases';
 import { el, botao } from './dom';
 import { botaoDoCiclo } from './nos';
 import type { Contexto } from './contrato';
-import { botaoDoStatus, caixaDoCampo, estadoDoNo, linhaDeCampo, rotulosDoCatalogo, valorDeLinks, valorEmSpan, type EstadoDoNo } from './campos';
+import { botaoDoStatus, caixaDeMarcas, caixaDoCampo, estadoDoNo, linhaDeCampo, rotulosDoCatalogo, valorDeLinks, valorEmSpan, type EstadoDoNo } from './campos';
 
 function secao(ctx: Contexto, titulo: string): HTMLElement {
     const s = el(ctx.doc, 'div', 'dsec');
@@ -232,6 +232,29 @@ function caixa(ctx: Contexto, nota: string, campo: DomainField, cru: unknown, ro
     return caixaDoCampo(ctx, campo, cru, rotulos, { 'data-campo-edit': campo.nome, 'data-path': nota }, marcar);
 }
 
+/**
+ * O que faz: as caixas de marcar de um campo com as opções de outra nota (os destinos pelos perfis do canal): as
+ * opções da outra nota e as que a nota já tem; marcadas as da nota, ou, no campo vazio, as da regra, com o
+ * "✓ Gravar estes" (o valor da regra está só nas caixas, não na nota) e o porquê embaixo.
+ * Por quê: a percorrida de 06/11: os destinos num texto de uma linha, cortado, e a dica repetindo os valores.
+ * Entra → sai: o contexto, a nota, o campo, o valor cru e as opções → as caixas e a origem, ou `null` (sem opção
+ * nenhuma: o campo fica com o texto).
+ */
+function marcasDaOutraNota(ctx: Contexto, nota: string, campo: DomainField, cru: unknown, o: { opcoes: readonly string[]; inicial: readonly string[]; porque: string }): { caixa: HTMLElement; origem: HTMLElement | null } | null {
+    const atuais = (Array.isArray(cru) ? cru : cru === undefined || cru === null || cru === '' ? [] : String(cru).split(',')).map(x => String(x ?? '').trim()).filter(Boolean);
+    const todas = [...new Set([...o.opcoes, ...o.inicial, ...atuais])];
+    if (!todas.length) return null;
+    const pelaRegra = !atuais.length && o.inicial.length > 0;
+    const marcados = new Set(pelaRegra ? o.inicial : atuais);
+    const atributos: Record<string, string> = { 'data-campo-edit': campo.nome, 'data-path': nota };
+    const caixa = caixaDeMarcas(ctx, campo, todas.map(v => ({ valor: v, rotulo: v })), marcados, atributos);
+    if (!pelaRegra) return { caixa, origem: null };
+    const origem = el(ctx.doc, 'div', 'forigem marcas-regra');
+    origem.append(PAINEL.marcadosPelaOutraNota(o), ' ');
+    origem.appendChild(btn(ctx, 'btn btn-s', PAINEL.gravarMarcados, { 'data-act': 'campo-gravar', 'data-campo': campo.nome, 'data-path': nota }, PAINEL.dicaGravarMarcados(campo.rotulo)));
+    return { caixa, origem };
+}
+
 /** O que faz: o nome de um protocolo como o JSON dele diz, ou "o protocolo dono" (nunca o id cru). */
 const nomeDoDono = (ctx: Contexto, protocolo: string) => ctx.nomeDoProtocolo?.(protocolo) || 'o protocolo dono';
 
@@ -271,8 +294,10 @@ type ItemDosCampos = { tipo: 'linha'; faz: (f: HTMLElement) => void } | { tipo: 
  * Entra → sai: o contexto e o caminho da nota → as seções (nenhuma sem modelo).
  */
 export function secoesDosCamposEditaveis(ctx: Contexto, nota: string, emTarefa: boolean, id = ''): HTMLElement[] {
-    const fm = ctx.camposDaNota(nota) ?? {};
-    const modelo = modeloDaNota(nota, fm, ctx.modelo.indice.tabelas.tipos ?? []);
+    const lido = ctx.camposDaNota(nota) ?? {};
+    const modelo = modeloDaNota(nota, lido, ctx.modelo.indice.tabelas.tipos ?? []);
+    // Os nomes antigos dos campos (05/11: o `plataforma` da peça aparece em `destinos`); gravar usa o nome de agora.
+    const fm = camposComApelidos(modelo, lido);
     // Sem modelo, ou com o modelo que não declara campo, o painel mostra o frontmatter para ler (P10c).
     if (!modelo || !mostraCampos(modelo)) return [];
     const rotulos = rotulosDoCatalogo(ctx);
@@ -295,8 +320,19 @@ export function secoesDosCamposEditaveis(ctx: Contexto, nota: string, emTarefa: 
         if (como.via !== 'campo' && !texto && !campo.vazio) continue;
         if (como.via === 'campo') {
             itens.push({ tipo: 'linha', faz: f => {
-                const c = caixa(ctx, nota, campo, fm[campo.nome], rotulos);
                 const rot = `${campo.rotulo}${campo.obrigatorio ? ' *' : ''}`;
+                // O campo com as opções de outra nota (05/11, os destinos pelos perfis do canal): as caixas de marcar,
+                // uma por perfil, e no campo vazio as da regra já marcadas (06/11; antes, um texto de uma linha).
+                const opcoes = ctx.modelo.opcoesPelaOutraNota?.(nota, fm, campo.nome) ?? null;
+                const marcas = opcoes ? marcasDaOutraNota(ctx, nota, campo, fm[campo.nome], opcoes) : null;
+                if (marcas) { linhaDeCampo(ctx, f, rot, marcas.caixa, { campo: campo.nome, origem: marcas.origem }); return; }
+                // O campo vazio com as opções de outra nota e nenhum perfil: o texto, com o porquê.
+                const sugerido = !texto ? opcoes : null;
+                const c = caixa(ctx, nota, campo, sugerido?.inicial.length ? sugerido.inicial : fm[campo.nome], rotulos);
+                // O valor da regra está só na caixa, não na nota: sair do campo sem mudar nada também o grava (a
+                // percorrida de 06/11: o "change" não vem quando o valor não muda, e os destinos ficavam sem gravar).
+                if (sugerido?.inicial.length) c.setAttribute('data-sugerido', '');
+                if (sugerido) { linhaDeCampo(ctx, f, rot, c, { campo: campo.nome, label: true, origem: PAINEL.sugeridoPelaOutraNota(sugerido) }); return; }
                 // O campo de link tem o próprio "＋ Adicionar" (29/10): a busca das que já existem e o "Criar nova".
                 if (campo.tipo === 'link' && ctx.adicionar) {
                     const box = el(ctx.doc, 'div', 'add-campo');

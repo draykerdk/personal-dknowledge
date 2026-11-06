@@ -2,8 +2,8 @@ import { Notice, Setting, TFile, type App } from 'obsidian';
 import type DFMPlugin from '../main';
 import { PAPEIS, type Papel } from '../engine/papeisDeProtocolo';
 import {
-    editarLista, editarPapel, editarPonteLigada, editarPortaDaPonte, editarTexto, formatoDaLista, opcoesDoPapel, textoDaLista,
-    type CampoDeLista, type CampoDeTexto, type Edicao,
+    editarLista, editarPapel, editarPonteLigada, editarPortaDaPonte, editarTexto, editarTrilha, formatoDaLista, opcoesDoPapel, textoDaLista,
+    type CampoDaTrilha, type CampoDeLista, type CampoDeTexto, type Edicao,
 } from './definicoesDaAba';
 
 /**
@@ -108,6 +108,39 @@ export function secaoDasDefinicoes(plugin: DFMPlugin, app: App, containerEl: HTM
             void gravarPonte(editarPortaDaPonte(plugin.settings, partida, t.getValue()), () => t.setValue(String(lidas().ponte.porta)));
         });
     });
+
+    containerEl.createEl('h3', { text: 'Trilha de uso' });
+    containerEl.createEl('p', {
+        text: 'A Missão ensina o sistema pelo uso: recebe quem chega à tarde ou à noite com "o que você fez hoje?", mostra um gesto por vez no centro (marcado pelo uso real) e uma dica na primeira vez de cada botão. Os textos estão no arquivo da trilha; aqui se liga, desliga e ajusta.',
+        cls: 'setting-item-description',
+    });
+    /** Grava a edição da trilha e a Missão relê (o que liga e as horas entram no modelo). */
+    const gravarTrilha = async (edicao: Edicao, voltar: () => void) => {
+        await gravar(edicao, voltar);
+        (plugin as any).board?.missao?.agendar?.();
+    };
+    const trilha = () => lidas().trilha;
+    const sim = (nome: string, desc: string, campo: CampoDaTrilha, valor: () => boolean) => {
+        new Setting(containerEl).setName(nome).setDesc(desc).addToggle(t => {
+            t.setValue(valor());
+            t.onChange(v => { void gravarTrilha(editarTrilha(plugin.settings, partida, campo, v), redesenhar); });
+        });
+    };
+    const campoDaTrilha = (nome: string, desc: string, campo: CampoDaTrilha, valor: () => string, placeholder = '') => {
+        new Setting(containerEl).setName(nome).setDesc(desc).addText(t => {
+            t.setPlaceholder(placeholder).setValue(valor());
+            t.inputEl.addEventListener('change', () => {
+                void gravarTrilha(editarTrilha(plugin.settings, partida, campo, t.getValue()), () => t.setValue(valor()));
+            });
+        });
+    };
+    sim('Receber à tarde ou à noite', 'Com a Day de hoje sem registro depois da hora abaixo, a Missão abre o dia com "o que você fez hoje?" (o ＋ O que fiz, o 🌙 e os dias de antes sem registro) no lugar do ▶️ da manhã.', 'trilha.acolhida', () => trilha().acolhida);
+    campoDaTrilha('Hora da tarde', 'A partir de quando a acolhida aparece (HH:MM). Vazio = 14:00.', 'trilha.hora_da_tarde', () => trilha().hora_da_tarde, '14:00');
+    campoDaTrilha('Dias de antes', 'Quantos dias para trás a acolhida procura os dias sem registro (0 a 31; 0 = nenhum). Vazio = 7.', 'trilha.dias_passados', () => String(trilha().dias_passados), '7');
+    sim('O gesto da semana', 'O cartão no centro da Missão com o gesto da vez: como se faz, para quê e o link do guia; ele se marca pelo uso real.', 'trilha.gesto_da_semana', () => trilha().gesto_da_semana);
+    campoDaTrilha('Vezes até o próximo', 'Em quantos dias o gesto feito o dá por aprendido; aí a árvore de uso propõe o seguinte pela triagem (1 a 30). Vazio = 3.', 'trilha.vezes', () => String(trilha().vezes), '3');
+    sim('A dica da primeira vez', 'Uma linha de dica na primeira vez que um botão aparece; depois de vista, não volta.', 'trilha.dicas', () => trilha().dicas);
+    campoDaTrilha('Arquivo da trilha', 'Os textos (as boas-vindas, os gestos e as dicas) e a forma de contar cada gesto. Vazio = a trilha desligada.', 'arquivos.trilha', () => lidas().arquivos.trilha, 'nenhum');
 
     containerEl.createEl('h3', { text: 'Protocolos por papel' });
     containerEl.createEl('p', {

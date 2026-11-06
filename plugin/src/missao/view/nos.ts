@@ -90,7 +90,7 @@ function horaPassou(ctx: Contexto, no: MissaoNo, hora: string): boolean {
 /** O que faz: o nome falado do nó (título · estado · data). */
 export function nomeDoNo(no: MissaoNo): string {
     const canvas = no.tipo === 'projeto' ? (no.temCanvas ? 'com canvas' : 'sem canvas') : '';
-    return [no.titulo, no.estagio, no.sub, no.doRamo ? `ramo: ${no.doRamo.linha}` : no.linha, no.proxima ? PAINEL.nomeDaProxima(no.proxima) : '', canvas, no.marcas?.includes(MODELO_ANTIGO) ? MODELO_ANTIGO : ''].filter(Boolean).join(' · ');
+    return [no.titulo, no.estagio, no.sub, no.doRamo ? `ramo: ${no.doRamo.linha}` : no.linha, no.proxima ? PAINEL.nomeDaProxima(no.proxima) : '', no.aprendizado ?? '', no.conta ? `${no.conta.rotulo}: ${no.conta.linha}` : '', canvas, no.marcas?.includes(MODELO_ANTIGO) ? MODELO_ANTIGO : ''].filter(Boolean).join(' · ');
 }
 
 interface OpcoesDoNo {
@@ -213,6 +213,10 @@ export function noEl(ctx: Contexto, no: MissaoNo, o: OpcoesDoNo = {}): HTMLEleme
         b.appendChild(meta);
         // A próxima ação real do projeto (02/11), numa linha embaixo; nas listas compactas, só no nome.
         if (no.proxima && !o.compacto) b.appendChild(el(doc, 'span', 'prox', null, PAINEL.marcaDaProxima(no.proxima)));
+        // O centro do módulo de aprendizado (05/11): a fila de hoje e o nível em curso, na mesma linha de baixo.
+        if (no.aprendizado && !o.compacto) b.appendChild(el(doc, 'span', 'prox', null, no.aprendizado));
+        // A frente de renda (05/11): a contagem das peças da linha que apontam o projeto, a mesma da Criação.
+        if (no.conta && !o.compacto) b.appendChild(el(doc, 'span', 'prox', { 'data-conta': no.conta.rotulo }, `${no.conta.rotulo}: ${no.conta.linha}`));
     } else if (no.tipo === 'area') {
         b = casca(`node n-area${cmp}`);
         b.appendChild(icone(doc, 'area'));
@@ -327,7 +331,7 @@ export function periodoEl(ctx: Contexto, no: MissaoNo, o: { hoje: boolean; espec
  * roda o protocolo pelo `data-act="ciclo"` (a escala, a chave e o índice levam ao botão do ramo).
  */
 export function botaoDoCiclo(ctx: Contexto, c: CicloDoPeriodo, rotulo?: string): HTMLButtonElement {
-    const b = botao(ctx.doc, 'cyc', rotulo ?? `${c.emoji} ${c.rotulo}`, { 'data-act': 'ciclo', 'data-escala': c.escala, 'data-chave': c.chave, 'data-i': String(c.i) });
+    const b = botao(ctx.doc, 'cyc', rotulo ?? `${c.emoji} ${c.rotulo}`, { 'data-act': 'ciclo', 'data-escala': c.escala, 'data-chave': c.chave, 'data-i': String(c.i), 'data-protocolo': c.protocolo });
     ctx.marcar(b, `${c.emoji} ${c.dica}`);
     return b;
 }

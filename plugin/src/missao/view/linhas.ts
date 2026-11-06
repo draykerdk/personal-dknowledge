@@ -20,6 +20,8 @@ import { el, botao, svg } from './dom';
 import { FRASES } from '../frases';
 import { cicloEl, marcaEl, noEl, periodoEl } from './nos';
 import { alternarEl, ferramentasDoNo, maisDoContexto } from './interacao';
+import { acolhidaEl, gestoEl } from './trilha';
+import { mostraAcolhida } from '../trilha';
 import type { Contexto } from './contrato';
 
 const ehFaixa = (x: unknown): x is Faixa => !!x && typeof x === 'object' && Array.isArray((x as Faixa).nos);
@@ -204,15 +206,26 @@ export function linhaAbertaEl(ctx: Contexto, linha: LinhaAberta, plano: PlanoDaG
 
 /**
  * O que faz: o vazio de uma coluna: a frase do ramo e, na linha em foco e onde a Missão grava,
- * um botão por protocolo que já existe e criaria o que falta (com o nome que o JSON dele diz).
+ * um botão por protocolo que já existe e criaria o que falta (com o nome que o JSON dele diz) e um
+ * "+ <Tipo>" por tipo do Novo que o vazio declara (05/11: o "+ Estadia", o "+ Canal"), pelo mesmo Novo
+ * do ramo, aberto no período da linha.
  */
 function vazioDaColuna(ctx: Contexto, cell: HTMLElement, vazio: VazioDaColuna, chave: string, foco: boolean): void {
     cell.appendChild(el(ctx.doc, 'span', 'empty', null, vazio.texto));
-    if (!foco || !ctx.rodaProtocolo) return;
-    for (const id of vazio.protocolos) {
+    if (!foco) return;
+    if (ctx.rodaProtocolo) for (const id of vazio.protocolos) {
         const nome = ctx.nomeDoProtocolo?.(id) || id;
         const b = botao(ctx.doc, 'row-add', nome, { 'data-act': 'protocolo-da-coluna', 'data-protocolo': id, 'data-escala': ctx.escala, 'data-chave': chave });
         ctx.marcar(b, `${nome}: o protocolo, passo a passo, com a data desta linha`);
+        cell.appendChild(b);
+    }
+    // O Novo só onde a Missão cria (o `novos` do contexto existe só aí), e só o tipo que o seletor do ramo tem.
+    const periodo = ctx.novos ? idDoPeriodo(ctx.escala, chave) : null;
+    for (const tipo of periodo ? vazio.novos : []) {
+        const doSeletor = ctx.ramoPrincipal.novo.tipos.find(t => t.tipo === tipo);
+        if (!doSeletor) continue;
+        const b = botao(ctx.doc, 'row-add', `+ ${doSeletor.rotulo}`, { 'data-act': 'novo', 'data-tipo': tipo, 'data-id': periodo });
+        ctx.marcar(b, `${doSeletor.titulo}: o Novo do ramo, nesta linha`);
         cell.appendChild(b);
     }
 }
@@ -256,6 +269,10 @@ function centro(ctx: Contexto, c: ColunaNoPlano, linha: LinhaAberta, foco: boole
     // Sem nó da fonte, o vazio do ramo (P10b: "sem lugar marcado"), ainda no período; sem vazio, o período.
     const vazio = !doCentro && ctx.ramoPrincipal.centro.vazio && !linha.especial ? ctx.ramoPrincipal.centro.vazio : null;
     const no = doCentro ?? (vazio ? { ...linha.centro, titulo: vazio, sub: linha.centro.titulo, linha: '', marcas: [], contagens: undefined } : linha.centro);
+    // A trilha de uso (05/11): a Day de hoje vazia depois da hora da tarde recebe com "o que você fez hoje?",
+    // no lugar do ▶️ da manhã (que segue no painel do dia).
+    const acolhida = foco && !linha.especial && ctx.escala === 'dia' && ctx.gravar ? ctx.modelo.trilha?.acolhida(linha.chave) ?? null : null;
+    const recebe = mostraAcolhida(acolhida, ctx.relogio?.().hora);
     if (foco && !linha.especial) {
         const top = el(doc, 'div', 'center-top');
         const step = el(doc, 'div', 'stepper');
@@ -266,7 +283,7 @@ function centro(ctx: Contexto, c: ColunaNoPlano, linha: LinhaAberta, foco: boole
         ctx.marcar(down, `Descer: ${unidade} anterior (o passado fica embaixo)`, '↓');
         step.append(up, down);
         top.appendChild(step);
-        const inicio = cicloEl(ctx, ctx.escala, linha.chave, 'inicio');
+        const inicio = recebe ? null : cicloEl(ctx, ctx.escala, linha.chave, 'inicio');
         if (inicio) top.appendChild(inicio);
         cell.appendChild(top);
     }
@@ -294,7 +311,8 @@ function centro(ctx: Contexto, c: ColunaNoPlano, linha: LinhaAberta, foco: boole
         cell.appendChild(c);
     }
     const fim = foco && !linha.especial ? cicloEl(ctx, ctx.escala, linha.chave, 'fim') : null;
-    if (fim) cell.appendChild(fim);
+    if (recebe && acolhida) cell.appendChild(acolhidaEl(ctx, linha.chave, acolhida, fim));
+    else if (fim) cell.appendChild(fim);
     // Os hábitos do dia, onde o ramo os mostra (P10c: a Viagem não mostra; sem a chave, mostra).
     if (foco && linha.habitos.length && ctx.ramoPrincipal.centro.habitos !== false) {
         const hab = el(doc, 'div', 'habits', { role: 'group', 'aria-label': 'Hábitos do dia' });
@@ -316,6 +334,9 @@ function centro(ctx: Contexto, c: ColunaNoPlano, linha: LinhaAberta, foco: boole
         }
         cell.appendChild(hab);
     }
+    // O gesto da semana (05/11): o cartão da trilha no centro da linha de agora.
+    const gesto = foco && linha.hoje && !linha.especial ? ctx.modelo.trilha?.gesto ?? null : null;
+    if (gesto) cell.appendChild(gestoEl(ctx, gesto));
     return cell;
 }
 

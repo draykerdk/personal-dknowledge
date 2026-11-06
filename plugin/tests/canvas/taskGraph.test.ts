@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { CANVAS_COLOR, progressLine, taskColor } from '../../src/canvas/taskColor';
 import { dependencyEdges } from '../../src/canvas/taskGraph';
 import { buildGantt, buildMatrix } from '../../src/board/queryModel';
-import { collectProjectTasks, isManaged, nodeIdFor, planProjectCanvas, ZONE_GROUP_ID } from '../../src/project/projectCanvasModel';
+import { collectProjectTasks, nodeIdFor, planProjectCanvas, ZONE_GROUP_ID } from '../../src/project/projectCanvasModel';
+import { isManagedId } from '../../src/canvas/managedIds';
 import type { TaskInfo } from '../../src/project/projectCanvasModel';
 import type { TaskRecord } from '../../src/tasks/taskRecord';
 
@@ -124,7 +125,7 @@ describe('zona do projeto como grafo', () => {
         const zone = plan.nodes.find(n => n.id === ZONE_GROUP_ID)!;
         expect(plan.nodes.filter(n => n.text?.includes('dfm-widget'))).toEqual([]);
         expect(plan.nodes.some(n => n.id.startsWith('dfm-pc-w-'))).toBe(false);
-        const inner = plan.nodes.filter(n => isManaged(n.id) && n.id !== ZONE_GROUP_ID);
+        const inner = plan.nodes.filter(n => isManagedId(n.id) && n.id !== ZONE_GROUP_ID);
         for (const n of inner) expect(n.x + n.width <= zone.x + zone.width && n.y + n.height <= zone.y + zone.height, n.id).toBe(true);
         for (const p of inner) for (const q of inner) {
             if (p === q) continue;

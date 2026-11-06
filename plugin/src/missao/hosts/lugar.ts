@@ -18,10 +18,11 @@ import { getLinkpath, TFile, TFolder, type App, type WorkspaceLeaf } from 'obsid
 import { nomesDoLinkDoCache, type LigacoesDaNota } from '../conexoes';
 import type { MissionBoard } from '../../board/boardPlugin';
 import { filtrosPadrao } from '../filtros';
-import { caminhoDoRamo, idAtualDoRamo, lerRamoPrincipal, RAMO_DE_PARTIDA, PASTA_DOS_RAMOS, type RamoPrincipal } from '../ramoPrincipal';
+import { caminhoDoRamo, comAsColecoesDosOutros, idAtualDoRamo, lerRamoPrincipal, ramosCitadosPelasColecoes, RAMO_DE_PARTIDA, PASTA_DOS_RAMOS, type RamoPrincipal } from '../ramoPrincipal';
 import { montarMissao, type AdaptadorDaMissao, type EstadoDaMissao, type GravarDaMissao, type RamoParaEscolher, type MissaoMontada } from '../view/componente';
 import { canvasWritesAllowed } from '../../canvas/managedZone';
 import { protocoloDaGaveta, tituloCurtoDoMotor } from './motor';
+import { soPassoAPasso } from '../gaveta';
 import { TASK_CONTEXTS } from '../../engine/taskContexts';
 import type { OpcaoDoCampo, Vocabularios } from '../../engine/fieldModel';
 import { RESOURCES_FOLDER } from '../../engine/inboxRules';
@@ -31,6 +32,7 @@ import { hojeLocal } from './relogio';
 import { rodadasNaNota } from '../protocolosDoNo';
 import type { LidoDosProtocolos, ReputacaoDoNo } from '../tipos';
 import { DIA } from '../formatos';
+import { marcaDoMovimento } from '../trilha';
 import { destinosDasParadas, esperarProtocolos, PROTOCOLOS_DOMINIO, type DayRead } from '../../engine/protocolRank';
 
 export interface MissaoNoLugar {
@@ -52,7 +54,8 @@ export interface OpcoesDoLugar {
 
 /**
  * O que faz: lê o ramo do cofre (`200 - FUNCTIONS/Config/ramos/<id>.json`); o id antigo de um ramo renomeado (o
- * `antes` dele, 03/11: o Roteiros virou Criação) lê o ramo de agora.
+ * `antes` dele, 03/11: o Roteiros virou Criação) lê o ramo de agora; as coleções por referência (05/11) vêm do ramo que
+ * elas citam.
  * Erro e ataque: arquivo que falta (e que nenhum ramo teve como id) ou não passa na forma vira erro com o
  * motivo (o componente mostra o aviso); nada é gravado.
  */
@@ -63,7 +66,13 @@ export async function lerRamoDoCofre(app: App, id: string = RAMO_DE_PARTIDA): Pr
         if (!atual || atual === id) throw e;
         texto = await app.vault.adapter.read(caminhoDoRamo(atual));
     }
-    const raw = JSON.parse(texto);
+    // As coleções por referência (05/11): os ramos citados se leem aqui, na borda, e a coleção vem de lá.
+    const outros = new Map<string, unknown>();
+    const cru = JSON.parse(texto);
+    for (const outro of ramosCitadosPelasColecoes(cru)) {
+        try { outros.set(outro, JSON.parse(await app.vault.adapter.read(caminhoDoRamo(outro)))); } catch (e) { console.warn(`DFM Missão: o ramo ${outro}, citado pelas coleções de ${id}, não se lê`, e); }
+    }
+    const raw = comAsColecoesDosOutros(cru, outro => outros.get(outro));
     const { ramoPrincipal, problemas } = lerRamoPrincipal(raw);
     if (!ramoPrincipal) throw new Error(`o ramo ${id} não se lê: ${problemas.join('; ')}`);
     if (problemas.length) console.warn(`DFM Missão: o ramo ${id} tem problemas`, problemas);
@@ -132,9 +141,17 @@ export function vocabulariosDoTaskNotes(app: App): Vocabularios {
 export function gravarDoQuadro(board: MissionBoard, app: App): GravarDaMissao | undefined {
     if (!canvasWritesAllowed()) return undefined;
     const g = board.gravacoes;
+    /** A decisão da triagem que gravou deixa a marca do "capturar e triar" (a trilha de uso, 05/11/2026). */
+    const triou = async <T extends { ok: boolean }>(p: Promise<T>): Promise<T> => { const r = await p; if (r?.ok) board.marcarUso?.('triar'); return r; };
     const tn = () => (app as any).plugins?.plugins?.tasknotes?.settings ?? null;
     return {
-        mover: (c, d, avisar) => g.mover(c, d, avisar),
+        // A trilha de uso (05/11/2026): pôr numa SMART e dar lugar à que ficou de antes deixam a marca do gesto.
+        mover: async (c, d, avisar) => {
+            const marca = marcaDoMovimento(board.tarefaDeAntes?.(c) ?? false, d);
+            const r = await g.mover(c, d, avisar);
+            if (r?.ok) board.marcarUso?.(marca);
+            return r;
+        },
         status: (c, st, avisar, rotulo) => g.status(c, st, avisar, rotulo),
         concluir: (c, avisar) => g.concluir(c, avisar),
         novaData: (c, data, aberto, algumDia, avisar) => g.novaData(c, data, aberto, algumDia, avisar),
@@ -143,10 +160,14 @@ export function gravarDoQuadro(board: MissionBoard, app: App): GravarDaMissao | 
         // Os botões do ciclo: o mesmo caminho do painel (`boardPanel`, o ▶️ e o 🌳 da navegação).
         protocolo: (id, variaveis) => void board.runProtocol(id, variaveis),
         // A gaveta do ciclo (P12b): o protocolo do botão pelo motor (o apelido resolvido, as datas explícitas).
-        ciclo: { abrir: (id, datas, doBotao) => protocoloDaGaveta(id, datas, doBotao, x => board.motorDoProtocolo(x), tituloCurtoDoMotor) },
+        ciclo: {
+            abrir: (id, datas, doBotao) => protocoloDaGaveta(id, datas, doBotao, x => board.motorDoProtocolo(x), tituloCurtoDoMotor),
+            // O 🗣️ Inglês de hoje (o passo `fila`) roda passo a passo, e não na gaveta (06/11).
+            passoAPasso: id => soPassoAPasso(board.motorDoProtocolo(id)?.def),
+        },
         habito: (c, dia, avisar) => board.marcarHabito(c, dia, avisar),
         // A mesma captura da Captura rápida do Mission Control (`capturarNaCaixa`).
-        capturar: texto => board.capturar(texto),
+        capturar: async texto => { const r = await board.capturar(texto); if (r?.ok) board.marcarUso?.('capturar'); return r; },
         criar: (id, que) => board.criarDoNo(id, que),
         // O Novo (P8): a tarefa pelo TaskNotes (com a herança e o Desfazer); os outros tipos pelo `protocolo`.
         novo: {
@@ -175,12 +196,12 @@ export function gravarDoQuadro(board: MissionBoard, app: App): GravarDaMissao | 
         existe: nome => !!app.metadataCache.getFirstLinkpathDest(nome, ''),
         // As propostas do agente (02/11/2026): o aceite grava pelas setas ou pelo Novo, com o Desfazer.
         propostas: {
-            aceitar: (id, avisar) => board.propostas.aceitar(id, avisar),
-            recusar: (id, avisar) => board.propostas.recusar(id, avisar),
+            aceitar: (id, avisar) => triou(board.propostas.aceitar(id, avisar)),
+            recusar: (id, avisar) => triou(board.propostas.recusar(id, avisar)),
         },
         triagem: {
-            caixa: (c, destino, pasta, avisar) => board.triagem.caixa(c, destino, pasta, avisar),
-            ideia: (c, destino, smart, avisar) => board.triagem.ideia(c, destino, smart, avisar),
+            caixa: (c, destino, pasta, avisar) => triou(board.triagem.caixa(c, destino, pasta, avisar)),
+            ideia: (c, destino, smart, avisar) => triou(board.triagem.ideia(c, destino, smart, avisar)),
             arquivarRascunho: (c, avisar) => board.triagem.arquivarRascunho(c, avisar),
             retomarRascunho: (c, avisar) => board.triagem.retomarRascunho(c, avisar),
             // A escolha da pasta: a de um projeto (os da mesa) ou um tipo de Recursos que já existe.
@@ -353,7 +374,10 @@ export function montarNoLugar(board: MissionBoard, app: App, container: HTMLElem
     const adaptador: AdaptadorDaMissao = {
         raiz: container,
         lugar: opcoes.lugar,
-        modelo: ramoPrincipal => board.missao.modelo(filtrosPadrao(opcoes.lugar), {}, ramoPrincipal ?? null),
+        // Cada modelo passa pela trilha de uso (05/11/2026): os usos para a árvore e o gesto da vez.
+        modelo: async ramoPrincipal => { const m = await board.missao.modelo(filtrosPadrao(opcoes.lugar), {}, ramoPrincipal ?? null); board.conferirTrilha?.(m); return m; },
+        // As dicas da primeira vez (05/11/2026): as vistas ficam no salvamento do plugin.
+        dicasDaTrilha: board.dicasVistas ? { vistas: () => board.dicasVistas(), ver: id => board.verDica(id) } : undefined,
         ramoPrincipal: id => lerRamoDoCofre(app, id || opcoes.ramoPrincipal || RAMO_DE_PARTIDA),
         ramosPrincipais: () => ramosDoCofre(app),
         abrirTarefa: path => void board.openTask(path),

@@ -27,6 +27,8 @@
  *   "Reputação" do painel do nó) e `niveisDaReputacao(ids)` (o nível que a ordem do 🧭 cita)
  *   `await app.plugins.plugins['dfm-system'].nucleo.suportesDoTrimestre('<AAAA-Qn>')`: os Suportes e decisões da
  *   nota do trimestre e das Weeks dele, lidos de cada nota (`suportes.ts`, 02/11)
+ *   `await app.plugins.plugins['dfm-system'].nucleo.paraGravar('<AAAA-MM-DD>')`: o que gravar hoje, a peça pronta
+ *   para gravar e a fala do teleprompter dela, para o bloco 🎥 da Day (`paraGravar.ts`, 05/11)
  * E ao passo `suggest` de router com `rankOptions` (Fase D), os campos dos protocolos de
  * destino: a `fase_uso` e o uso recente, lido nas Days (`camposDosProtocolos`).
  * Só lê; nada aqui decide pela pessoa.
@@ -34,6 +36,8 @@
 import { DECISION_WEIGHTS_PATH } from './decisionWeights';
 import { choiceReasonLine, escolher, fieldNumber, type Candidato, type Escolha, type Ordenado } from './choose';
 import {
+    campoDaDataDePublicacao,
+    DOMAIN_MODELS_FOLDER,
     domainModelPath,
     domainWeightProblems,
     domainWeightsOf,
@@ -52,6 +56,11 @@ import {
 import { parseBlockLog, type BlockRecord } from './blockLog';
 import { EXPOSICAO_TIPO, TRILHAS_EXPOSICAO, exposicoesSemana, type ExposicoesSemana } from './exposicoes';
 import { suportesDoTexto, type ItemDeSuporte } from './suportes';
+import { teleprompterDoRoteiro } from './teleprompter';
+import {
+    blocoParaGravar, CAMPOS_DA_PECA, estadosDaGravacao, falaDoTeleprompter, ordemParaGravar, ordemPelaFala, pecasParaGravar, protocoloDoTeleprompter,
+    type BotaoParaGravar, type ModeloDaPeca, type PecaLida, type ProtocoloDoBotao,
+} from './paraGravar';
 
 /** Os Suportes e decisões de um trimestre (`suportesDoTrimestre`): a seção da nota dele e as das Weeks dele. */
 export interface SuportesDoTrimestre {
@@ -613,6 +622,68 @@ export class NucleoService {
         const capacidade = parseBlockMinutes(fm.bloco_sagrado);
         const text = load.actions ? loadText(load, capacidade).replace(/^⏱ /, '').replace('\n', ' · ') : 'nada agendado';
         return { minutos: load.minutes, acoes: load.actions, semEstimativa: load.noEstimate, capacidade, text };
+    }
+
+    /**
+     * O que faz: o que gravar hoje: as peças do estado pronto para gravar (pelo dia de ir ao ar mais perto, ou a mais
+     * antiga sem dia) ou, sem nenhuma, as do estado de antes (o roteiro), cada uma com a fala do teleprompter dela e as
+     * faltas do roteiro; e o bloco em Markdown, com os botões (o 📱 da peça sem teleprompter, o 🎬 sem peça).
+     * Por quê: 05/11, "próxima vez que sai deve estar ali na nota diária": o bloco 🎥 da Day. Os estados, o protocolo do
+     * teleprompter e o campo dele vêm do modelo de cada tipo com formatos (`paraGravar.ts`); as peças são as notas do
+     * tipo na casa do modelo, a mesma leitura do ramo Criação e do 📅. Só lê: nada grava, nada muda de estado.
+     * Entra → sai: o dia (`AAAA-MM-DD`) → a leitura, ou `null` com o dia ilegível.
+     * Erro e ataque: o modelo que não se lê fica de fora (o problema dele é do juiz); a nota que não se lê fica sem
+     * fala e sem faltas; o link do teleprompter que não resolve conta como teleprompter que falta.
+     * Uso na Day: `(await nucleo.paraGravar(dv.current().file.name)).texto` e os `botoes`.
+     * Prova: tests/engine/paraGravar.test.ts (a leitura pura e este leitor, com o modelo do cofre).
+     */
+    async paraGravar(dia: string = localToday()): Promise<{ prontas: boolean; pecas: PecaLida[]; texto: string; botoes: BotaoParaGravar[] } | null> {
+        const hoje = String(dia ?? '').trim();
+        if (!DIA.test(hoje)) return null;
+        const vault = this.app.vault;
+        const arquivos: any[] = vault?.getMarkdownFiles?.() ?? [];
+        const fmDe = (f: any) => this.app.metadataCache?.getFileCache?.(f)?.frontmatter ?? {};
+        const ler = async (f: any): Promise<string> => {
+            try { return vault.cachedRead ? await vault.cachedRead(f) : await vault.adapter.read(f.path); } catch (e) { return ''; }
+        };
+        const jsons: string[] = (vault?.getFiles?.() ?? []).map((f: any) => f.path).filter((p: string) => p.startsWith(`${DOMAIN_MODELS_FOLDER}/`) && p.endsWith('.json')).sort();
+        const lidos: Array<{ modelo: ModeloDaPeca; prontas: boolean; pecas: ReturnType<typeof pecasParaGravar>['pecas'] }> = [];
+        for (const caminho of jsons) {
+            const { data } = await this.readJson(caminho);
+            const modelo = data ? parseDomainModel(data, caminho.split('/').pop()!.replace(/\.json$/, '')).modelo : null;
+            if (!modelo?.formatos || !modelo.candidatos.type || !estadosDaGravacao(modelo)) continue;
+            const pasta = modelo.candidatos.pasta.replace(/\/+$/, '');
+            const notas = arquivos.filter(f => f.path.startsWith(`${pasta}/`) && String(fmDe(f)?.type ?? '').trim() === modelo.candidatos.type)
+                .map(f => ({ caminho: f.path, nome: f.basename ?? f.path.split('/').pop().replace(/\.md$/, ''), campos: fmDe(f) }));
+            lidos.push({ modelo, ...pecasParaGravar(modelo, notas) });
+        }
+        const prontas = lidos.some(l => l.prontas);
+        const doModelo = new Map<string, ModeloDaPeca>();
+        const escolhidas = lidos.filter(l => l.prontas === prontas).flatMap(l => l.pecas.map(p => { doModelo.set(p.caminho, l.modelo); return p; })).sort(ordemParaGravar);
+        const pecas: PecaLida[] = [];
+        for (const p of escolhidas) {
+            const arquivo = vault?.getAbstractFileByPath?.(p.caminho);
+            const roteiro = arquivo ? await ler(arquivo) : '';
+            const tele = p.teleprompter ? this.app.metadataCache?.getFirstLinkpathDest?.(p.teleprompter.split('#')[0], p.caminho) : null;
+            const fala = tele ? falaDoTeleprompter(await ler(tele)) || null : null;
+            pecas.push({ ...p, teleprompterCaminho: tele?.path ?? null, fala, faltas: roteiro ? teleprompterDoRoteiro(roteiro).faltas : [] });
+        }
+        pecas.sort(ordemPelaFala);
+        // Os botões pelo modelo da primeira peça (ou do primeiro tipo que grava, sem peça).
+        const modelo = (pecas[0] ? doModelo.get(pecas[0].caminho) : undefined) ?? lidos[0]?.modelo ?? null;
+        const nomeDe = (id: string) => String(this.plugin?.manager?.get?.(id)?.name ?? id);
+        const botaoDe = (id: string | null | undefined): ProtocoloDoBotao | null => {
+            if (!id || !modelo) return null;
+            return { id, rotulo: nomeDe(id), preencher: modelo.protocolos.find(x => x.id === id)?.preencher ?? {} };
+        };
+        const estados = modelo ? estadosDaGravacao(modelo) : null;
+        const idTele = modelo && estados ? protocoloDoTeleprompter(modelo, estados.pronto) : null;
+        const vazioDe = (nome: string | null, padrao: string) => (nome && modelo?.campos.find(c => c.nome === nome)?.vazio) || padrao;
+        const { texto, botoes } = blocoParaGravar(hoje, { prontas, pecas }, { teleprompter: botaoDe(idTele), roteiro: botaoDe(modelo?.criar?.protocolo) }, {
+            destinos: vazioDe(CAMPOS_DA_PECA.destinos, 'sem destino'),
+            publicar: vazioDe(modelo ? campoDaDataDePublicacao(modelo) : null, 'a definir'),
+        });
+        return { prontas, pecas, texto, botoes };
     }
 
     /** O que faz: a forma de mostrar de um trimestre (`AAAA-Qn`, as semanas dele). Trimestre ilegível → `null`. */

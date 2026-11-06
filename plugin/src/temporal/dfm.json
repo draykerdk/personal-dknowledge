@@ -1,0 +1,90 @@
+{
+  "dfm": 1,
+  "system": "temporal",
+  "purpose": "As notas de período do dfm-system (`src/temporal`): a Week e o trimestre que o Calendar ou o Periodic Notes criam crus, preenchidos como se o DFM os tivesse criado, e a leitura da nota do trimestre e da semana em foco. É o que sobrou da pasta depois da aposentadoria dos canvas da semana e do trimestre (02/11/2026). Este mapa declara os módulos e as conexões permitidas; o guarda tests/contracts/mapasDasPastasAntigas.test.ts o confere contra os imports reais.",
+  "default_grade": "G1",
+  "effects": [
+    "app.vault.*",
+    "app.metadataCache.*",
+    "app.workspace.*",
+    "this.app.*",
+    "new Notice"
+  ],
+  "modules": [
+    {
+      "id": "fn.reparo",
+      "paths": [
+        "periodNoteRepair.ts"
+      ],
+      "role": "functions",
+      "does": "Funções. Diz se um caminho é a nota de uma semana ou de um trimestre, se ela nasceu crua (a cópia do modelo, com os tokens sem trocar) e monta o texto preenchido pelo mesmo modelo e pelos mesmos tokens que o DFM usa ao criar.",
+      "why": "A decisão de 27/10/2026 (\"vamos de B\"): a nota criada pelo mini calendário tem de sair igual à que o DFM cria; a conta fica testável sem o cofre.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/engine/diaNosLeitores.test.ts tests/temporal/periodNoteRepair.test.ts tests/temporal/periodNoteRepairWatcher.test.ts"
+      ]
+    },
+    {
+      "id": "liga.leitura",
+      "paths": [
+        "periodNotes.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Lê do cache de metadados a nota do trimestre, a nota de uma semana (e um campo dela) e a semana em foco do trimestre; só lê.",
+      "why": "As leituras moravam no gerente do canvas do trimestre, que se aposentou em 02/11/2026; o painel e o cabeçalho do canvas de projeto seguem lendo por aqui.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/temporal/periodNotes.test.ts"
+      ]
+    },
+    {
+      "id": "liga.reparo",
+      "paths": [
+        "periodNoteRepairWatcher.ts"
+      ],
+      "role": "module",
+      "does": "Liga. Escuta o `create` do vault e o comando do reparo, e regrava uma vez a nota de período que nasceu crua, pelo fn.reparo.",
+      "why": "O efeito (a escuta, a leitura e a gravação) fica fora das funções, num lugar só.",
+      "proof": [
+        "cd ../.. && npx vitest run tests/temporal/periodNoteRepairWatcher.test.ts"
+      ]
+    },
+    {
+      "id": "ext.engine",
+      "role": "external",
+      "does": "Fora desta pasta: o motor do plugin (`src/engine`), com o mapa e o guarda dele: o dia, a semana e o trimestre, o calendário, a forma de mostrar, os pesos, os protocolos, o Mission Control.",
+      "why": "As contas do tempo e das tarefas têm um dono só, no motor; esta pasta as lê, não as copia."
+    },
+    {
+      "id": "ext.obsidian",
+      "role": "external",
+      "does": "A API do Obsidian.",
+      "why": "Só os módulos que ligam (liga.*, vista.*) chegam a ela em execução; nas funções, só como tipo."
+    }
+  ],
+  "connections": [
+    {
+      "from": "fn.reparo",
+      "to": "ext.engine",
+      "carries": "DIA, QUARTER_TEMPLATE_PATH, SEMANA, TRIMESTRE, contextDayOf, diaDoArquivo, ehTrimestre, isoWeekOf, periodOf, planWeekStart, quarterOfWeek, quarterYear, renderTemplateTokens, resolveDateTokens, targetWeekStart, weekStartFromValue; tipos: DateFactory, DateValue, TokenClock"
+    },
+    {
+      "from": "liga.leitura",
+      "to": "ext.engine",
+      "carries": "chooseFocusWeek, quarterWeeks; tipos: FocusWeek, WeekNote"
+    },
+    {
+      "from": "liga.leitura",
+      "to": "ext.obsidian",
+      "carries": "TFile; tipos: App"
+    },
+    {
+      "from": "liga.reparo",
+      "to": "ext.obsidian",
+      "carries": "Notice, TFile; tipos: App, Plugin, TAbstractFile"
+    },
+    {
+      "from": "liga.reparo",
+      "to": "fn.reparo",
+      "carries": "DAY_MODEL_PATH, DAY_NOTE_DIR, QUARTER_NOTE_DIR, WEEK_NOTE_DIR, dayNoteAt, dayQuarterNoticeText, dayQuarterPlan, fillNoticeText, fillRawMarkers, modelPathOf, periodNoteAt, periodRenderContext, renderDayNote, renderPeriodNote, repairNoticeText, repairPlan; tipos: DayNote, DayQuarterPlan, FillResult, PeriodNote, PeriodRenderContext, RepairPlan"
+    }
+  ]
+}

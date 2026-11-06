@@ -16,17 +16,41 @@ try {
   const dia = String(dv.current().file.name);
   const forma = nucleo?.formaDoDia?.(dia);
   const carga = nucleo?.cargaDoDia?.(dia);
-  dv.paragraph([
+  dv.el('div', [
     `📊 **O dia:** ${forma ? forma.text : 'sem leitura (o dfm-system não está carregado)'}`,
     `⏱ **Carga:** ${carga ? carga.text : 'sem leitura'}`
   ].join('  \n'));
-} catch (e) { dv.paragraph('—'); }
+} catch (e) { dv.el('div', '—'); }
 ```
 
 ```dataviewjs
 // O bloco só chama `day_context.js` quando o arquivo existe no cofre; sem ele, a seção fica vazia.
 const vista = "200 - FUNCTIONS/Scripts/day_context";
 if (app.vault.getAbstractFileByPath(`${vista}.js`)) await dv.view(vista, { mode: "compact", parte: "olhada" });
+```
+
+### 🎥 Para gravar hoje
+
+```dataviewjs
+// 🎥 A peça pronta para gravar e a fala do teleprompter dela, para ler no celular longe do computador
+// (`nucleo.paraGravar`: os estados, o teleprompter e os botões vêm do modelo da peça). Sem nada
+// pronto, o roteiro que falta terminar. Só mostra: nada grava nem muda de estado. Sem o plugin,
+// "sem leitura". O texto vai num `div`, não num parágrafo: no celular o tema dá a largura fixa da
+// linha ao parágrafo do dataviewjs, e a fala sairia cortada à direita.
+try {
+  const plugin = app.plugins.plugins['dfm-system'];
+  const lido = await plugin?.nucleo?.paraGravar?.(String(dv.current().file.name));
+  if (!lido) dv.el('div', 'sem leitura (o dfm-system não está carregado)');
+  else {
+    dv.el('div', lido.texto);
+    for (const b of lido.botoes) {
+      const protocolo = plugin?.manager?.get?.(b.protocolo);
+      if (!protocolo) continue;
+      const botao = dv.el('button', b.rotulo);
+      botao.addEventListener('click', () => protocolo.run(b.variaveis));
+    }
+  }
+} catch (e) { dv.el('div', '—'); }
 ```
 
 ---

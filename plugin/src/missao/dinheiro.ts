@@ -73,6 +73,12 @@ export function janelaEmTexto(de: string, ate: string): string {
 
 /** O que faz: "1 dia" e "2 dias". */
 const nDias = (n: number) => `${n} ${n === 1 ? 'dia' : 'dias'}`;
+/**
+ * O que faz: a janela sem nenhum valor: "06/11: nenhum R$ registrado"; com mais de um dia, quantos.
+ * Por quê: a percorrida de 06/11: no cartão do dia, o "nada registrado" do dinheiro ficava ao lado do "Dias sem
+ * registro" da acolhida, duas leituras de "sem registro" lado a lado; a do dinheiro diz que é o dinheiro.
+ */
+const nenhumRegistrado = (janela: string, sem: number) => `${janela}: nenhum R$ registrado${sem > 1 ? ` (${nDias(sem)})` : ''}`;
 
 export interface SomaDoPeriodo {
     entrou: number;
@@ -81,7 +87,7 @@ export interface SomaDoPeriodo {
     diasComValor: number;
     /** Dias do período até hoje sem nenhum dos dois (o futuro não conta). */
     diasSemValor: number;
-    /** "26–29/10: +R$ 300 · −R$ 52 · 2 dias sem registro"; sem nada, "26–29/10: nada registrado (4 dias)"; sem dia até hoje, vazio. */
+    /** "26–29/10: +R$ 300 · −R$ 52 · 2 dias sem registro"; sem nada, "26–29/10: nenhum R$ registrado (4 dias)"; sem dia até hoje, vazio. */
     texto: string;
 }
 
@@ -100,7 +106,7 @@ export function somaDoPeriodo(dias: Record<string, NotaDePeriodo>, datas: readon
     const janela = conta.de && conta.ate ? janelaEmTexto(conta.de, conta.ate) : '';
     const texto = !janela ? ''
         : com ? `${janela}: ${[`+${reais(entrou)}`, `−${reais(saiu)}`, ...(sem ? [`${nDias(sem)} sem registro`] : [])].join(' · ')}`
-            : `${janela}: nada registrado (${nDias(sem)})`;
+            : nenhumRegistrado(janela, sem);
     return { entrou, saiu, diasComValor: com, diasSemValor: sem, texto };
 }
 
@@ -207,6 +213,6 @@ export function custoDaPassagem(e: Passagem, dias: Record<string, NotaDePeriodo>
     const valores = [...(comSaida ? [`saiu ${reais(saiu)}`] : []), ...(comEntrada ? [`entrou ${reais(entrou)}`] : [])].join(', ');
     const texto = !janela ? `começa em ${diaMes(e.de)}: nada a contar ainda`
         : com ? `${janela}: ${[`${valores} (${nDias(com)} com registro)`, ...(sem ? [`${nDias(sem)} sem registro`] : [])].join(' · ')}`
-            : `${janela}: nada registrado (${nDias(sem)})`;
+            : nenhumRegistrado(janela, sem);
     return { saiu, diasComValor: com, diasSemValor: sem, semRegistro: conta.semRegistro, texto, reserva: rw.texto };
 }

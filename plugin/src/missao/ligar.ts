@@ -83,6 +83,18 @@ function grupoDo(ramo: BranchDirection | undefined, donoEhOAlvo: boolean): numbe
 }
 
 /**
+ * O que faz: a passagem por uma cidade (o cartão do lugar num dia, no mapa) liga como a cidade dela; os
+ * outros nós ficam como estão.
+ * Por quê: a passagem não é um tipo (não tem modelo nem campo); ela é a cidade naquele dia. Soltar ou ligar a
+ * tarefa na cidade do dia grava o `lugar` dela, como no cartão da cidade (o acabamento, item 8, 05/11).
+ * Erro e ataque: a passagem sem cidade conhecida fica como está (o aviso diz que nenhum campo liga os dois).
+ */
+function lugarDaPassagem(modelo: Pick<MissaoModelo, 'lugarDoNo'>, id: string): string {
+    const l = modelo.lugarDoNo(id);
+    return l?.passagem?.id === id && l.cidade?.id ? l.cidade.id : id;
+}
+
+/**
  * O que faz: o que ligar o nó `de` (quem tem a alça, ou o "Ligar") ao nó `para` grava:
  * - a alça da SMART numa ação: acrescenta a mãe, como sempre (`intencaoDaAlca`), direto;
  * - senão, os campos de link dos dois modelos que apontam a espécie do outro, na ordem do ramo que a
@@ -98,8 +110,10 @@ function grupoDo(ramo: BranchDirection | undefined, donoEhOAlvo: boolean): numbe
  * não gravam; nada aqui grava.
  * Prova: tests/missao/ligar.test.ts.
  */
-export function ligacoesEntre(modelo: MissaoModelo, de: string, para: string, leitor: LeitorDoEscolher): ResultadoDoLigar {
-    if (!de || !para || de === para) return { problema: LIGAR.mesmo };
+export function ligacoesEntre(modelo: MissaoModelo, deNo: string, paraNo: string, leitor: LeitorDoEscolher): ResultadoDoLigar {
+    if (!deNo || !paraNo || deNo === paraNo) return { problema: LIGAR.mesmo };
+    const de = lugarDaPassagem(modelo, deNo), para = lugarDaPassagem(modelo, paraNo);
+    if (de === para) return { problema: LIGAR.mesmo };
     // A SMART e a ação, nos dois sentidos: acrescenta a mãe (a seta SMART → ação); a segunda SMART se soma
     // à primeira, e o Desfazer tira só ela (30/10/2026: a conexão já muda os metadados).
     for (const [smart, acao] of [[de, para], [para, de]] as const) {

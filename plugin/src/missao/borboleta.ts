@@ -18,23 +18,25 @@ import { periodOfWeeks, quarterOfWeek, quarterPeriod, quarterWeeks, weekDates } 
 import { dayGrammar, dayLoad, loadText, overCapacity, parseBlockMinutes, quarterGrammar, weekGrammar, weekLoadSummary, type BlockTask } from '../engine/tarefasNoPeriodo';
 import { linkNames } from '../engine/temporada';
 import type { MarcaDoRamo, MissaoEntrada } from './entrada';
-import { estadoDaNota, formaDoEstado, rotuloDoStatus, MARCA_MANUTENCAO, MODELO_ANTIGO } from './estados';
+import { estadoDaNota, feitaPeloModelo, formaDoEstado, rotuloDoStatus, MARCA_MANUTENCAO, MODELO_ANTIGO } from './estados';
 import { ehManutencao } from '../engine/taskSemantics';
 import { filtrosPadrao, resolverFiltros, type ContextoDosFiltros } from './filtros';
-import type { ArquivosDoNo, CamadasDoLugar, Contagens, Criavel, Passagem, Faixa, FiltrosResolvidos, Ligacao, LinhaAberta, LinhaFechada, LugarDaLinha, MarcaFechada, MissaoFiltros, MissaoIndice, MissaoModelo, MissaoNo, MissaoTarefa, Papel, PessoaDaMissao, ProximaAcao, DoDia, RecorteDoRamo, Reserva, Sinal, Trecho, VisaoVigente } from './tipos';
+import type { ArquivosDoNo, CamadasDoLugar, CentroDoAprendizado, Contagens, Criavel, Passagem, Faixa, FiltrosResolvidos, Ligacao, LinhaAberta, LinhaFechada, LugarDaLinha, MarcaFechada, MissaoFiltros, MissaoIndice, MissaoModelo, MissaoNo, MissaoTarefa, Papel, PessoaDaMissao, ProximaAcao, DoDia, RecorteDoRamo, Reserva, Sinal, Trecho, VisaoVigente } from './tipos';
 import { familiaDe, idDaArea, idDoProjeto, indiceDaMissao, linhagemDe, noRecorteDoRamo, VISAO_ID } from './linhagem';
 import { buscar } from './busca';
 import { estadoInicial } from './estadoTela';
 import { type EstadiaLida, datasDaPassagem, diasPorPassagem, estadiasDaCidade, estadiasDaPassagem, estadiasDasNotas, passagens as lerPassagens, faixaDoPeriodo, lugarDoDia, trechosDasPassagens } from './lugares';
-import { chaveDaFonte, colecoesDaLinha, detalheDoNo, indiceDasColecoes, noDaColecaoPeloNome, noDaNota, noDoTrecho, noDoVinculo, passaNoFiltro, trechosPlanejados, type IndiceDasColecoes } from './colecoes';
+import { chaveDaFonte, colecoesDaLinha, contasDaLinha, detalheDoNo, indiceDasColecoes, noDaColecaoPeloNome, noDaNota, noDoTrecho, noDoVinculo, passaNoFiltro, trechosPlanejados, type IndiceDasColecoes } from './colecoes';
 import type { RamoPrincipal } from './ramoPrincipal';
 import { visaoVigente } from './visao';
-import { CONFIG_PADRAO, sinais as lerSinais, sinaisDeclarados, sinaisDosTrechos, sinaisPorAlvo, type ConfigDosSinais } from './sinais';
+import { CONFIG_PADRAO, sinais as lerSinais, sinaisDasConferencias, sinaisDeCadencia, sinaisDeclarados, sinaisDosTrechos, sinaisPorAlvo, type ConfigDosSinais } from './sinais';
+import { centroDoAprendizado } from './aprendizado';
 import { custoDaPassagem, marcaDoDia, reserva as lerReserva, somaDoPeriodo } from './dinheiro';
 import { camadasDoLugar, lugarDoNo, noDoLugarPeloNome, regrasDoLugar } from './lugarDoNo';
 import { prateleira } from './triagem';
 import { proximaAcaoDoProjeto } from './proximaAcao';
 import { comandoDoDia, linhaDoComando } from './comandoDoDia';
+import { trilhaDoModelo } from './trilha';
 import { marcaDasExposicoes, marcaDoNoAr, marcaDoNoArNaSemana, marcaDoRamoNoPeriodo, type MarcaDoDia } from './marcasDoDia';
 import { diasDaPessoa, linhaDaPessoa, pessoasDaPassagem, pessoasDaMissao, pessoasDoDia as pessoasNoDia, PREFIXO_DA_PESSOA } from './pessoas';
 import type { WeightReason } from '../engine/decisionWeights';
@@ -44,7 +46,8 @@ import {
     isChaveEspecial, janelaDe, linhaDe, MESES, periodoDoId, PRATELEIRAS, semanaCurta, semanasDoAno,
     type ChaveEspecial, type Escala, type Janela,
 } from './tempo';
-import { ehDia, marcaDePessoas, minutosTexto } from './formatos';
+import { ehDia, marcaDePessoas, minutosTexto, textoDoCampo } from './formatos';
+import { camposComApelidos, opcoesDaOutraNota } from '../engine/domainModel';
 import { adicaoDoPai, campoDoAdicionar, gestoNoCampo, opcoesDeEscolher, opcoesDoCampo } from './escolher';
 import { contextoDoPainel } from './painel';
 import { comLigacoesPadrao, conexoesNaMemoria, conexoesPadraoDoNo, dominioDoNo, ramoDoNo } from './ramo';
@@ -120,7 +123,10 @@ export const formaDoAno = (ano: string, registros: readonly BlockTask[]) => show
  * de linha desconhecida devolve a linha vazia daquela chave.
  * Prova: tests/missao/borboleta.test.ts.
  */
-export function modeloDaMissao(entrada: MissaoEntrada, opcoes: OpcoesDoModelo = {}): MissaoModelo {
+export function modeloDaMissao(lida: MissaoEntrada, opcoes: OpcoesDoModelo = {}): MissaoModelo {
+    // Os nomes antigos dos campos (05/11: o `plataforma` da peça é lido como `destinos`): as coleções, os cartões e os
+    // sinais leem as notas pelo nome de agora, sem migrar nenhuma.
+    const entrada = comOsNomesAntigos(lida);
     const hoje = entrada.hoje;
     const indice = indiceDaMissao(entrada);
     const filtros = resolverFiltros(opcoes.filtros ?? filtrosPadrao('pagina'), { hoje, ...(opcoes.contexto ?? {}) });
@@ -138,6 +144,8 @@ export function modeloDaMissao(entrada: MissaoEntrada, opcoes: OpcoesDoModelo = 
         // P10b: os sinais que os modelos dos tipos declaram (o prazo adiante, o limite no lugar).
         // As estadias entram também (02/11): a conferência das datas delas, declarada no modelo da estadia.
         ...sinaisDeclarados([...notasLidas, ...(entrada.estadias ?? [])], passagens, entrada.tabelas?.sinais ?? { prazos: [], limites: [] }, hoje),
+        // A conferência das tarefas de pesquisa (05/11): a tag e a seção do modelo, os itens que o leitor contou.
+        ...sinaisDasConferencias(indice, entrada.tabelas?.sinais?.conferencias ?? [], entrada.conferencias),
     ];
     // G6: o lugar em camadas (o país, a cidade, a passagem), pelo modelo do tipo, em qualquer ramo.
     const lugares = camadasDoLugar(passagens, entrada.cidades ?? [], entrada.paises ?? [], regrasDoLugar(entrada.tabelas?.tipos ?? [], entrada.cidades ?? []));
@@ -162,7 +170,9 @@ export function modeloDaMissao(entrada: MissaoEntrada, opcoes: OpcoesDoModelo = 
             comEstado.push([n.caminho, noDaNota(n, f, { valor: st.valor, rotulo: st.rotulo, forma: formaDoEstado(st) })]);
         }
     }
-    const colecoes = indiceDasColecoes(opcoes.ramoPrincipal?.colecoes ?? [], entrada.notasDosRamos ?? {}, passagens, hoje, new Map([...comEstado, ...estadias.map(e => [e.caminho, e.no] as const), ...projetosNaColecao]));
+    // A contagem das coleções com `conta` (05/11, a campanha da semana): a nota feita pelo modelo do tipo dela (a peça publicada).
+    const feita = (n: { campos: Record<string, unknown> }) => feitaPeloModelo(n.campos, entrada.tabelas?.tipos ?? []);
+    const colecoes = indiceDasColecoes(opcoes.ramoPrincipal?.colecoes ?? [], entrada.notasDosRamos ?? {}, passagens, hoje, new Map([...comEstado, ...estadias.map(e => [e.caminho, e.no] as const), ...projetosNaColecao]), feita);
     const trechos = [...trechosDasPassagens(passagens), ...trechosPlanejados(colecoes, hoje)].sort((a, b) => a.dia.localeCompare(b.dia));
     // O limite no lugar (o visto) chega também ao nó do país da passagem (P13, 02/11): o limite é do país, e o
     // nó dele (a nota, ou o vínculo sem nota do ramo) mostra o mesmo sinal, sem contar duas vezes na triagem.
@@ -171,6 +181,14 @@ export function modeloDaMissao(entrada: MissaoEntrada, opcoes: OpcoesDoModelo = 
         const pais = lugarDoNo(lugares, s.alvo)?.pais;
         const id = !pais ? null : pais.nota ? pais.id : noDoVinculo(colecoes, pais.nome)?.id ?? pais.id;
         if (id && id !== s.alvo && !(porAlvo.get(id) ?? []).includes(s)) porAlvo.set(id, [...(porAlvo.get(id) ?? []), s]);
+    }
+    // A cadência da semana (05/11, a campanha): só no ramo que mostra o campo dela numa coluna de vínculo (os canais da
+    // Criação); o canal sem peça publicada vai ao nó dele na coluna, senão à semana. Só informa, como todo sinal.
+    const vinculos = new Set((opcoes.ramoPrincipal?.colecoes ?? []).map(c => c.vinculo?.campo).filter(Boolean));
+    const cadencias = (entrada.tabelas?.sinais?.cadencias ?? []).filter(c => vinculos.has(c.por));
+    for (const s of sinaisDeCadencia(notasLidas, cadencias, hoje, v => noDoVinculo(colecoes, v)?.id ?? null)) {
+        sinais.push(s);
+        porAlvo.set(s.alvo, [...(porAlvo.get(s.alvo) ?? []), s]);
     }
 
     const memo = new Map<string, unknown>();
@@ -208,7 +226,12 @@ export function modeloDaMissao(entrada: MissaoEntrada, opcoes: OpcoesDoModelo = 
     const proxima = (id: string): ProximaAcao | null => once(`proxima|${id}`, () => proximaAcaoDoProjeto(indice, id, ordemDoDia));
     // O Comando do Dia e o compromisso deixado (02/11), uma vez por dia por versão.
     const doDia = (dia: string): DoDia => once(`doDia|${dia}`, () => comandoDoDia(entrada, indice, dia, hoje));
-    const ctx: Ctx = { entrada, indice, registros, hoje, porAlvo, passagens, visao, reserva, filtros, visivelIds, colecoes, trechos, pontos: opcoes.pontos ?? null, grauDaReputacao: opcoes.grauDaReputacao ?? null, proxima, marcasNoTempo: marcasDosRamosNoTempo(indice, entrada.marcasDosRamos ?? []), doDia };
+    // O centro do módulo de aprendizado (05/11): o projeto ou departamento que as notas do tipo apontam, pelo nome da nota.
+    const aprendizadoDe = (id: string): CentroDoAprendizado | null => once(`aprendizado|${id}`, () => {
+        const p = indice.projetos.get(id);
+        return p && entrada.aprendizado?.length ? centroDoAprendizado(p.nome, entrada.aprendizado, entrada.tabelas?.tipos ?? [], hoje, entrada.novasDeHoje ?? {}) : null;
+    });
+    const ctx: Ctx = { entrada, indice, registros, hoje, porAlvo, passagens, visao, reserva, filtros, visivelIds, colecoes, trechos, pontos: opcoes.pontos ?? null, grauDaReputacao: opcoes.grauDaReputacao ?? null, proxima, marcasNoTempo: marcasDosRamosNoTempo(indice, entrada.marcasDosRamos ?? []), doDia, aprendizado: id => aprendizadoDe(id)?.linhaDoCartao ?? null };
     // A base dos ramos (29/10): as colunas "ligacoes": "padrao" tomam as ligações das conexões padrão dos modelos.
     const colunas = [...(opcoes.ramoPrincipal?.trabalho ?? []), ...(opcoes.ramoPrincipal?.tempo ?? [])];
     let padrao: ReturnType<typeof conexoesNaMemoria> | null = null;
@@ -283,7 +306,12 @@ export function modeloDaMissao(entrada: MissaoEntrada, opcoes: OpcoesDoModelo = 
             const sinaisDoNo = (porAlvo.get(id) ?? []).map(s => ({ tipo: s.tipo, fato: s.fato }));
             const linha = indice.projetos.get(id)?.estado ?? indice.porId.get(id)?.estado ?? estadoDaNota(campos, entrada.tabelas?.tipos ?? []);
             const estado = linha ? { estado: linha.estado, rotulo: linha.rotulo } : null;
-            return protocolosDoNo(modeloDaNota(nota, campos, entrada.tabelas?.tipos ?? []), { nome, caminho: nota, campos, datas, sinais: sinaisDoNo, estado }, lido);
+            // O módulo de aprendizado (05/11) ganha os protocolos do tipo do aprendizado (o gesto do dia, a captura): o módulo
+            // especial no painel genérico, sem ramo especial.
+            const doTipo = modeloDaNota(nota, campos, entrada.tabelas?.tipos ?? []);
+            const centro = aprendizadoDe(id);
+            const comCentro = centro && doTipo ? { ...doTipo, protocolos: [...doTipo.protocolos, ...centro.protocolos.filter(x => !doTipo.protocolos.some(y => y.id === x.id))] } : doTipo;
+            return protocolosDoNo(comCentro, { nome, caminho: nota, campos, datas, sinais: sinaisDoNo, estado }, lido);
         },
         estadiasDaPassagem: id => { const e = passagens.find(x => x.id === id); return e ? estadiasDaPassagem(e, estadias, hoje).map(x => x.no) : []; },
         estadiasDaCidade: nome => estadiasDaCidade(nome, estadias).map(x => x.no),
@@ -320,7 +348,22 @@ export function modeloDaMissao(entrada: MissaoEntrada, opcoes: OpcoesDoModelo = 
         // O nó de qualquer id como o mapa o compõe: o dado do cartão único (o ramo, o Sistema, as listas).
         no: id => once(`no|${id}`, () => noDoId(ctx, { lugares, pessoas, estadias, contagem: (escala, chave) => (porLinha(escala).get(chave) ?? []).length }, id)),
         proximaAcao: proxima,
+        aprendizadoDoProjeto: id => aprendizadoDe(id),
+        // As opções de um campo pela outra nota (05/11, os destinos pelos perfis do canal): a outra é o alvo do vínculo do
+        // ramo pelo campo que a nomeia (a coluna Canais, pelo `canal` das peças).
+        opcoesPelaOutraNota: (caminho, campos, nome) => {
+            const doTipo = modeloDaNota(caminho, campos, entrada.tabelas?.tipos ?? []);
+            const campo = doTipo?.campos.find(c => c.nome === nome);
+            if (!doTipo || !campo?.opcoes) return null;
+            const lidos = camposComApelidos(doTipo, campos);
+            const valor = textoDoCampo(Array.isArray(lidos[campo.opcoes.de]) ? (lidos[campo.opcoes.de] as unknown[])[0] : lidos[campo.opcoes.de]);
+            const vinculo = colecoes.colecoes.find(c => c.vinculo?.campo === campo.opcoes!.de);
+            const outra = valor && vinculo ? colecoes.alvos.get(vinculo.id)?.get(fold(valor)) ?? null : null;
+            return outra ? opcoesDaOutraNota(campo, lidos, outra.nota.campos, outra.no.titulo) : null;
+        },
         doDia,
+        // A trilha de uso (05/11): a acolhida de hoje, o gesto da semana e as dicas, pela entrada lida.
+        trilha: trilhaDoModelo(entrada, indice, hoje),
     };
     return modelo;
 }
@@ -425,6 +468,8 @@ interface Ctx {
     doDia?: (dia: string) => DoDia;
     /** As marcas dos ramos no dia e na semana (02/11, `marcasDosRamosNoTempo`); sem a chave, nenhuma. */
     marcasNoTempo?: MarcasNoTempo;
+    /** A linha do centro do módulo de aprendizado de um projeto (05/11, `centroDoAprendizado`), para o cartão dele. */
+    aprendizado?: (id: string) => string | null;
 }
 
 /**
@@ -575,12 +620,13 @@ export function noDaTarefa(ctx: Pick<Ctx, 'indice' | 'registros' | 'porAlvo'>, t
  * O que faz: o nó de um projeto: a linha dele no período (a mesma de `nucleo.formaDoProjeto` no trimestre) e o
  * estágio, pela marca e pelo rótulo da linha da tabela de estados que a coluna dele dá.
  */
-export function noDoProjeto(ctx: Pick<Ctx, 'indice' | 'registros' | 'porAlvo' | 'proxima'>, id: string, periodo: { escala: 'trimestre' | 'ano'; chave: string } | null): MissaoNo | null {
+export function noDoProjeto(ctx: Pick<Ctx, 'indice' | 'registros' | 'porAlvo' | 'proxima' | 'aprendizado'>, id: string, periodo: { escala: 'trimestre' | 'ano'; chave: string } | null): MissaoNo | null {
     const p = ctx.indice.projetos.get(id);
     if (!p) return null;
     const period = !periodo ? null : periodo.escala === 'trimestre' ? quarterPeriod(periodo.chave) : periodOfWeeks(semanasDoAno(periodo.chave));
     const progress = projectProgress({ name: p.nome, index: p.nota }, ctx.registros, period);
     const prox = ctx.proxima?.(id) ?? null;
+    const aprendizado = ctx.aprendizado?.(id) ?? null;
     const papel = p.papel === 'central' ? 'central' : p.papel === 'auxiliar' ? `auxiliar de ${p.central}` : p.encerrado ? 'encerrado' : 'fora da Temporada';
     // A central diz o ramo: ela e os auxiliares, pela mesma conta, com as chaves de todos.
     let doRamo: MissaoNo['doRamo'];
@@ -598,6 +644,8 @@ export function noDoProjeto(ctx: Pick<Ctx, 'indice' | 'registros' | 'porAlvo' | 
         ...(p.estado ? { estagio: [p.estado.marca, p.estado.rotulo].filter(Boolean).join(' ') } : {}),
         // A próxima ação real (02/11): o título da tarefa; sem ação aberta, nada (a central sem movimento já diz).
         ...(prox ? { proxima: prox.tarefa.titulo } : {}),
+        // O centro do módulo de aprendizado (05/11): a fila de hoje e o nível em curso, na linha de baixo do cartão.
+        ...(aprendizado ? { aprendizado } : {}),
     };
 }
 
@@ -850,6 +898,7 @@ function linhaAbertaDe(ctx: Ctx, escala: Escala, chave: string, own: MissaoTaref
     }
     const cols = deLinha ? colecoesDaLinha(ctx.colecoes, deLinha, ateLinha, lugar.passagens, ctx.hoje) : { nos: {}, ligacoes: [] };
     ligacoes.push(...cols.ligacoes);
+    const contas = contasDaLinha(ctx.colecoes, cols.nos);
 
     // As de hora marcada, abertas (a feita com hora vai para o fim, com as outras feitas).
     const horarios = escala === 'dia' ? ownActions.filter(t => grupoNaOrdem(t) === COM_HORA).sort(byOrder).map(t => noDaTarefa(ctx, t)) : [];
@@ -864,11 +913,13 @@ function linhaAbertaDe(ctx: Ctx, escala: Escala, chave: string, own: MissaoTaref
         escala, chave, id, hoje: ehHoje(escala, chave, ctx.hoje), especial,
         centro: noDoCentro(ctx, escala, chave, own.length), lugar,
         areas: areaIds.map(a => noDaArea(indice, a)).filter((n): n is MissaoNo => !!n),
-        projetos: projects.map(p => noDoProjeto(ctx, p, periodo)).filter((n): n is MissaoNo => !!n),
+        // A frente de renda (05/11): o projeto que as coleções com `conta` apontam leva a contagem delas no cartão.
+        projetos: projects.map(p => noDoProjeto(ctx, p, periodo)).filter((n): n is MissaoNo => !!n).map(n => (contas.has(n.id) ? { ...n, conta: contas.get(n.id)! } : n)),
         smarts: smarts.map(s => noDaTarefa(ctx, s, pendIds.has(s.id))),
         faixas: faixasDe(ownActions), pendentes: faixasDe(pendActions), horarios, asa, ligacoes,
         contagem: own.length, habitos, trimestres, dinheiro,
         passagens: passagensNos, trechos: trechosNos, colecoes: cols.nos,
+        visao: ctx.visao.nota ? [noDaVisao(ctx.visao)] : [],
     };
 }
 
@@ -1028,3 +1079,24 @@ export function contar(indice: MissaoIndice, sinais: readonly Sinal[], passagens
     };
 }
 
+/**
+ * O que faz: a entrada com os nomes antigos dos campos lidos nas notas das coleções: cada nota pelo modelo dela
+ * (`modeloDaNota`), e o campo que ela não tem toma o do nome antigo (`camposComApelidos`).
+ * Por quê: 05/11, o gerenciamento dos destinos: o `plataforma` da peça virou `destinos`, e as notas antigas valem como
+ * estão (nada se migra).
+ * Entra → sai: a entrada → a mesma, ou uma cópia rasa com as notas que mudaram (a entrada não muda).
+ * Erro e ataque: a nota sem modelo, ou sem nome antigo a ler, fica como está.
+ * Prova: tests/engine/destinosDaPeca.test.ts.
+ */
+function comOsNomesAntigos(entrada: MissaoEntrada): MissaoEntrada {
+    const tipos = entrada.tabelas?.tipos ?? [];
+    if (!entrada.notasDosRamos || !tipos.some(m => m.campos.some(c => c.antes?.length))) return entrada;
+    const notasDosRamos: NonNullable<MissaoEntrada['notasDosRamos']> = {};
+    for (const [chave, notas] of Object.entries(entrada.notasDosRamos)) {
+        notasDosRamos[chave] = notas.map(n => {
+            const campos = camposComApelidos(modeloDaNota(n.caminho, n.campos, tipos), n.campos ?? {});
+            return campos === n.campos ? n : { ...n, campos };
+        });
+    }
+    return { ...entrada, notasDosRamos };
+}

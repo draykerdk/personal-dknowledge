@@ -19,6 +19,25 @@ export interface AreaDefinida { nome: string; pasta: string; etiqueta: string }
 /** Um termo que a pessoa acrescenta ao vocabulário do que o sistema não usa para medir ninguém. */
 export interface TermoExtra { termo: string; porque: string }
 
+/**
+ * A trilha de uso (05/11/2026): o que cada parte faz e quando. Os textos não moram aqui: estão no arquivo
+ * da trilha (`arquivos.trilha`), para quem instala ler as boas-vindas na língua e no jeito dele.
+ */
+export interface TrilhaDefinida {
+    /** Receber quem chega à tarde ou à noite: "o que você fez hoje?" no lugar da abertura da manhã. */
+    acolhida: boolean;
+    /** A hora (`HH:MM`) a partir da qual a Day de hoje vazia abre com a acolhida. */
+    hora_da_tarde: string;
+    /** Quantos dias para trás a acolhida olha atrás dos dias sem registro (0 = nenhum). */
+    dias_passados: number;
+    /** O cartão do gesto da semana no centro da Missão. */
+    gesto_da_semana: boolean;
+    /** Quantos dias de uso dão o gesto por feito (e a árvore de uso propõe o seguinte). */
+    vezes: number;
+    /** A dica da primeira vez de um gesto ou botão. */
+    dicas: boolean;
+}
+
 /** As definições, com todos os campos sempre presentes (o leitor preenche o que falta com o padrão). */
 export interface Definicoes {
     versao: number;
@@ -32,10 +51,11 @@ export interface Definicoes {
     pesos: { ajustes: Record<string, unknown> };
     vocabulario: { termos_extra: TermoExtra[] };
     pastas: { inbox: string; protocolos: string; revisao_semanal: string; valores: string; excluidas: string[] };
-    arquivos: { pesos: string; reputacao: string; ech: string; vocabulario: string; reserva: string };
+    arquivos: { pesos: string; reputacao: string; ech: string; vocabulario: string; reserva: string; trilha: string };
     /** A ponte do agente local (o DSH): desligada por padrão; ligada, escuta só no loopback, na porta. */
     ponte: { ligada: boolean; porta: number };
     protocolos_por_papel: TabelaDosPapeis;
+    trilha: TrilhaDefinida;
 }
 
 /** A versão do esquema que este leitor conhece. */
@@ -104,9 +124,11 @@ export const DEFINICOES_PADRAO: Readonly<Definicoes> = congelar({
         ech: '200 - FUNCTIONS/Config/ech.json',
         vocabulario: '200 - FUNCTIONS/Config/vocabulario.json',
         reserva: '',
+        trilha: '200 - FUNCTIONS/Config/trilha.json',
     },
     ponte: { ligada: false, porta: PORTA_DA_PONTE },
     protocolos_por_papel: protocolosDaV0(),
+    trilha: { acolhida: true, hora_da_tarde: '14:00', dias_passados: 7, gesto_da_semana: true, vezes: 3, dicas: true },
 } as Definicoes);
 
 type Objeto = Record<string, unknown>;
@@ -136,6 +158,27 @@ export function ehFuso(valor: unknown): boolean {
     if (typeof valor !== 'string') return false;
     if (!valor.trim()) return true;
     try { new Intl.DateTimeFormat('en-US', { timeZone: valor.trim() }).format(0); return true; } catch (e) { return false; }
+}
+
+/**
+ * O que faz: diz se um texto é uma hora do relógio, `HH:MM` de 00:00 a 23:59.
+ * Por quê: a hora da tarde da trilha decide quando a Missão recebe com "o que você fez hoje?"; a aba recusa
+ * pelo mesmo critério.
+ * Erro e ataque: o que não é texto, `24:00`, `9:00` e `14h` dão `false`; nada lança.
+ * Prova: tests/definicoes/definicoes.test.ts ("a trilha").
+ */
+export function ehHora(valor: unknown): valor is string {
+    return typeof valor === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(valor.trim());
+}
+
+/** O que faz: o inteiro de `min` a `max`, se o valor é um; senão o padrão. */
+function inteiro(valor: unknown, padrao: number, min: number, max: number): number {
+    return typeof valor === 'number' && Number.isInteger(valor) && valor >= min && valor <= max ? valor : padrao;
+}
+
+/** O que faz: sim ou não, se o valor é um; senão o padrão. */
+function simOuNao(valor: unknown, padrao: boolean): boolean {
+    return typeof valor === 'boolean' ? valor : padrao;
 }
 
 /** O que faz: o fuso, aparado, se ele vale (`ehFuso`); senão o padrão. */
@@ -244,6 +287,7 @@ export function aplicarCamada(base: Definicoes, camada: unknown): Definicoes {
     if (!c) return base;
     const pessoa = objeto(c.pessoa), rotulos = objeto(c.rotulos), trimestre = objeto(c.trimestre);
     const pesos = objeto(c.pesos), vocabulario = objeto(c.vocabulario), pastas = objeto(c.pastas), arquivos = objeto(c.arquivos), ponte = objeto(c.ponte);
+    const trilha = objeto(c.trilha);
     return {
         versao: VERSAO_DAS_DEFINICOES,
         inicializado: typeof c.inicializado === 'boolean' ? c.inicializado : base.inicializado,
@@ -274,12 +318,21 @@ export function aplicarCamada(base: Definicoes, camada: unknown): Definicoes {
             ech: caminho(arquivos?.ech, base.arquivos.ech),
             vocabulario: caminho(arquivos?.vocabulario, base.arquivos.vocabulario),
             reserva: caminho(arquivos?.reserva, base.arquivos.reserva, true),
+            trilha: caminho(arquivos?.trilha, base.arquivos.trilha, true),
         },
         ponte: {
             ligada: typeof ponte?.ligada === 'boolean' ? ponte.ligada : base.ponte.ligada,
             porta: ehPorta(ponte?.porta) ? ponte.porta : base.ponte.porta,
         },
         protocolos_por_papel: tabelaDosPapeis(base.protocolos_por_papel, c.protocolos_por_papel),
+        trilha: {
+            acolhida: simOuNao(trilha?.acolhida, base.trilha.acolhida),
+            hora_da_tarde: ehHora(trilha?.hora_da_tarde) ? String(trilha?.hora_da_tarde).trim() : base.trilha.hora_da_tarde,
+            dias_passados: inteiro(trilha?.dias_passados, base.trilha.dias_passados, 0, 31),
+            gesto_da_semana: simOuNao(trilha?.gesto_da_semana, base.trilha.gesto_da_semana),
+            vezes: inteiro(trilha?.vezes, base.trilha.vezes, 1, 30),
+            dicas: simOuNao(trilha?.dicas, base.trilha.dicas),
+        },
     };
 }
 

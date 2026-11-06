@@ -27,9 +27,10 @@ As datas são fixas, para os testes não dependerem do dia de hoje: a quarta-fei
 | o dia | `300 - RUNTIME/302 - Daymiss/Day/2026-03-04.md` | a nota-modelo do dia com o diário escrito |
 | a semana | `300 - RUNTIME/302 - Daymiss/Week/2026-W10.md` | a semana na quarta-feira: as propriedades que o 🌳 grava, o valor da semana, os suportes e a colheita até ali; a conversa da semana (📨) ainda vazia, porque ela acontece no fim da semana |
 | o trimestre | `300 - RUNTIME/302 - Daymiss/Quarterly/2026-Q1.md` | o tema, a visão, os objetivos, os valores, a temporada, o foco e os marcos |
-| dois hábitos | `200 - FUNCTIONS/Habits/Tracker` (`type: habit`) | um com meta por semana, outro de todo dia; os dias marcados em `entries` |
+| três hábitos | `200 - FUNCTIONS/Habits/Tracker` (`type: habit`) | um com meta por semana, outro de todo dia, e o da língua, que o 🗣️ Inglês de hoje marca; os dias marcados em `entries` |
 | um valor: Curiosidade | `400 - MEMORY/Valores` (`type: valor`, `ordem`, `grupo`) | o valor que o trimestre lista e a semana escolhe |
 | um roteiro de vídeo | `400 - MEMORY/200 - WEEKLY/Roteiros` (`type: roteiro_video`) | uma peça do ramo Criação, no estado `roteiro`, ligada ao projeto |
+| um módulo de aprendizado: Inglês | `100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês/` (`type: departamento`), com um cartão em `Cartões/` (`type: cartao`) e uma peça lógica em `Lógica/` (`type: peca_logica`) | o cartão na trilha (`ordem: 1`), a peça que ele acende (`introduz`) e as quatro camadas da construção; o 🗣️ Inglês de hoje o traz como a nova do dia |
 
 `definicoes.exemplo.json` são as definições do sistema desta pessoa, no esquema de `config-padrao/definicoes.padrao.json` (as mesmas chaves, preenchidas). No cofre, elas moram nas configurações do plugin; o arquivo fica aqui para os testes e para quem quiser ver as definições preenchidas.
 

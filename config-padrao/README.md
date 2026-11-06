@@ -32,8 +32,15 @@ Os padrões são neutros: listas vazias, textos vazios, as pastas do esqueleto (
 | `arquivos.ech` | caminho | `200 - FUNCTIONS/Config/ech.json` | `engine/ech.ts:26` | idem |
 | `arquivos.vocabulario` | caminho | `200 - FUNCTIONS/Config/vocabulario.json` | a bancada | idem |
 | `arquivos.reserva` | caminho de uma nota, ou vazio | `""` = desligado | `missao/entrada.ts:193` (a casa da nota de reserva, escrita no código) e o módulo do dinheiro da Missão | o módulo da reserva só liga com uma nota configurada (A6 do mapa) |
+| `arquivos.trilha` | caminho | `200 - FUNCTIONS/Config/trilha.json` | `board/boardPlugin.ts` (`trilhaParaOLeitor`) e `missao/trilha.ts` | os textos da trilha de uso (a acolhida, o gesto da semana, os gestos e as dicas), na língua e no jeito de quem instala; a aba abre o arquivo para editar |
 | `ponte.ligada` | sim/não | `false` | `main.ts` (`aplicarPonte`, na carga e ao mudar na aba) | a ponte do agente só sobe ligada; desligada, nada escuta nem avisa |
 | `ponte.porta` | número de 1024 a 65535 | `3082` | `engine/dshOperatorBridge.ts` (o servidor e o descritor `.dfm-dsh-operator.json`) | a porta ocupada se troca na aba; o lado do agente lê a porta do descritor |
+| `trilha.acolhida` | sim/não | `true` | `missao/trilha.ts` (a acolhida, pela `missao/entrada.ts`) | a Day de hoje vazia, depois da hora da tarde, abre com "o que você fez hoje?" no lugar da abertura da manhã |
+| `trilha.hora_da_tarde` | hora `HH:MM` | `14:00` | `missao/trilha.ts` | a partir de quando a acolhida aparece |
+| `trilha.dias_passados` | número de 0 a 31 | `7` | `missao/trilha.ts` (`diasPassadosSemRegistro`) | quantos dias para trás a acolhida olha atrás dos dias sem registro; 0 = nenhum |
+| `trilha.gesto_da_semana` | sim/não | `true` | `missao/trilha.ts` | o cartão do gesto da semana no centro da Missão |
+| `trilha.vezes` | número de 1 a 30 | `3` | `missao/trilha.ts`, `engine/usoDosGestos.ts` | quantos dias de uso dão o gesto por feito, e a trilha passa ao seguinte |
+| `trilha.dicas` | sim/não | `true` | `missao/trilha.ts` | a dica da primeira vez de cada gesto e botão |
 | `protocolos_por_papel.<papel>` | id de protocolo, ou `null` | os três do ciclo e `inicializacao`; o resto `null` | os ids escritos no código: `engine/protocolForm.ts:324` (os botões do ciclo), `missao/gaveta.ts:20` e `:107`, `missao/ramoPrincipal.ts:585` (os ciclos de cada período) e as portas que chamam um protocolo pelo id | o código pede o protocolo pelo papel; papel sem protocolo esconde o botão ou a opção (D1 do mapa) |
 
 ## Os papéis de protocolo

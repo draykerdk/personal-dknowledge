@@ -13,13 +13,12 @@ import { diffLinks, endOf, linkFor, patchFor, unpatchFor } from '../../src/canva
 import type { CanvasLike, EdgeContext, LinkTask, Patch, ProjectRef } from '../../src/canvas/edgeLinks';
 import { patchDoGesto, type ContextoDoGesto, type Intencao } from '../../src/missao/gestos';
 
-// Um hash qualquer para o id `pj-<hash>` das pontas (o djb2 do antigo `temporal/weekBlockModel.ts`, que
-// saiu em 03/11/2026 com os canvas da semana e do trimestre; as setas só leem o mapa `projectsByHash`).
-function hashId(value: string): string {
-    let h = 5381;
-    for (let i = 0; i < value.length; i++) h = ((h << 5) + h + value.charCodeAt(i)) >>> 0;
-    return h.toString(36);
-}
+// As pontas do canvas são nós de arquivo: as notas da semana e do dia e a nota-índice do projeto. A célula
+// da semana, o bloco do dia e o nó de projeto dos canvas aposentados do trimestre e da semana saíram em
+// 06/11/2026; a equivalência é a mesma, a ponta é que é outra.
+const SEMANA = (w: string) => `300 - RUNTIME/302 - Daymiss/Week/${w}.md`;
+const DIA = (d: string) => `300 - RUNTIME/302 - Daymiss/Day/${d}.md`;
+const INDICE = (nome: string) => `100 - AREAS/${nome}/${nome}.md`;
 
 const task = (basename: string, over: Partial<LinkTask> = {}): LinkTask => ({
     path: `TaskNotes/Tasks/${basename}.md`, basename, type: 'task', projects: [], ...over,
@@ -39,10 +38,14 @@ const SMARTS = new Map([smart, smart2, smartLivro, smartSolta].map(t => [t.basen
 
 const ctxCanvas: EdgeContext = {
     taskAt: p => TASKS.get(p) ?? null,
-    noteAt: () => null,
+    noteAt: p => {
+        const semana = p.match(/Week\/(\d{4}-W\d{2})\.md$/)?.[1];
+        if (semana) return { kind: 'week', week: semana };
+        const dia = p.match(/Day\/(\d{4}-\d{2}-\d{2})\.md$/)?.[1];
+        return dia ? { kind: 'day', date: dia } : null;
+    },
     isSmartName: n => SMARTS.has(n.toLowerCase()),
-    blockWeeks: { 'dfm-qs-': '2026-W42' },
-    projectsByHash: { [hashId(venda.name)]: venda, [hashId(livro.name)]: livro },
+    projectsByFile: { [INDICE(venda.name)]: venda, [INDICE(livro.name)]: livro },
 };
 const ctxMissao: ContextoDoGesto = {
     isSmartName: n => SMARTS.has(n.toLowerCase()),
@@ -50,16 +53,15 @@ const ctxMissao: ContextoDoGesto = {
 };
 
 const fileNode = (id: string, file: string) => ({ id, type: 'file', file });
-const textNode = (id: string) => ({ id, type: 'text', text: '' });
 const NODES = [
-    textNode('dfm-qw-2026-W42'), textNode('dfm-qw-2026-W43'), textNode('dfm-qw-2026-W45'),
-    textNode('dfm-qs-day-2026-10-13'), textNode('dfm-qs-day-2026-10-14'), textNode('dfm-qs-day-2026-10-20'),
-    textNode(`dfm-qs-pj-${hashId(venda.name)}`), textNode(`dfm-qs-pj-${hashId(livro.name)}`),
+    fileNode('w42', SEMANA('2026-W42')), fileNode('w43', SEMANA('2026-W43')), fileNode('w45', SEMANA('2026-W45')),
+    fileNode('d13', DIA('2026-10-13')), fileNode('d14', DIA('2026-10-14')), fileNode('d20', DIA('2026-10-20')),
+    fileNode('pj-venda', INDICE(venda.name)), fileNode('pj-livro', INDICE(livro.name)),
     fileNode('s1', smart.path), fileNode('s2', smart2.path), fileNode('s3', smartLivro.path), fileNode('s4', smartSolta.path),
     fileNode('a1', acao.path), fileNode('a2', solta.path),
 ];
-const PJ_VENDA = `dfm-qs-pj-${hashId(venda.name)}`;
-const PJ_LIVRO = `dfm-qs-pj-${hashId(livro.name)}`;
+const PJ_VENDA = 'pj-venda';
+const PJ_LIVRO = 'pj-livro';
 type Seta = [string, string, string];
 const canvas = (edges: Seta[]): CanvasLike => ({ nodes: NODES, edges: edges.map(([id, fromNode, toNode]) => ({ id, fromNode, toNode })) });
 
@@ -94,38 +96,38 @@ const missao = (fm: Record<string, any>, t: LinkTask, i: Intencao) => {
 describe('o gesto na Missão e a seta no canvas dão o mesmo frontmatter', () => {
     it('arrastar a ação para um dia = a seta dia → ação (a hora fica, a semana segue o dia)', () => {
         const fm = { scheduled: '2026-10-13T09:30', week: '2026-W42', projects: ['[[Publicar 2 vídeos (W42)]]'] };
-        const canvasFm = seta(fm, [], [['e', 'dfm-qs-day-2026-10-20', 'a1']]);
+        const canvasFm = seta(fm, [], [['e', 'd20', 'a1']]);
         expect(missao(fm, acao, { gesto: 'dia', data: '2026-10-20' })).toEqual(canvasFm);
         expect(canvasFm).toMatchObject({ scheduled: '2026-10-20T09:30', week: '2026-W43' });
     });
 
     it('arrastar a SMART para a linha de uma semana = a seta semana → SMART', () => {
         const fm = { week: '2026-W42', projects: ['[[Venda de afiliados]]'] };
-        const canvasFm = seta(fm, [], [['e', 'dfm-qw-2026-W43', 's1']]);
+        const canvasFm = seta(fm, [], [['e', 'w43', 's1']]);
         expect(missao(fm, smart, { gesto: 'semana', semana: '2026-W43' })).toEqual(canvasFm);
         expect(canvasFm.week).toBe('2026-W43');
     });
 
     it('a SMART solta num dia vai para a semana do dia = a seta semana → SMART', () => {
         const fm = { week: '2026-W42' };
-        expect(missao(fm, smart, { gesto: 'dia', data: '2026-10-21' })).toEqual(seta(fm, [], [['e', 'dfm-qw-2026-W43', 's1']]));
+        expect(missao(fm, smart, { gesto: 'dia', data: '2026-10-21' })).toEqual(seta(fm, [], [['e', 'w43', 's1']]));
     });
 
     it('a ação sem dia arrastada para uma semana = a seta semana → ação', () => {
         const fm = { week: '2026-W42' };
-        expect(missao(fm, acao, { gesto: 'semana', semana: '2026-W45' })).toEqual(seta(fm, [], [['e', 'dfm-qw-2026-W45', 'a1']]));
+        expect(missao(fm, acao, { gesto: 'semana', semana: '2026-W45' })).toEqual(seta(fm, [], [['e', 'w45', 'a1']]));
     });
 
     it('a ação agendada arrastada para outra semana fica no mesmo dia da semana = a seta do dia novo → ação', () => {
         const fm = { scheduled: '2026-10-13T08:00', week: '2026-W42' };
-        const canvasFm = seta(fm, [], [['e', 'dfm-qs-day-2026-10-20', 'a1']]);
+        const canvasFm = seta(fm, [], [['e', 'd20', 'a1']]);
         expect(missao(fm, acao, { gesto: 'semana', semana: '2026-W43' })).toEqual(canvasFm);
         expect(canvasFm).toEqual({ scheduled: '2026-10-20T08:00', week: '2026-W43' });
     });
 
     it('"Sem data" = apagar as setas dia → ação e semana → ação', () => {
         const fm = { scheduled: '2026-10-13T10:00', week: '2026-W42', projects: ['[[Venda de afiliados]]'] };
-        const base: Seta[] = [['d', 'dfm-qs-day-2026-10-13', 'a2'], ['w', 'dfm-qw-2026-W42', 'a2']];
+        const base: Seta[] = [['d', 'd13', 'a2'], ['w', 'w42', 'a2']];
         const canvasFm = seta(fm, base, []);
         expect(missao(fm, solta, { gesto: 'sem-data' })).toEqual(canvasFm);
         expect(canvasFm).toEqual({ projects: ['[[Venda de afiliados]]'] });

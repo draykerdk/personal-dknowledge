@@ -21,7 +21,7 @@ export function mountSuggesterHeader(modal: any, promptText?: string, info?: str
         const texto = String(promptText ?? '').trim();
         if ((!texto && !info) || !modal?.modalEl?.createDiv) return;
         const header = modal.modalEl.createDiv({ cls: "dfm-suggester-header" });
-        renderStepHeader(header, texto, info);
+        renderStepHeader(header, texto, info, modal.app ?? null);
         if (modal.modalEl.firstChild && header !== modal.modalEl.firstChild) {
             modal.modalEl.insertBefore(header, modal.modalEl.firstChild);
         }
