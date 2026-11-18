@@ -1,11 +1,15 @@
-# O cofre de partida
+# The Starter Vault Skeleton
 
-O esqueleto de um cofre DFM: as pastas de `000 - KERNEL` a `900 - ARCHIVE`, os modelos de tipo (`200 - FUNCTIONS/Config/dominios`), os ramos (`200 - FUNCTIONS/Config/ramos`), as notas-modelo (`200 - FUNCTIONS/Models`), os protocolos do ciclo (`200 - FUNCTIONS/Protocolos`), os moldes (`200 - FUNCTIONS/Templates`) e a bancada de juízes (`200 - FUNCTIONS/Scripts`).
+The empty skeleton of a DFM vault: top-level folders from `000 - KERNEL` through `900 - ARCHIVE`, domain type models (`200 - FUNCTIONS/Config/dominios`), branches (`200 - FUNCTIONS/Config/ramos`), period model notes (`200 - FUNCTIONS/Models`), starter cycle protocols (`200 - FUNCTIONS/Protocolos`), note templates (`200 - FUNCTIONS/Templates`), and the validation judge suite (`200 - FUNCTIONS/Scripts`).
 
-Os protocolos são três, curtos e genéricos: 🌳 planejar a semana (`planejamento_semanal`), 📅 revisar a semana (`review_semanal`) e 🧭 planejar o trimestre (`planejamento_trimestral`). Gravam nas propriedades da nota da semana e da do trimestre, e a revisão da semana numa nota própria em `400 - MEMORY/200 - WEEKLY`. Os protocolos que o autor do sistema usa no dia a dia não entram aqui: ver "O pacote bônus de protocolos" no [CONTRIBUTING.md](../CONTRIBUTING.md).
+> **Language note (`v0`):** Starter folder names, protocol prompts, and initial field identifiers inside `cofre-modelo/` use Portuguese so they match the initial `v0` configuration and scripts.
 
-As pastas vêm vazias. O protocolo de inicialização cria as áreas que você declarar e as notas do primeiro dia, da primeira semana e do primeiro trimestre.
+Three short generic protocols are bundled here: `🌳` plan the week (`planejamento_semanal`), `📅` review the week (`review_semanal`), and `🧭` plan the quarter (`planejamento_trimestral`), alongside `🌱` vault initialization (`inicializacao`), research verification (`conferir_pesquisa`), and the three learning starters (`ingles_de_hoje`, `frase_nova`, `construir_ideia`). Cycle protocols write to period properties or `400 - MEMORY/200 - WEEKLY`. Personal daily protocols from the author's vault stay separate — see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-Os arquivos daqui saem do cofre de origem pela exportação (`scripts/exportar-do-cofre.py`), só os da lista de permitidos. Não edite um arquivo exportado aqui: a próxima exportação o sobrescreve. A mudança se faz na origem, ou o arquivo sai da lista e passa a ser mantido aqui. As notas-modelo (o dia, a semana, o trimestre, o longo prazo e o corpo da tarefa), os moldes (área, departamento, projeto, função, SMART, ideia, lição, nota simples e valor), os três protocolos do ciclo, o ramo Criação e o modelo da peça de criação já são mantidos aqui (as linhas `proprio` da lista): foram escritos novos e neutros para o pacote, com os campos que o plugin e os scripts leem. O ramo Criação e o modelo da peça têm os mesmos campos, estados, formatos e colunas dos do cofre de origem; a lista de canais traz só um canal de exemplo (`Canal principal`), para você trocar pelos seus. Da origem ainda saem os modelos de tipo, os scripts da bancada e os moldes que a guarda barra (pessoa e hábito).
+Folders ship empty. Running `🌱 Inicializar o cofre` creates your declared areas plus the first day, week, and quarter notes.
 
-Um bloco de nota-modelo que chama um script que ainda não está no pacote só o chama quando o arquivo existe no cofre; sem ele, a seção fica vazia.
+## Source ownership rules
+
+Exported files in this directory originate from the upstream vault via `scripts/exportar-do-cofre.py` strictly by allowlist (`scripts/lista_permitidos.txt`). Do not edit exported files directly here unless you first promote them to `proprio` in `scripts/lista_permitidos.txt`; otherwise the next export overwrites them. Files already maintained directly in this repository are marked `proprio` in `lista_permitidos.txt` (period model notes, templates, cycle protocols, Creation branch with `Canal principal` example, learning protocols, and neutral starter configs).
+
+Any DataviewJS block referencing a script not yet present in `200 - FUNCTIONS/Scripts/` checks for file existence first and leaves that section blank if omitted.

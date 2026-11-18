@@ -1,0 +1,41 @@
+schema_version: 1
+component:
+  id: personal-dknowledge
+  name: The Personal Dknowledge
+  layer: KERNEL
+  artifact_type: architecture
+  problem: "An individual needs an operational personal knowledge vault and a safe proposal-only local agent working on their own machine without waiting for the global network."
+  scope:
+    - "Experimental public prototype (v2.9.0) of the personal scale derived from an active DFM Obsidian vault."
+    - "Empty DFM vault skeleton (000 - KERNEL to 900 - ARCHIVE), domain type models, starter cycle protocols, and judge scripts."
+    - "dfm-system TypeScript plugin with Mission view, protocol engine, usage trail, learning module, and Settings-based personal definitions."
+    - "Loopback proposal-only agent bridge (dsh-vault-bridge), universal dk-* skills, read-only agent preset mode, synthetic example vault, and strict leak guard."
+  non_scope:
+    - "Full global or multi-member Dknowledge network."
+    - "Personal vault content, private terms, mobile agent runtime, or the author's extended optional protocol pack."
+    - "Autonomous agent writes without explicit human confirmation in Mission triage."
+  dependencies:
+    - personal
+    - dknowledge
+    - dfmp
+  implementation:
+    level: prototype
+    scope: "Early experimental prototype extracted piece by piece under a strict allowlist and private-term leak guard. Core documentation is in canonical English while initial v0 folder names, starter prompts, and UI labels currently ship in Portuguese."
+    evidence:
+      - type: document
+        ref: README.md
+      - type: prototype
+        ref: plugin/manifest.json
+      - type: test
+        ref: scripts/montar_cofre_exemplo.py
+  risks:
+    - "Rapid structural changes across early experimental versions."
+    - "Portuguese v0 starter labels and vault paths may need localization or customization in Settings."
+    - "Public extract omits extended daily/emotional protocols still maintained in the source vault."
+  contributions:
+    availability: open
+    entrypoint: https://github.com/draykerdk/personal-dknowledge/issues
+  source_of_truth:
+    repository: https://github.com/draykerdk/personal-dknowledge
+    path: README.md
+  last_reviewed: "2026-11-18"

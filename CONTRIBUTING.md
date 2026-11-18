@@ -1,24 +1,22 @@
-# Como contribuir
+# Contributing
 
-Obrigado por querer ajudar. Este projeto é experimental e ainda muito inicial: as regras abaixo podem mudar de uma versão para outra.
+Thank you for helping improve this repository. This project is experimental and very early: conventions and schemas below may still shift across `v0` versions.
 
-## O jeito de mudar
+## How to make changes
 
-- **Uma mudança por vez.** Um pedido de mudança resolve uma coisa só, e diz o que muda e por quê.
-- **Com a prova.** Toda mudança de código vem com o teste que a prova (`cd plugin && npm test`). Se mexe na tela, diga como conferiu.
-- **Cada função explica a si mesma.** No código, cada função diz o que faz, por quê, o que pode dar errado e onde está a prova. Siga o que já está escrito nos arquivos.
-- **Nada de dados pessoais.** Os exemplos e os testes usam o cofre de exemplo (`cofre-exemplo/`), com a pessoa fictícia. Nenhum nome real, nenhum caminho do seu computador, nenhum e-mail.
-- **Nada escrito no código que é da pessoa.** Áreas, projetos, valores, nomes e textos moram nas configurações e nas notas, nunca no código. O código conhece a estrutura (as pastas 000–900, os tipos, as convenções), e só ela.
-- **A guarda passa.** Antes de pedir a mudança, rode `python3 -B scripts/guarda_vazamento.py --teste`. Quem mantém o projeto roda a varredura completa.
+- **One change at a time.** Each pull request should address one clear goal and state what changes and why.
+- **Include proof.** Every code change must ship with a test that exercises it (`cd plugin && npm run build && npx vitest run`). If you change UI behavior, state how you verified it.
+- **Functions explain themselves.** Inside the codebase, each function states what it does, why it exists, error/attack surfaces, and where its proof lives. Follow the existing style in neighboring files.
+- **Zero personal data.** Examples and tests use the synthetic example vault (`cofre-exemplo/`) with fictional data only. Never include real names, real local filesystem paths, or personal email addresses.
+- **No personal choices hardcoded.** Areas, projects, values, personal names, and custom labels belong in configuration and notes, never hardcoded in plugin TypeScript. Code knows the universal structure (`000`–`900`, type contracts, conventions) and nothing private.
+- **Pass the guards.** Before opening a PR, run `python3 -B scripts/guarda_vazamento.py --teste`, `python3 -B scripts/conferir_definicoes.py`, and `python3 -B scripts/conferir_porta_dos_modulos.py`. Maintainers run the full private leak scan on integration.
 
-## O pacote bônus de protocolos
+## The extended protocol pack
 
-O sistema funciona com os protocolos curtos que vêm no pacote. Além deles existe um conjunto maior de protocolos, escrito pelo autor do sistema ao longo do uso diário: o dia completo, a revisão da noite, as práticas de foco e de desbloqueio, os planejamentos de viagem, de estudo, de criação e de decisões, entre outros.
+The starter system runs with the short generic protocols bundled here (`🌱`, `🌳`, `📅`, `🧭`, plus the research and learning starters). Beyond them exists a broader catalog of author-written daily, evening, focus, unblocking, travel, study, creation, and decision protocols crafted through long-term daily use.
 
-Esse conjunto não vem no pacote. Ele vai ser oferecido depois, como um pacote extra, de bônus para quem contribui com o projeto. A forma de receber o pacote ainda está sendo definida e vai estar escrita aqui quando estiver pronta.
+That broader catalog is intentionally kept out of the `v0` open starter package and will later be offered as an optional bonus protocol pack for contributors and supporters. Those protocols are pure JSON/note data rather than plugin code: the plugin works identically with or without them.
 
-Os protocolos do pacote são dados (arquivos de protocolo e notas), e não código: o plugin funciona igual com ou sem eles.
+## Questions
 
-## Dúvidas
-
-Abra uma discussão ou um pedido de mudança com a pergunta. Toda pergunta boa vira documentação.
+Open an issue or discussion with your question. Every clear question improves the docs.

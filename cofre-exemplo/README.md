@@ -1,39 +1,44 @@
-# O cofre de exemplo
+# The Synthetic Example Vault
 
-O sistema em uso, numa semana de uma pessoa inventada: Irene Paiva, ilustradora, que trabalha em casa. Serve para ver como as notas se ligam e para os testes lerem um cofre que não é de ninguém.
+A full snapshot of one week in a fictional person's vault: **Irene Paiva**, a freelance illustrator working from home. It serves two roles: showing how notes connect in practice, and giving automated tests a clean synthetic fixture with zero personal data.
 
-**Regra:** nenhum nome, lugar, valor ou texto de uma pessoa real. Tudo aqui é inventado. Cada nota tem `exemplo: true` nas propriedades, para ser fácil de achar e de apagar.
+**Rule:** zero real names, places, values, or text from any real person. Every file here is synthetic and carries `exemplo: true` in frontmatter so it is trivial to inspect or strip out.
 
-## Como abrir
+## How to materialize
 
-As notas daqui moram nos mesmos caminhos de um cofre de verdade, mas sem o esqueleto, que tem um dono só (`cofre-modelo/`). Para ter o cofre inteiro numa pasta nova, fora do repositório:
+These notes sit at the real vault relative paths without duplicating the skeleton owned by `cofre-modelo/`. Build a complete runnable example vault in a fresh directory outside the repo:
 
 ```sh
-python3 -B scripts/montar_cofre_exemplo.py /caminho/para/um/cofre-novo
+python3 -B scripts/montar_cofre_exemplo.py /path/to/new-example-vault
 ```
 
-A pasta que sai é o esqueleto com estas notas por cima. Ela abre como cofre no Obsidian (com o plugin, o TaskNotes e o Dataview), e a bancada roda nela: `python3 -B "/caminho/para/um/cofre-novo/200 - FUNCTIONS/Scripts/run_judges.py"`. `scripts/montar_cofre_exemplo.py --conferir` confere que o exemplo só acrescenta notas e nunca cai em cima de um arquivo do esqueleto.
+The output directory merges `cofre-modelo/` and `cofre-exemplo/`, opens directly in Obsidian (with `dfm-system`, TaskNotes, and Dataview), and passes the vault judge bench:
 
-## O que tem
+```sh
+python3 -B "/path/to/new-example-vault/200 - FUNCTIONS/Scripts/run_judges.py"
+python3 -B scripts/montar_cofre_exemplo.py --conferir  # verifies zero file collisions with skeleton
+```
 
-As datas são fixas, para os testes não dependerem do dia de hoje: a quarta-feira 2026-03-04, a semana 2026-W10 e o trimestre 2026-Q1.
+## Contents
 
-| O quê | Onde | O que mostra |
+Dates are frozen (`2026-03-04`, `2026-W10`, `2026-Q1`) so tests stay deterministic:
+
+| Artifact | Location | What it demonstrates |
 |---|---|---|
-| três áreas: Trabalho, Saúde, Casa | `100 - AREAS/NN - Área/000 - INDEX/README.md` (`type: area`) | uma área com projeto, outra com projeto, uma só de manutenção |
-| dois projetos ativos: Portfólio novo e Correr 5 km | `100 - AREAS/<área>/100 - PROJECTS/2 - Active/<projeto>/<projeto>.md` (`type: iniciativa`) | a coluna é a pasta; o `status` espelha a coluna |
-| duas SMART da semana | `TaskNotes/Tasks` (`type: tarefa_smart`, com `week`, `due` e `projects` apontando para o projeto) | uma em curso, uma ainda por começar |
-| oito ações | `TaskNotes/Tasks` (`type: task`) | os estados: feita, em curso, esperando, próxima, algum dia e uma na entrada, sem projeto; uma aponta para o roteiro |
-| o dia | `300 - RUNTIME/302 - Daymiss/Day/2026-03-04.md` | a nota-modelo do dia com o diário escrito |
-| a semana | `300 - RUNTIME/302 - Daymiss/Week/2026-W10.md` | a semana na quarta-feira: as propriedades que o 🌳 grava, o valor da semana, os suportes e a colheita até ali; a conversa da semana (📨) ainda vazia, porque ela acontece no fim da semana |
-| o trimestre | `300 - RUNTIME/302 - Daymiss/Quarterly/2026-Q1.md` | o tema, a visão, os objetivos, os valores, a temporada, o foco e os marcos |
-| três hábitos | `200 - FUNCTIONS/Habits/Tracker` (`type: habit`) | um com meta por semana, outro de todo dia, e o da língua, que o 🗣️ Inglês de hoje marca; os dias marcados em `entries` |
-| um valor: Curiosidade | `400 - MEMORY/Valores` (`type: valor`, `ordem`, `grupo`) | o valor que o trimestre lista e a semana escolhe |
-| um roteiro de vídeo | `400 - MEMORY/200 - WEEKLY/Roteiros` (`type: roteiro_video`) | uma peça do ramo Criação, no estado `roteiro`, ligada ao projeto |
-| um módulo de aprendizado: Inglês | `100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês/` (`type: departamento`), com um cartão em `Cartões/` (`type: cartao`) e uma peça lógica em `Lógica/` (`type: peca_logica`) | o cartão na trilha (`ordem: 1`), a peça que ele acende (`introduz`) e as quatro camadas da construção; o 🗣️ Inglês de hoje o traz como a nova do dia |
+| Three areas: `Trabalho`, `Saúde`, `Casa` | `100 - AREAS/NN - Área/000 - INDEX/README.md` (`type: area`) | Two areas with active projects, one maintenance area |
+| Two active projects: `Portfólio novo` and `Correr 5 km` | `100 - AREAS/<área>/100 - PROJECTS/2 - Active/<projeto>/<projeto>.md` (`type: iniciativa`) | Folder column is ground truth; `status` mirrors folder |
+| Two weekly SMART goals | `TaskNotes/Tasks/` (`type: tarefa_smart`, with `week`, `due`, `projects`) | One active, one upcoming |
+| Eight actions | `TaskNotes/Tasks/` (`type: task`) | Done, in progress, waiting, next-action, someday, inbox without project, and script-linked |
+| Day note | `300 - RUNTIME/302 - Daymiss/Day/2026-03-04.md` | Model Day note with sample journal entries |
+| Week note | `300 - RUNTIME/302 - Daymiss/Week/2026-W10.md` | Mid-week state: `🌳` fields, weekly values pair, supports, and empty `📨` placeholder |
+| Quarter note | `300 - RUNTIME/302 - Daymiss/Quarterly/2026-Q1.md` | Theme, vision, goals, values, season, focus, milestones |
+| Three habits | `200 - FUNCTIONS/Habits/Tracker/` (`type: habit`) | Weekly target, daily habit, and language habit with `entries` |
+| One value: `Curiosidade` | `400 - MEMORY/Valores/` (`type: valor`, `ordem`, `grupo`) | Value referenced by quarter and week |
+| One video script | `400 - MEMORY/200 - WEEKLY/Roteiros/` (`type: roteiro_video`) | Creation branch piece in `roteiro` state linked to project |
+| Learning module: `Inglês` | `100 - AREAS/01 - Trabalho/200 - DEPARTMENTS/Inglês/` (`type: departamento`), `Cartões/` (`cartao`), `Lógica/` (`peca_logica`) | Ordered spaced-repetition card activating a logic piece |
 
-`definicoes.exemplo.json` são as definições do sistema desta pessoa, no esquema de `config-padrao/definicoes.padrao.json` (as mesmas chaves, preenchidas). No cofre, elas moram nas configurações do plugin; o arquivo fica aqui para os testes e para quem quiser ver as definições preenchidas.
+`definicoes.exemplo.json` populates the schema in `config-padrao/definicoes.padrao.json` for this fictional persona. In a live vault those values live in plugin Settings (`data.json`).
 
-## O que ainda não está no pacote
+## Scripts still omitted in `v0`
 
-Os scripts do contexto, do núcleo e da sentinela do dia e o da leitura factual da semana não estão no pacote; as seções que os chamam ficam vazias.
+Context/kernel/sentinel day helpers and the weekly factual digest helper are not exported yet; sections invoking them render empty safely.

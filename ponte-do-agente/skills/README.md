@@ -1,42 +1,48 @@
-# As skills do Dk pessoal
+# Personal Dk Skills
 
-As instruções e as skills que fazem o agente local se comportar como o Dk pessoal sobre o cofre: ler o estado da Missão, recomendar com o porquê e propor pela triagem. Nada é gravado sem o seu sim.
+Universal instructions and skills that guide a local agent operating over your vault through the bridge: reading digested Mission state, making grounded recommendations, and queuing triage proposals. Nothing is written to the vault without explicit human confirmation (`Y`).
 
-Cada skill é uma pasta `<nome>/SKILL.md`, com `name` e `description` no frontmatter. Elas foram escritas para funcionar com modelos menores: passos curtos e numerados, as ferramentas pelo nome e o que nunca fazer.
+Each skill lives in `<name>/SKILL.md` with YAML `name` and `description`. They are written in short, direct steps so both larger and smaller models can execute them reliably.
 
-## As duas camadas
+## Two layers
 
-- **A universal**, aqui: `dk-pessoal` (as instruções-base) e as seis skills `dk-*`. Valem para qualquer pessoa.
-- **A pessoal**, só no seu cofre: o arquivo `dk-pessoal/camada-pessoal.md`, com o seu ritmo, os seus valores, os seus protocolos e onde ler o que muda. Comece de `dk-pessoal/camada-pessoal.exemplo.md`. Sem ele, o Dk segue só a camada universal.
+- **Universal layer** (included here): `dk-pessoal` (base persona and safety contract) plus six focused `dk-*` skills. Valid for any user.
+- **Personal layer** (stays strictly in your private vault): `dk-pessoal/camada-pessoal.md`, holding your personal rhythm, values, protocols, and vault reading pointers. Start by copying `dk-pessoal/camada-pessoal.exemplo.md`. If missing, the agent follows the universal layer alone.
 
-## As skills
+## Skill catalog
 
-| Skill | O que faz |
+| Skill | Role |
 |---|---|
-| `dk-pessoal` | as instruções-base: quem o Dk é, o que pode e não pode, como propõe e fala, a regra da pesquisa; lê a camada pessoal |
-| `dk-estado-agora` | o que está em jogo hoje ou na semana pela Missão, e uma próxima ação |
-| `dk-fechar-o-dia` | fecha o dia pelo que você fez: propõe as linhas e as conclusões e abre o protocolo de fechar o dia |
-| `dk-material-da-semana` | junta o material para revisar e planejar a semana, sem planejar por você |
-| `dk-capturar-tarefas` | separa o que você disse em tarefas e as propõe na triagem, em Propostas |
-| `dk-pesquisa-conferida` | a pesquisa com fonte, data e a conferência: 🤖 o agente, 👤 você, 🤝 os dois |
-| `dk-recomendar` | uma recomendação ligada ao seu foco e ao que está em jogo, com o porquê |
+| `dk-pessoal` | Base contract: identity, allowed/forbidden actions, how proposals and speech work, research check rules, and loading `camada-pessoal.md` |
+| `dk-estado-agora` | Reads today's and this week's live state from Mission and surfaces one concrete next action |
+| `dk-fechar-o-dia` | Reviews what you did today, proposes journal/summary lines, and opens the end-of-day protocol if installed |
+| `dk-material-da-semana` | Collects factual weekly inputs for review and planning without planning on your behalf |
+| `dk-capturar-tarefas` | Extracts stated tasks into structured proposals with parent project links inside Mission triage |
+| `dk-pesquisa-conferida` | Enforces primary sources, dates, unresolved contradictions, and explicit `🤖` / `👤` / `🤝` check status |
+| `dk-recomendar` | Gives one reasoned recommendation aligned with active focus and current stakes |
 
-## As ferramentas que elas usam
+## Bridge tools used
 
-Só as da ponte (ver [../README.md](../README.md)) e a leitura de arquivos do cofre. Leem: `dfm_mission_state`, `dfm_node`, `dfm_operational_context`, `dfm_weekly_context`, `dfm_tasks_query`, `dfm_context_note`, `dfm_working_state`, `dfm_mission_query`, `dfm_proposals_list` (as propostas que esperam) e `dfm_definitions` (as definições do sistema). Propõem na triagem: `dfm_propose`, `dfm_task_create` e `dfm_line_propose` (uma linha numa seção da nota do dia ou da semana: espera em Propostas, e o seu Y a grava no fim da lista da seção, com Desfazer). Abrem na tela: `dfm_note_open`, `dfm_protocol_run`, `dfm_notice`. Gravam, e só com o seu pedido na conversa: `dfm_task_update` e `dfm_task_complete`.
+Read-only inspection and vault file reads: `dfm_mission_state`, `dfm_node`, `dfm_operational_context`, `dfm_weekly_context`, `dfm_tasks_query`, `dfm_context_note`, `dfm_working_state`, `dfm_mission_query`, `dfm_proposals_list`, and `dfm_definitions`.
 
-## Como ligar
+Triage proposals (queued in `Propostas`; committed only when approved with `Y`, with Undo): `dfm_propose`, `dfm_task_create`, and `dfm_line_propose`.
 
-O agente acha as skills numa das pastas que ele varre, uma pasta por skill. Duas formas:
+UI navigation: `dfm_note_open`, `dfm_protocol_run`, and `dfm_notice`.
 
-**No cofre, sem mexer na configuração do agente.** Ele varre `.agents/skills/` na raiz do projeto (a pasta com `.git` mais próxima da pasta de trabalho). Com o cofre como pasta de trabalho:
+Direct task updates only upon explicit request in conversation: `dfm_task_update` and `dfm_task_complete`.
+
+## Attaching skills
+
+Point your agent runtime to the skill folders in one of two ways:
+
+**Inside your vault** (DSH discovers `.agents/skills/` automatically from the project root):
 
 ```sh
-mkdir -p /caminho/do/cofre/.agents/skills
-cp -R ponte-do-agente/skills/dk-* /caminho/do/cofre/.agents/skills/
+mkdir -p /path/to/your/vault/.agents/skills
+cp -R ponte-do-agente/skills/dk-* /path/to/your/vault/.agents/skills/
 ```
 
-**Na pasta do usuário do agente** (`~/.dsh/skills/`), com um symlink por skill, para elas acompanharem o repositório:
+**User-wide in `~/.dsh/skills/`** via symlinks so updates track this repository:
 
 ```sh
 for s in ponte-do-agente/skills/dk-*; do
@@ -44,6 +50,6 @@ for s in ponte-do-agente/skills/dk-*; do
 done
 ```
 
-Depois, ponha a sua camada pessoal: copie `dk-pessoal/camada-pessoal.exemplo.md` para `dk-pessoal/camada-pessoal.md` na pasta que o agente lê, e preencha.
+Then copy `dk-pessoal/camada-pessoal.exemplo.md` to `dk-pessoal/camada-pessoal.md` in your vault's skill folder and customize it.
 
-Numa sessão nova, peça "carregue a skill dk-pessoal" ou pergunte "o que faço agora?". Para as instruções-base virem em toda sessão, sem pedir, use o modo Dk pessoal: [`../modo-dk-pessoal/`](../modo-dk-pessoal/README.md).
+For automatic base-persona loading on every conversation turn without calling a skill manually, install the DSH preset mode in [`../modo-dk-pessoal/`](../modo-dk-pessoal/README.md).

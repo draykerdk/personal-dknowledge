@@ -46,6 +46,8 @@ copiar .obsidian/plugins/dfm-system/tests/**/* -> plugin/tests
 copiar .obsidian/plugins/dfm-system/styles.css -> plugin
 # o manifesto é do repositório: o nome, a versão e a descrição do pacote, não os do cofre de origem
 proprio plugin/manifest.json
+# o contrato público do componente (sem workflow central devido à citação de dependência técnica em README)
+proprio .drayker/component.yml
 copiar .obsidian/plugins/dfm-system/package.json -> plugin
 copiar .obsidian/plugins/dfm-system/package-lock.json -> plugin
 copiar .obsidian/plugins/dfm-system/esbuild.config.mjs -> plugin

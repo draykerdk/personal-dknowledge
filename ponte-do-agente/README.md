@@ -1,74 +1,74 @@
-# A ponte do agente
+# The Agent Bridge
 
-O contrato pelo qual o Dk pessoal, o agente local, trabalha sobre o cofre: lê o estado digerido da Missão, consulta um nó, lê resumos e propõe. A proposta cai na triagem da Missão e espera o seu sim. A ponte nunca grava nada por conta própria: o que muda no cofre passa pelo plugin, com Desfazer.
+The contract through which the personal Dk (a local agent runtime) works safely over an open Obsidian vault: it reads digested Mission state, inspects a node, reads daily/weekly summaries, and submits proposals. Proposals land in Mission triage (`Propostas`) and wait for explicit human approval (`Y`). The bridge never mutates notes directly on its own: every vault write passes through the plugin with Undo support.
 
-A ponte tem dois lados:
+The bridge has two halves:
 
-- **o lado do Obsidian**, que já vem no plugin (`plugin/src/engine/dshOperatorBridge.ts`): um servidor só no `127.0.0.1`, com um token novo a cada abertura, que escreve na raiz do cofre o descritor `.dfm-dsh-operator.json` (a porta e o token). Ele fica **desligado** até você o ligar;
-- **o lado do agente**, nesta pasta: o pacote `dsh-vault-bridge` (`@dfm/dsh-vault-bridge`), que dá ao DSH (o DeepSeek Harness) as ferramentas `dfm_*`. Ele lê o descritor, fala só com o `127.0.0.1` e confere o contrato, o token e o cofre em cada chamada.
+- **The Obsidian side**, built into the plugin (`plugin/src/engine/dshOperatorBridge.ts`): an HTTP server bound strictly to `127.0.0.1` with a fresh session token on each start, writing the descriptor `.dfm-dsh-operator.json` (port and token) at the vault root. It stays **off** until you toggle it on;
+- **The agent side**, in this folder: the `@dfm/dsh-vault-bridge` package (`ponte-do-agente/dsh-vault-bridge/`), exposing `dfm_*` tools to DSH (the DeepSeek Harness). It reads the descriptor, talks only to `127.0.0.1`, and validates the contract, token, and workspace on every call.
 
-## Como ligar
+## Setup
 
-1. **Instale o DSH**, com o Node.js 20 ou mais novo:
+1. **Install DSH** (requires Node.js 20 or newer):
 
    ```sh
    npm i -g @deepseek-ai/dsh
    ```
 
-2. **Ponha o pacote da ponte no perfil do DSH.** O DSH tem um perfil por modo (`web` e `headless`); faça os passos em cada um que você usa. No `package.json` do perfil (`~/.dsh/profiles/web/package.json`), acrescente a dependência com o caminho desta pasta:
+2. **Add the bridge package to your DSH profile.** DSH keeps a profile per mode (`web` and `headless`); repeat for each profile you use. In `~/.dsh/profiles/web/package.json`, add the local file path under dependencies:
 
    ```json
    "dependencies": {
-     "@dfm/dsh-vault-bridge": "file:/caminho/do/repositorio/ponte-do-agente/dsh-vault-bridge"
+     "@dfm/dsh-vault-bridge": "file:/path/to/repo/ponte-do-agente/dsh-vault-bridge"
    }
    ```
 
-   e instale pelo próprio DSH:
+   and install via DSH:
 
    ```sh
    dsh plugin --profile web install
    ```
 
-3. **Monte a ponte no perfil.** No arquivo de ajustes do perfil (`~/.dsh/profiles/web/cordis.patch.yml`, uma lista YAML), acrescente:
+3. **Mount the bridge plugin in the profile patch.** In `~/.dsh/profiles/web/cordis.patch.yml` (a YAML list), add:
 
    ```yaml
    - insert:
        - id: dfm-vault-bridge
          name: '@dfm/dsh-vault-bridge'
          config:
-           # tudo opcional:
-           # state_note: '000 - KERNEL/Estado.md'   # uma nota de estado do seu cofre, se tiver
-           # protocol_ids: [planejamento_semanal, review_semanal]   # os protocolos que a ponte abre
-           # closed_folders: []                     # pastas de projeto que a ponte não abre
-           # github_owners: []                      # contas do GitHub que o panorama lê, sob pedido
+           # all options are optional:
+           # state_note: '000 - KERNEL/Estado.md'                 # optional vault state note
+           # protocol_ids: [planejamento_semanal, review_semanal] # protocols the bridge may open
+           # closed_folders: []                                   # project folders excluded from reads
+           # github_owners: []                                    # GitHub accounts inspected on request
    ```
 
-   Sem `protocol_ids`, a ponte abre os protocolos do pacote que fazem um papel dela (o 🌳 e o 📅).
+   When `protocol_ids` is omitted, the bridge falls back to the bundled starter protocols (`🌳` and `📅`).
 
-4. **Ligue a ponte no Obsidian:** Configurações → The Personal Dknowledge → "Ponte do agente" → "Ligar a ponte". A porta padrão é a 3082; se ela estiver ocupada, troque-a ali (o descritor leva a porta nova, e o pacote a lê dele).
+4. **Enable the bridge in Obsidian:** Settings → The Personal Dknowledge → **"Ponte do agente"** → toggle on. Default port is `3082`; if busy, change it in Settings (the descriptor automatically publishes the active port for the agent side).
 
-5. **Abra o DSH com o cofre como pasta de trabalho** (o pacote acha o descritor na raiz dela).
+5. **Launch DSH inside your vault root** so the bridge finds `.dfm-dsh-operator.json`.
 
-## Como conferir
+## Verification
 
 ```sh
-dsh --profile web --dump-config   # a lista mostra a linha dfm-vault-bridge, sem aviso
+dsh --profile web --dump-config   # lists dfm-vault-bridge with no warnings
 ```
 
-Com o Obsidian aberto no cofre e a ponte ligada, o arquivo `.dfm-dsh-operator.json` aparece na raiz do cofre. Numa sessão nova do DSH, peça o estado da Missão de hoje (a ferramenta `dfm_mission_state`) ou uma consulta de tarefas (`dfm_tasks_query`): as duas só leem. Se vier `bridge_offline`, confira se o Obsidian está aberto neste cofre e se a ponte está ligada.
+With Obsidian open on your vault and the bridge enabled, `.dfm-dsh-operator.json` appears in the vault root. In a new DSH session, invoke `dfm_mission_state` or `dfm_tasks_query` (both strictly read-only). If you get `bridge_offline`, check that Obsidian is open on the same vault and the bridge toggle is enabled.
 
-Os testes do pacote, sem o DSH:
+Run package unit tests offline without DSH:
 
 ```sh
 node --test ponte-do-agente/dsh-vault-bridge/test/*.mjs
 ```
 
-## As skills do Dk pessoal
+## Personal Dk skills & preset mode
 
-As instruções e as skills que fazem o DSH se comportar como o Dk pessoal estão em [`skills/`](skills/README.md), com o passo a passo para ligar. Sem elas, o DSH usa as ferramentas da ponte com o comportamento padrão dele.
+The universal instructions and skills that turn DSH into a personal Dk behaviorally live in [`skills/`](skills/README.md). Without them, DSH calls the bridge tools using its generic defaults.
 
-O modo (preset) Dk pessoal, com as instruções-base em toda sessão, a leitura de arquivos sem escrita e sem shell, está em [`modo-dk-pessoal/`](modo-dk-pessoal/README.md).
+A standalone read-only DSH preset bundle (`@dfm/dsh-dk-pessoal-preset`) that loads the base persona automatically on every turn without shell or file-write access lives in [`modo-dk-pessoal/`](modo-dk-pessoal/README.md).
 
-## O que fica de fora por enquanto
+## Using external agents instead
 
-Também dá para usar outras ferramentas de agente, por fora, lendo e editando as notas do cofre como arquivos; aí não há os efeitos ao vivo da ponte (a Missão, as tarefas do TaskNotes e os protocolos abertos na tela).
+You can also point any file-capable agent tool directly at the vault Markdown directory. It can read and edit files through normal filesystem tools, though without the live Obsidian bridge effects (Mission triage queue, TaskNotes mutations, or opening live protocols in the UI).

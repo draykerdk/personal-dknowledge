@@ -1,41 +1,39 @@
-# O modo Dk pessoal do DSH
+# The Personal Dk Preset Mode for DSH
 
-Um bundle do DSH que declara o modo (preset) **Dk pessoal**: numa sessão nova, escolha "Dk pessoal" no seletor de modo, e as instruções-base do Dk pessoal vêm em toda conversa, sem depender do modelo carregar a skill.
+A DSH bundle declaring the **Dk pessoal** mode (preset): select **"Dk pessoal"** in the mode picker when starting a session and the base contract is always active, without relying on the model remembering to load the skill.
 
-## O que o modo monta
+## What the preset mounts
 
-- **A persona:** o corpo da skill `dk-pessoal` inteiro (quem o Dk é, o que pode e nunca faz, como propõe, as ferramentas), e uma linha que manda ler a camada pessoal (`camada-pessoal.md`).
-- **A leitura:** a ferramenta de arquivos só de leitura (`write: false`, `edit: false`), a busca de arquivos, as skills (para as `dk-*`), a pergunta ao usuário, a web (para a pesquisa conferida), a data e a hora, e a compactação.
-- **O que fica de fora, de propósito:** o shell, a escrita de arquivo, a delegação e as instruções de projeto do cofre (essas são para quem constrói o sistema). O Dk pessoal lê, recomenda e propõe; o que ele quer gravar vai pela ponte, e a Missão grava com o sim da pessoa.
-- As ferramentas `dfm_*` vêm da ponte (`@dfm/dsh-vault-bridge`), que o host monta; o modo não as declara.
+- **Persona:** the full body of `dk-pessoal/SKILL.md` (role, boundaries, proposal rules, tool list) plus a suffix instructing the agent to load `camada-pessoal.md`.
+- **Read-only filesystem & search:** `tool-fs` with `write: false` and `edit: false`, file search, `skill` loading (for `dk-*`), user prompt, web search/fetch (for verified research), time context, and compaction.
+- **Intentionally omitted:** shell execution, file writes/edits, delegation, and system-builder workspace instructions. The personal agent reads, recommends, and proposes; any vault mutation goes through the bridge and is approved inside Mission.
+- The `dfm_*` tools come from the host-mounted bridge plugin (`@dfm/dsh-vault-bridge`), not from this preset patch.
 
-## Gerar
+## Regenerating the patch
 
-O `cordis.patch.yml` é gerado da skill. Depois de mudar a skill `dk-pessoal`:
-
-```sh
-node gerar-patch.mjs          # escreve o patch
-node gerar-patch.mjs --check  # confere (sai 1 se a persona divergiu da skill)
-```
-
-O gerador acha a skill no cofre (`200 - FUNCTIONS/Skills/Dk Pessoal/dk-pessoal/SKILL.md`) ou no pacote aberto (`ponte-do-agente/skills/dk-pessoal/SKILL.md`); `--skill <caminho>` escolhe outra.
-
-## Ligar
-
-Desde a 0.2, o DSH não lê mais a pasta `.agent-presets`: um modo é uma declaração `@deepseek-ai/dsh-agent-preset` levada pelo patch de um bundle. Duas formas:
-
-**Para uma sessão, sem instalar nada:** passe o patch ao subir o DSH.
+`cordis.patch.yml` is generated directly from `dk-pessoal/SKILL.md`. After editing the skill:
 
 ```sh
-dsh web --patch "/caminho/do/bundle/cordis.patch.yml"
+node gerar-patch.mjs          # writes cordis.patch.yml
+node gerar-patch.mjs --check  # verifies zero drift (exits 1 on mismatch)
 ```
 
-**Para ficar:** instale o bundle no perfil e ponha-o na lista de bundles do perfil.
+The generator searches `200 - FUNCTIONS/Skills/Dk Pessoal/dk-pessoal/SKILL.md` or `ponte-do-agente/skills/dk-pessoal/SKILL.md` (override with `--skill <path>`).
+
+## Enabling in DSH
+
+Since DSH 0.2, `.agent-presets` directories are no longer scanned; modes are registered via `@deepseek-ai/dsh-agent-preset` in a bundle patch. Two options:
+
+**Single session without installing:**
 
 ```sh
-dsh plugin --profile web add "file:/caminho/do/bundle"
+dsh web --patch "/path/to/repo/ponte-do-agente/modo-dk-pessoal/cordis.patch.yml"
 ```
 
-e, no `package.json` do perfil (`$DSH_HOME/profiles/web/package.json`), acrescente `"@dfm/dsh-dk-pessoal-preset"` ao fim de `dsh.profile.bundles`. Reinicie o DSH. O perfil precisa do registro dos modos (o bundle `@deepseek-ai/dsh-web-app` o traz); o perfil `headless` não tem seletor de modo.
+**Persistent installation in your `web` profile:**
 
-Para desligar: tire o nome de `dsh.profile.bundles` e reinicie.
+```sh
+dsh plugin --profile web add "file:/path/to/repo/ponte-do-agente/modo-dk-pessoal"
+```
+
+Then append `"@dfm/dsh-dk-pessoal-preset"` to `dsh.profile.bundles` in `$DSH_HOME/profiles/web/package.json` and restart DSH (`headless` has no UI mode selector; this requires `@deepseek-ai/dsh-web-app`). Remove the bundle entry and restart to disable.

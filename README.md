@@ -1,132 +1,137 @@
 # The Personal Dknowledge
 
-> **Versão 2.9.0, experimental e ainda muito inicial.** É um primeiro retrato do que o sistema vai ser: funciona, mas muda bastante de uma versão para outra, e nada aqui é estável ainda. O código nasceu num cofre pessoal e é separado dele peça por peça; só entra aqui o que passa pela guarda de vazamento.
+> **Version 2.9.0, experimental and still very early.** This is an initial snapshot of what the system will become: it works, changes significantly from version to version, and nothing here is stable yet. The code comes from an active DFM vault and is separated from it piece by piece; nothing enters this repository without passing the leak guard.
+>
+> English is the canonical documentation language here. Note that the current `v0` vault skeleton, folder taxonomy, starter protocol prompts, and initial UI labels ship in Portuguese, while your personal definitions (values, areas, quarter focus, weights, and vocabulary) live in the plugin's **Settings** tab rather than in code.
 
-## O que é
+## What it is
 
-Um cofre de partida para o Obsidian com a organização DFM pronta e vazia, e o plugin que a faz funcionar. É o protótipo da escala pessoal: o Dknowledge pessoal (o cofre e a organização dele) e o Dk pessoal (o agente que trabalha sobre ele e só propõe, nunca grava sozinho).
+A starter vault for [Obsidian](https://obsidian.md) with the DFM organization ready and empty, paired with the plugin that runs it. It is the experimental public prototype of the personal scale: the personal Dknowledge (the vault and its structure) and the personal Dk (the local agent working over it strictly by proposal, never writing on its own).
 
-O DFM organiza a vida e o trabalho com um padrão só, do dia ao longo prazo e da área à tarefa. Cada escala tem o mesmo ciclo: planejar, executar, revisar.
+DFM organizes life and work with a single pattern, from day to long term and from area to task. Every scale runs the same loop: plan, execute, review.
 
-Esta versão traz:
+This version includes:
 
-- **o plugin** `dfm-system`: a Missão (a linha do tempo e o trabalho numa tela, com as escalas e os ramos), o motor de protocolos e os modelos de tipo;
-- **o esqueleto do cofre**: as pastas de `000 - KERNEL` a `900 - ARCHIVE`, as notas-modelo do dia, da semana e do trimestre, e os modelos de tipo (área, departamento, projeto, SMART, tarefa, os períodos, a visão, a função, a pessoa);
-- **as definições do sistema na aba de configurações do plugin**: os seus valores, as suas áreas, o foco do trimestre, os pesos, o vocabulário e os nomes. O código lê de lá, e nada disso vem escrito no código;
-- **um protocolo de inicialização**, que pergunta essas definições na primeira vez e monta o cofre vazio;
-- **três protocolos curtos e genéricos do ciclo**: 🌳 planejar a semana, 📅 revisar a semana e 🧭 planejar o trimestre. Um botão do ciclo só aparece quando o protocolo dele existe no cofre.
-- **a trilha de uso**: a Missão recebe quem chega à tarde com "o que você fez hoje?", mostra o gesto da semana e a dica da primeira vez de cada botão; os textos ficam em `Config/trilha.json` e o que liga, nas definições;
-- **o fluxo SMART no motor**: a ação criada numa SMART herda a semana e o impacto dela, a tarefa escolhida de outro dia passa para hoje com a hora, e a tarefa concluída pode abrir o próximo passo na SMART (os botões do dia que usam isso chegam com os protocolos do dia, que o pacote ainda não traz);
-- **a Criação com campanha**: cada canal e cada frente contam as peças da semana; a peça ganha os destinos (os perfis do canal, pela regra de cada formato), o link da campanha e o estado `aprovado`; o 📅 confere o publicado da semana; e o 🎥 Para gravar hoje põe na Day a peça pronta e a fala do teleprompter;
-- **os ramos com direção**: cada coluna vazia diz o próximo passo, e o projeto leva ao ramo Criação e volta;
-- **o criador único de tarefa**: toda tarefa nasce pela mesma forma, venha do Novo, de um protocolo ou do formulário do TaskNotes aberto pelo Novo;
-- **a conferência da pesquisa**: a tarefa com a tag `pesquisa` recebe a lista de verificação (🔎 Conferir uma pesquisa), item por item, como nós do ramo dela;
-- **o módulo de aprendizado**: os tipos `cartao` (uma frase por nota, em quatro camadas) e `peca_logica` (o "como funciona" da língua), com os moldes, os níveis e a trilha; o 🗣️ Inglês de hoje traz a fila do dia pela repetição espaçada, o 🗣️ Frase nova e o 🧩 Construir uma ideia criam cartões. A língua, a pasta do módulo e os números da escada são seus;
-- **os mapas com guarda** das sete pastas do plugin (`dfm.json` em cada uma), conferidos contra os imports reais.
+- **the `dfm-system` plugin**: Mission (timeline and active work in a single view, across scales and branches), the protocol engine, and the type domain models;
+- **the vault skeleton**: folders from `000 - KERNEL` to `900 - ARCHIVE`, period model notes (day, week, quarter, long term), and type templates (area, department, project, SMART goal, task, period notes, vision, function, person);
+- **system definitions in plugin Settings**: your values, areas, quarter focus, weight adjustments, vocabulary, and labels. Code reads from configuration rather than hardcoding personal choices;
+- **an initialization protocol** (`🌱 Inicializar o cofre`), which asks for those definitions on first launch and sets up the empty vault;
+- **three short generic cycle protocols**: `🌳` plan the week, `📅` review the week, and `🧭` plan the quarter. A cycle button only appears when its protocol exists in the vault;
+- **the usage trail** (`trilha`): Mission greets afternoon arrivals with *"what have you done today?"*, shows the gesture of the week, and shows first-time tips for each button; texts live in `Config/trilha.json` and toggles live in Settings;
+- **the SMART flow in the engine**: an action created inside a SMART goal inherits its week and impact, a task picked from another day moves to today with its time, and completing a task can prompt the next step on its parent SMART goal (day-level buttons using this arrive with the daily protocols, which are not bundled yet);
+- **Creation with campaigns**: each channel and content front tracks weekly pieces; a piece gets destinations (channel profiles by format rules), a campaign link, and an `aprovado` state; `📅` checks what shipped during the week; and `🎥 Para gravar hoje` places ready scripts and teleprompter cues onto the Day note;
+- **directional branches**: empty Kanban columns explain the next step, and a project links out to the Creation branch and back;
+- **the single task creator**: every task is created through one path, whether triggered from New, a protocol, or the TaskNotes modal;
+- **verified research checklist**: tasks tagged `pesquisa` receive the verification checklist (`🔎 Conferir uma pesquisa`) item by item as branch nodes;
+- **the learning module**: `cartao` (one phrase per note, in four layers) and `peca_logica` ("how the language works") types with templates, levels, and progression track; `🗣️ Inglês de hoje` queues spaced repetition for the day, while `🗣️ Frase nova` and `🧩 Construir uma ideia` create cards. Target language, folder path, and ladder thresholds are configurable;
+- **guarded folder maps**: `dfm.json` manifests across the seven plugin folders, verified against real imports.
 
-O que fica de fora por enquanto: o agente do celular e os pacotes de protocolo (ver [CONTRIBUTING.md](CONTRIBUTING.md)).
+Left outside this repository for now: the mobile agent and the extended protocol packs (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
-## Como está organizado
+## Repository layout
 
-| Pasta | O que tem |
+| Folder | Contents |
 |---|---|
-| `plugin/` | o código do plugin `dfm-system` (TypeScript) e os testes |
-| `cofre-modelo/` | o esqueleto do cofre: as pastas, os modelos de tipo, as notas-modelo, os moldes e a bancada de juízes |
-| `config-padrao/` | as definições de partida que a aba de configurações usa antes da inicialização |
-| `cofre-exemplo/` | as notas de uma pessoa fictícia (áreas, projetos, tarefas, o dia, a semana, o trimestre, hábitos, um valor e um roteiro), para os testes e para ver o sistema funcionando; `scripts/montar_cofre_exemplo.py` o monta por cima do esqueleto numa pasta nova |
-| `ponte-do-agente/` | a ponte do agente, o lado do DSH (o pacote `dsh-vault-bridge`): as ferramentas pelas quais o Dk pessoal lê o estado da Missão e propõe, e o passo a passo para ligar |
-| `ponte-do-agente/skills/` | as instruções e as skills do Dk pessoal: o que fazem o agente local agir como o Dk pessoal sobre a ponte (ver "As skills do Dk pessoal", abaixo) |
-| `docs/` | a documentação de uso e de desenvolvimento |
-| `scripts/` | o instalador de um comando, a exportação por lista de permitidos, a guarda de vazamento e os gatilhos do git que a rodam antes de cada commit |
+| `plugin/` | TypeScript source and tests for the `dfm-system` Obsidian plugin |
+| `cofre-modelo/` | Vault skeleton: folders (`000`–`900`), domain models, templates, period model notes, and judge scripts (`200 - FUNCTIONS/Scripts/`) |
+| `config-padrao/` | Neutral starter definitions schema and defaults read before initialization |
+| `cofre-exemplo/` | Synthetic notes of a fictional person (areas, projects, tasks, day, week, quarter, habits, one value, and one script), used for tests and to see the system running; `scripts/montar_cofre_exemplo.py` builds it on top of the skeleton in a new directory |
+| `ponte-do-agente/` | Agent bridge, DSH side (`@dfm/dsh-vault-bridge`): tools through which the personal agent reads digested Mission state and creates triage proposals, plus setup instructions |
+| `ponte-do-agente/skills/` | Universal instructions and `dk-*` skills that make a local agent operate as a personal Dk over the bridge |
+| `ponte-do-agente/modo-dk-pessoal/` | Read-only DSH mode preset bundling the `dk-pessoal` base instructions |
+| `docs/` | Usage and development documentation |
+| `scripts/` | One-command installer, allowlist exporter, leak guard, and pre-commit git hooks |
 
-## Dependências
+## Dependencies
 
-| O quê | Para quê | Obrigatório |
+| Requirement | Purpose | Required |
 |---|---|---|
-| [Obsidian](https://obsidian.md) 1.12.2 ou mais novo | o aplicativo | sim |
-| [TaskNotes](https://github.com/callumalpass/tasknotes) (plugin da comunidade) | as tarefas: cada tarefa é uma nota, e a Missão, os projetos e os protocolos leem e gravam por ele | sim |
-| [Dataview](https://github.com/blacksmithgu/obsidian-dataview) (plugin da comunidade) | os blocos das notas do dia, da semana e do trimestre | sim |
-| [Node.js](https://nodejs.org) 20 ou mais novo | só para construir o plugin a partir do código | para construir |
-| DSH, o DeepSeek Harness (`npm i -g @deepseek-ai/dsh`) | o Dk pessoal, o agente local que trabalha sobre o cofre pela ponte do agente: lê o estado da Missão e propõe; nada grava sem o seu sim | para o sistema completo: sem ele, o cofre, a Missão e os protocolos funcionam, mas o Dk pessoal não (ver [ponte-do-agente/](ponte-do-agente/README.md)) |
+| [Obsidian](https://obsidian.md) 1.12.2 or newer | Desktop/mobile host application | yes |
+| [TaskNotes](https://github.com/callumalpass/tasknotes) (community plugin) | Task notes; Mission, projects, and protocols read and write through it | yes |
+| [Dataview](https://github.com/blacksmithgu/obsidian-dataview) (community plugin) | Embedded dynamic views in Day, Week, and Quarter notes | yes |
+| [Node.js](https://nodejs.org) 20 or newer | Building the plugin from source | for building |
+| DSH, the DeepSeek Harness (`npm i -g @deepseek-ai/dsh`) | Live agent runtime connected over the vault bridge: reads Mission state and submits proposals; nothing writes without your explicit approval | for the full system; without it, the vault, Mission, and protocols still work (see [`ponte-do-agente/`](ponte-do-agente/README.md)) |
 
-O DSH é o agente integrado: ele fala com o Obsidian ao vivo pela ponte. Também dá para usar outras ferramentas de agente no lugar dele, de forma externa, do jeito de sempre: lendo e editando as notas, as instruções e as pastas do cofre como arquivos. Assim o agente trabalha sobre o cofre, mas sem os efeitos ao vivo da ponte (a Missão, as tarefas do TaskNotes e os protocolos abertos na tela).
+DSH is the live integrated runtime talking to Obsidian over the loopback bridge. You can also run other external agent tools directly on the Markdown files on disk; those still operate on the vault files, without live UI effects in Mission, TaskNotes, or open protocols.
 
-## Como construir
+## Building from source
 
 ```sh
 cd plugin
 npm ci
-npm run build   # gera plugin/main.js
-npx vitest run  # os testes do pacote
+npm run build   # generates plugin/main.js
+npx vitest run  # runs the plugin unit/package test suite
 ```
 
-## Como experimentar
+## Trying it out
 
-Um comando monta um cofre pronto numa pasta nova:
+One command builds a ready-to-open vault in a fresh directory:
 
 ```sh
-python3 -B scripts/instalar.py ~/Cofres/meu-cofre               # o cofre vazio
-python3 -B scripts/instalar.py ~/Cofres/exemplo --com-exemplo   # com as notas de uma pessoa fictícia
+python3 -B scripts/instalar.py ~/Vaults/my-vault               # empty vault skeleton
+python3 -B scripts/instalar.py ~/Vaults/example --com-exemplo   # pre-populated with synthetic example notes
 ```
 
-Ele constrói o plugin se ainda não foi construído (pede o Node.js), copia o esqueleto, põe o plugin em `.obsidian/plugins/dfm-system/`, baixa a última versão do Dataview e do TaskNotes do GitHub (ou os copia de uma pasta sua, com `--plugins-de PASTA`), liga os três e as consultas JavaScript do Dataview. Depois:
+> On macOS, if your system `python3` has issues, run with Python 3.11+ (`python3 -B`).
 
-1. No Obsidian, "Abrir pasta como cofre" e escolha a pasta; confie nos plugins da comunidade quando ele perguntar.
-2. Rode o protocolo 🌱 Inicializar o cofre: ele pergunta o seu nome, as suas áreas, os seus valores e o foco do trimestre, cria só o que falta (as áreas e uma nota para cada valor) e grava as respostas nas definições. Tudo se edita depois na aba de configurações do plugin, em "Definições do sistema".
-3. Abra a Missão e, no começo da semana, o 🌳.
+The installer builds the plugin if `plugin/main.js` does not exist yet (requires Node.js), copies `cofre-modelo/`, places the plugin in `.obsidian/plugins/dfm-system/`, downloads the latest GitHub releases of Dataview and TaskNotes (or copies them from a local directory via `--plugins-de DIR`), enables all three plugins, and enables DataviewJS queries. Then:
 
-O Dk pessoal (o agente local) se liga à parte, pela [ponte do agente](ponte-do-agente/README.md).
+1. In Obsidian, choose **Open folder as vault** and select the created folder; trust community plugins when prompted.
+2. Run the `🌱 Inicializar o cofre` protocol: it prompts for your name, areas, values, and quarter focus, creates only the missing structure (areas and one note per value), and saves the definitions in plugin Settings ("Definições do sistema").
+3. Open **Mission** (`Missão`) and, at the start of the week, run `🌳`.
 
-## As skills do Dk pessoal
+To attach the live personal agent later, see [`ponte-do-agente/README.md`](ponte-do-agente/README.md).
 
-A ponte dá as ferramentas; as skills dão o comportamento. Elas ficam em [`ponte-do-agente/skills/`](ponte-do-agente/skills/README.md), uma pasta `<nome>/SKILL.md` por skill, escritas em passos curtos para funcionar também com modelos menores:
+## Personal Dk skills
 
-| Skill | O que faz |
+The bridge provides the tools; the skills define the behavior. They live in [`ponte-do-agente/skills/`](ponte-do-agente/skills/README.md), one `<name>/SKILL.md` folder per skill, written in short numbered steps so smaller models can follow them reliably:
+
+| Skill | Role |
 |---|---|
-| `dk-pessoal` | as instruções-base: quem o Dk é, o que pode e não pode, como propõe (pela triagem da Missão, em Propostas, nada sem o seu sim), como fala e a regra de conferir pesquisa |
-| `dk-estado-agora` | o que está em jogo hoje ou na semana pela Missão, e uma próxima ação |
-| `dk-fechar-o-dia` | fecha o dia pelo que você fez, propondo as linhas e as conclusões |
-| `dk-material-da-semana` | junta o material para revisar e planejar a semana, sem planejar por você |
-| `dk-capturar-tarefas` | propõe as tarefas que você disse, cada uma com o pai e o porquê |
-| `dk-pesquisa-conferida` | a pesquisa com fonte, data e o que falta conferir |
-| `dk-recomendar` | uma recomendação com o porquê |
+| `dk-pessoal` | Base instructions: identity, hard limits, how proposals work (via Mission triage under `Propostas`, never auto-writing), tone, and research verification rules |
+| `dk-estado-agora` | Digest of what is in play today or this week via Mission, plus one concrete next action |
+| `dk-fechar-o-dia` | Closes the day from what you actually did, proposing summary lines and takeaways |
+| `dk-material-da-semana` | Gathers factual material for weekly review and planning without planning for you |
+| `dk-capturar-tarefas` | Splits spoken/written items into structured task proposals linked to parent initiatives |
+| `dk-pesquisa-conferida` | Verified research with sources, dates, and remaining gaps to confirm |
+| `dk-recomendar` | Grounded recommendation tied to current focus and stakes, with explicit reasoning |
 
-São duas camadas: a universal, que vem aqui, e a pessoal, um arquivo `dk-pessoal/camada-pessoal.md` que só existe no seu cofre (o seu ritmo, os seus valores, os seus protocolos e onde ler o que muda). O ponto de partida é `dk-pessoal/camada-pessoal.exemplo.md`, e o `.gitignore` barra a camada pessoal.
+There are two layers: the **universal layer** shipped here, and your **personal layer**, a single file `dk-pessoal/camada-pessoal.md` kept only inside your private vault (your rhythm, values, protocols, and reading map). Start from `dk-pessoal/camada-pessoal.exemplo.md`; `.gitignore` excludes `camada-pessoal.md`.
 
-**Como ligar ao DSH.** Com a ponte já ligada, ponha as skills numa pasta que o DSH varre, uma pasta por skill:
+**Attaching skills to DSH:** with the bridge enabled, place the skills where DSH discovers them, one directory per skill:
 
 ```sh
-# no cofre, sem mexer na configuração do DSH (ele varre .agents/skills/ na raiz do projeto)
-mkdir -p /caminho/do/cofre/.agents/skills
-cp -R ponte-do-agente/skills/dk-* /caminho/do/cofre/.agents/skills/
+# project-local inside your vault (DSH scans .agents/skills/ at the workspace root)
+mkdir -p /path/to/your/vault/.agents/skills
+cp -R ponte-do-agente/skills/dk-* /path/to/your/vault/.agents/skills/
 
-# ou na pasta do usuário do DSH, com um symlink por skill
+# or user-global for DSH with one symlink per skill
 for s in ponte-do-agente/skills/dk-*; do ln -s "$(pwd)/$s" ~/.dsh/skills/"$(basename "$s")"; done
 ```
 
-Numa sessão nova, as sete aparecem no catálogo de skills; peça "carregue a skill dk-pessoal" ou pergunte "o que faço agora?". O detalhe está em [`ponte-do-agente/skills/README.md`](ponte-do-agente/skills/README.md).
+In a new session, all seven skills appear in the skill catalog. Ask to load `dk-pessoal` or simply ask *"o que faço agora?"* / *"what should I do now?"*. Details in [`ponte-do-agente/skills/README.md`](ponte-do-agente/skills/README.md).
 
-## A guarda de vazamento
+## The leak guard
 
-Tudo o que entra aqui passa por `scripts/guarda_vazamento.py`, que falha se aparecer qualquer termo de uma lista privada mantida fora do repositório, ou uma fala de alguém citada com data. A cópia é por lista de permitidos (`scripts/lista_permitidos.txt`): só sai o que alguém listou de propósito. Os arquivos escritos aqui, e não copiados, estão na mesma lista como `proprio`.
+Everything published here passes through `scripts/guarda_vazamento.py`, which fails if any term from an external private list appears or if any dated human quote appears. Export from a personal vault is strict allowlist-only (`scripts/lista_permitidos.txt`); files authored and maintained directly inside this repository are marked `proprio` in that same list.
 
 ```sh
-python3 -B scripts/guarda_vazamento.py --teste        # o autoteste da guarda
-python3 -B scripts/guarda_vazamento.py                # a varredura do disco (pede DK_TERMOS_PRIVADOS)
-python3 -B scripts/guarda_vazamento.py --historico    # todos os commits, as mensagens e os autores
-python3 -B scripts/instalar_gatilhos.py               # a guarda antes de cada commit (o índice e a mensagem)
-python3 -B scripts/conferir_definicoes.py             # o esquema das definições e a documentação dele
-python3 -B scripts/conferir_porta_dos_modulos.py     # o pacote sai com a lista vazia de módulos opcionais
-python3 -B scripts/montar_cofre_exemplo.py PASTA      # o esqueleto e o cofre de exemplo numa pasta nova
-python3 -B scripts/instalar.py --teste                # o autoteste do instalador (sem rede)
+python3 -B scripts/guarda_vazamento.py --teste        # guard self-test
+python3 -B scripts/guarda_vazamento.py                # disk scan (requires DK_TERMOS_PRIVADOS)
+python3 -B scripts/guarda_vazamento.py --historico    # full git history, messages, and authors
+python3 -B scripts/instalar_gatilhos.py               # installs pre-commit/commit-msg guard hooks
+python3 -B scripts/conferir_definicoes.py             # validates definitions schema vs documentation
+python3 -B scripts/conferir_porta_dos_modulos.py      # confirms empty optional-modules gate
+python3 -B scripts/montar_cofre_exemplo.py DIR        # builds skeleton + example vault into DIR
+python3 -B scripts/instalar.py --teste                # installer self-test (offline)
 ```
 
-O instalador põe os gatilhos de `scripts/gatilhos/` em `.git/hooks/` e grava, só na configuração local do git, o Python e o caminho da lista. Um commit com termo, com fala datada ou sem a lista não entra. A exportação deixa em `scripts/exportados.txt` (fora do git) a lista do que copiou, para a vez seguinte apagar o que saiu da lista de permitidos; rodar duas vezes dá o mesmo repositório.
+Running `scripts/instalar_gatilhos.py` installs hooks from `scripts/gatilhos/` into `.git/hooks/` and records the Python executable and private term list path strictly in local git config (`dk.python`, `dk.termos`). Commits matching a private term, a dated personal quote, or missing the guard configuration fail closed.
 
-## Como contribuir
+## Contributing
 
-Leia o [CONTRIBUTING.md](CONTRIBUTING.md). Em resumo: uma mudança por vez, com o teste que a prova, e nada de dados pessoais nos exemplos.
+Read [CONTRIBUTING.md](CONTRIBUTING.md). In short: one focused change at a time, with a test proving it, and zero personal data anywhere in tests or examples.
 
-## Licença
+## License
 
-MIT. Veja [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
